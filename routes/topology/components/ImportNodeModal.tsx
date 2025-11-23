@@ -1,44 +1,14 @@
 import * as React from 'react';
 import { useState, useRef } from 'react';
-import { 
-  Server, 
-  Smartphone, 
-  Laptop, 
-  Printer, 
-  Database, 
-  Cloud, 
-  Shield, 
-  Wifi, 
-  HardDrive, 
-  Video, 
-  Box,
-  Globe,
-  Cpu,
-  Upload
-} from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { ModalOverlay, Button, Input, Label, cn } from '../../../components/ui';
+import { NODE_TYPES } from '../constants'; // Import from constants
 
 interface ImportNodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (type: string, label: string, imageSrc?: string) => void;
 }
-
-const NODE_TYPES = [
-  { type: 'router', label: 'Router', icon: Globe },
-  { type: 'switch', label: 'Switch', icon: Box },
-  { type: 'server', label: 'Server', icon: Server },
-  { type: 'firewall', label: 'Firewall', icon: Shield },
-  { type: 'ap', label: 'Access Point', icon: Wifi },
-  { type: 'cloud', label: 'Internet', icon: Cloud },
-  { type: 'laptop', label: 'Laptop', icon: Laptop },
-  { type: 'phone', label: 'Mobile', icon: Smartphone },
-  { type: 'printer', label: 'Printer', icon: Printer },
-  { type: 'database', label: 'Database', icon: Database },
-  { type: 'storage', label: 'Storage', icon: HardDrive },
-  { type: 'camera', label: 'Camera', icon: Video },
-  { type: 'iot', label: 'IoT Device', icon: Cpu },
-];
 
 export const ImportNodeModal = ({ isOpen, onClose, onSelect }: ImportNodeModalProps) => {
   const [tab, setTab] = useState<'presets' | 'custom' | 'upload'>('presets');
