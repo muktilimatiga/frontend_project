@@ -66,6 +66,31 @@ export const MockService = {
     ];
   },
 
+  getTickets: async (): Promise<Ticket[]> => {
+    await delay(600);
+    // Generate more mock tickets for the table
+    const tickets: Ticket[] = [];
+    const statuses: Ticket['status'][] = ['open', 'in_progress', 'resolved', 'closed'];
+    const priorities: Ticket['priority'][] = ['low', 'medium', 'high', 'critical'];
+    
+    for(let i = 0; i < 50; i++) {
+        tickets.push({
+            id: `T-${2000 + i}`,
+            title: `System issue report #${2000 + i} - ${['Network latency', 'UI Glitch', 'Billing Error', 'Feature Request'][i % 4]}`,
+            status: statuses[i % 4],
+            priority: priorities[i % 4],
+            assigneeId: i % 3 === 0 ? 'u1' : null,
+            createdAt: new Date(Date.now() - i * 86400000).toISOString()
+        });
+    }
+    return tickets;
+  },
+
+  getCustomers: async (): Promise<User[]> => {
+    await delay(500);
+    return MOCK_USERS;
+  },
+
   getTicketLogs: async (): Promise<TicketLog[]> => {
     await delay(600);
     return [

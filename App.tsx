@@ -10,7 +10,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppLayout } from './components/Layout';
 import { Dashboard } from './routes/dashboard';
-import { TopologyPage, MapsPage, DatabasePage, HelpCenterPage } from './routes/pages';
+import { TopologyPage, MapsPage, DatabasePage, HelpCenterPage, TicketsPage, CustomersPage } from './routes/pages';
 import { Button } from './components/ui';
 
 // --- TanStack Query Setup ---
@@ -33,17 +33,7 @@ const indexRoute = createRoute({
 const ticketsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/tickets',
-  component: () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Tickets</h2>
-        <Button>New Ticket</Button>
-      </div>
-      <div className="rounded-md border border-slate-200 bg-white p-8 text-center text-slate-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400">
-        Ticket list placeholder view.
-      </div>
-    </div>
-  ),
+  component: TicketsPage,
 });
 
 const topologyRoute = createRoute({
@@ -73,7 +63,7 @@ const helpRoute = createRoute({
 const customersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/customers',
-  component: () => <div className="p-4 text-slate-500">Customers view placeholder.</div>,
+  component: CustomersPage,
 });
 
 const settingsRoute = createRoute({

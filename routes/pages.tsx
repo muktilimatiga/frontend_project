@@ -1,57 +1,268 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from '../components/ui';
-import { Search, Server, Database, Activity, Share2, MapPin, Globe, LifeBuoy, Book, MessageCircle, FileText } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge, DataTable, ColumnDef, ModalOverlay, Label, Select, Switch } from '../components/ui';
+import { Search, Server, Database, Activity, Share2, MapPin, Globe, LifeBuoy, Book, MessageCircle, FileText, Move, MousePointer2, Plus, GripVertical, Trash2 } from 'lucide-react';
+import { MockService } from '../mock';
+import { Ticket, User } from '../types';
 
-// --- Topology Page ---
-export const TopologyPage = () => {
+// --- Helper Components ---
+const StatusBadge = ({ status }: { status: string }) => {
+  const styles: any = { open: 'secondary', in_progress: 'warning', resolved: 'success', closed: 'outline' };
+  return <Badge variant={styles[status]}>{status.replace('_', ' ')}</Badge>;
+};
+
+const PriorityDot = ({ priority }: { priority: string }) => {
+  const colors: any = { low: 'bg-slate-400', medium: 'bg-blue-500', high: 'bg-orange-500', critical: 'bg-red-500' };
+  return <div className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${colors[priority]}`} /><span className="capitalize">{priority}</span></div>;
+};
+
+// --- Tickets Page ---
+export const TicketsPage = () => {
+  const { data: tickets = [], isLoading } = useQuery({ queryKey: ['allTickets'], queryFn: MockService.getTickets });
+
+  const columns: ColumnDef<Ticket>[] = [
+    { header: 'ID', accessorKey: 'id', className: 'font-mono text-xs' },
+    { header: 'Subject', accessorKey: 'title', className: 'font-medium max-w-[300px] truncate' },
+    { header: 'Status', accessorKey: 'status', cell: (t) => <StatusBadge status={t.status} /> },
+    { header: 'Priority', accessorKey: 'priority', cell: (t) => <PriorityDot priority={t.priority} /> },
+    { header: 'Created', accessorKey: 'createdAt', cell: (t) => new Date(t.createdAt).toLocaleDateString() },
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between">
+        <div>
+           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Tickets</h1>
+           <p className="text-slate-500 dark:text-slate-400">Manage support requests and issues.</p>
+        </div>
+        <Button>New Ticket</Button>
+      </div>
+      <Card>
+         <CardContent className="pt-6">
+            {isLoading ? <div className="p-8 text-center text-slate-500">Loading tickets...</div> : (
+              <DataTable 
+                 data={tickets} 
+                 columns={columns} 
+                 searchKey="title" 
+                 onEdit={(t) => console.log('Edit', t)}
+                 onDelete={(t) => console.log('Delete', t)}
+              />
+            )}
+         </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// --- Customers Page ---
+export const CustomersPage = () => {
+  const { data: customers = [], isLoading } = useQuery({ queryKey: ['customers'], queryFn: MockService.getCustomers });
+
+  const columns: ColumnDef<User>[] = [
+    { header: 'User', accessorKey: 'name', cell: (u) => (
+       <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold">{u.name.charAt(0)}</div>
+          <div>
+             <div className="font-medium">{u.name}</div>
+             <div className="text-xs text-slate-500">{u.email}</div>
+          </div>
+       </div>
+    )},
+    { header: 'Role', accessorKey: 'role', cell: (u) => <Badge variant="outline">{u.role}</Badge> },
+    { header: 'ID', accessorKey: 'id', className: 'text-xs text-slate-400 font-mono' },
+  ];
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between">
+        <div>
+           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Customers</h1>
+           <p className="text-slate-500 dark:text-slate-400">View and manage user accounts.</p>
+        </div>
+        <Button>Add Customer</Button>
+      </div>
+      <Card>
+         <CardContent className="pt-6">
+            {isLoading ? <div className="p-8 text-center text-slate-500">Loading customers...</div> : (
+              <DataTable 
+                 data={customers} 
+                 columns={columns} 
+                 searchKey="name" 
+                 onEdit={(u) => console.log('Edit', u)}
+                 onDelete={(u) => console.log('Delete', u)}
+              />
+            )}
+         </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// --- Topology Page (Interactive) ---
+
+type Node = {
+  id: string;
+  type: 'router' | 'switch' | 'server' | 'rect' | 'circle' | 'text';
+  x: number;
+  y: number;
+  label?: string;
+  w?: number;
+  h?: number;
+};
+
+export const TopologyPage = () => {
+  const [nodes, setNodes] = useState<Node[]>([
+     { id: 'n1', type: 'router', x: 400, y: 300, label: 'Core Router' },
+     { id: 'n2', type: 'switch', x: 250, y: 150, label: 'Switch A' },
+     { id: 'n3', type: 'server', x: 550, y: 150, label: 'Db Server' }
+  ]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [draggedNode, setDraggedNode] = useState<string | null>(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  
+  // Drag Logic
+  const handleMouseDown = (e: React.MouseEvent, id: string) => {
+    if (!isEditMode) return;
+    const node = nodes.find(n => n.id === id);
+    if (!node) return;
+    setDraggedNode(id);
+    setOffset({ x: e.clientX - node.x, y: e.clientY - node.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!draggedNode) return;
+    setNodes(prev => prev.map(n => {
+       if (n.id === draggedNode) {
+          return { ...n, x: e.clientX - offset.x, y: e.clientY - offset.y };
+       }
+       return n;
+    }));
+  };
+
+  const handleMouseUp = () => {
+    setDraggedNode(null);
+  };
+
+  const addNode = (type: Node['type'], label = 'New Node') => {
+     const id = `n-${Date.now()}`;
+     setNodes([...nodes, { id, type, x: 400, y: 300, label }]);
+  };
+
+  const deleteNode = (id: string) => {
+     setNodes(nodes.filter(n => n.id !== id));
+  }
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500" onMouseUp={handleMouseUp} onMouseMove={handleMouseMove}>
+      <ModalOverlay isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)}>
+         <div className="space-y-4">
+            <h2 className="text-lg font-semibold dark:text-white">Import Network Node</h2>
+            <div className="grid grid-cols-3 gap-4">
+               {['Router', 'Switch', 'Server', 'Firewall', 'Access Point', 'Cloud'].map(type => (
+                  <div 
+                     key={type} 
+                     className="flex flex-col items-center justify-center p-4 border border-slate-200 dark:border-slate-800 rounded hover:bg-slate-50 dark:hover:bg-slate-900 cursor-pointer transition-colors"
+                     onClick={() => {
+                        addNode(type.toLowerCase().split(' ')[0] as any, type);
+                        setIsImportModalOpen(false);
+                     }}
+                  >
+                     <Server className="h-6 w-6 mb-2 text-slate-600 dark:text-slate-400" />
+                     <span className="text-xs font-medium dark:text-slate-300">{type}</span>
+                  </div>
+               ))}
+            </div>
+            <Button variant="outline" className="w-full" onClick={() => setIsImportModalOpen(false)}>Cancel</Button>
+         </div>
+      </ModalOverlay>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Network Topology</h1>
           <p className="text-slate-500 dark:text-slate-400">Visualizing infrastructure nodes and connections.</p>
         </div>
         <div className="flex gap-2">
-           <Button variant="outline">Export Map</Button>
-           <Button>Add Node</Button>
+           <div className="flex items-center gap-2 bg-white dark:bg-slate-900 p-1 rounded-md border border-slate-200 dark:border-slate-800 mr-4">
+              <span className="text-xs font-medium px-2 text-slate-500">Mode:</span>
+              <Button 
+                 size="sm" 
+                 variant={!isEditMode ? 'default' : 'ghost'} 
+                 onClick={() => setIsEditMode(false)}
+                 className="h-7 text-xs"
+              >
+                 <MousePointer2 className="h-3 w-3 mr-1" /> View
+              </Button>
+              <Button 
+                 size="sm" 
+                 variant={isEditMode ? 'default' : 'ghost'} 
+                 onClick={() => setIsEditMode(true)}
+                 className="h-7 text-xs"
+              >
+                 <Move className="h-3 w-3 mr-1" /> Edit
+              </Button>
+           </div>
+           {isEditMode && (
+             <div className="flex items-center gap-1">
+                 <Button size="icon" variant="outline" title="Add Rectangle" onClick={() => addNode('rect')}><div className="h-4 w-4 border border-current" /></Button>
+                 <Button size="icon" variant="outline" title="Add Circle" onClick={() => addNode('circle')}><div className="h-4 w-4 rounded-full border border-current" /></Button>
+                 <Button size="icon" variant="outline" title="Add Text" onClick={() => addNode('text', 'Label')}><FileText className="h-4 w-4" /></Button>
+             </div>
+           )}
+           <Button onClick={() => setIsImportModalOpen(true)} disabled={!isEditMode}>
+              <Plus className="mr-2 h-4 w-4" /> Import Node
+           </Button>
         </div>
       </div>
 
-      <Card className="h-[600px] relative overflow-hidden bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center border-dashed">
-        <div className="absolute inset-0 grid grid-cols-[repeat(20,minmax(0,1fr))] grid-rows-[repeat(20,minmax(0,1fr))] opacity-[0.05] pointer-events-none">
-           {Array.from({ length: 400 }).map((_, i) => (
-             <div key={i} className="border-[0.5px] border-slate-500" />
-           ))}
+      <Card className="h-[600px] relative overflow-hidden bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center border-slate-200 dark:border-slate-800 select-none">
+        {/* Grid Background */}
+        <div className="absolute inset-0 grid grid-cols-[repeat(40,minmax(0,1fr))] grid-rows-[repeat(40,minmax(0,1fr))] opacity-[0.05] pointer-events-none">
+           {Array.from({ length: 1600 }).map((_, i) => <div key={i} className="border-[0.5px] border-slate-500" />)}
         </div>
         
-        {/* Mock Nodes */}
-        <div className="relative w-full h-full max-w-3xl max-h-96">
-           {/* Central Hub */}
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10">
-              <div className="h-16 w-16 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/20 animate-pulse">
-                 <Server className="h-8 w-8 text-white" />
-              </div>
-              <span className="mt-2 text-sm font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800">Core Switch</span>
-           </div>
-
-           {/* Satellites */}
-           {[0, 72, 144, 216, 288].map((deg, i) => {
-              const rad = (deg * Math.PI) / 180;
-              const x = Math.cos(rad) * 150;
-              const y = Math.sin(rad) * 150;
-              return (
-                <div key={i} className="absolute top-1/2 left-1/2 flex flex-col items-center transition-all duration-1000" style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}>
-                   {/* Connection Line (Pseudo) */}
-                   <div className="absolute top-1/2 left-1/2 w-[150px] h-[2px] bg-slate-300 dark:bg-slate-700 origin-left -z-10" 
-                        style={{ transform: `rotate(${deg + 180}deg) translate(0, -50%)`, width: '150px', left: '0', top: '2rem' }} />
-                   
-                   <div className="h-12 w-12 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center shadow-sm hover:border-indigo-500 hover:scale-110 transition-all cursor-pointer">
-                      <Share2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                   </div>
-                   <span className="mt-2 text-xs font-medium text-slate-500">Node-{100 + i}</span>
+        {/* Render Nodes */}
+        <div className="relative w-full h-full">
+           {nodes.map(node => (
+             <div 
+                key={node.id} 
+                className={`absolute flex flex-col items-center group ${isEditMode ? 'cursor-move' : 'cursor-default'}`}
+                style={{ left: node.x, top: node.y, transform: 'translate(-50%, -50%)' }}
+                onMouseDown={(e) => handleMouseDown(e, node.id)}
+             >
+                {/* Node Shape */}
+                <div className={`
+                   relative flex items-center justify-center shadow-md transition-all
+                   ${node.type === 'rect' ? 'w-24 h-16 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded' : ''}
+                   ${node.type === 'circle' ? 'w-20 h-20 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded-full' : ''}
+                   ${['router', 'switch', 'server', 'firewall'].includes(node.type) ? 'w-14 h-14 bg-indigo-600 rounded-full text-white' : ''}
+                   ${node.type === 'text' ? 'bg-transparent border-0 shadow-none' : ''}
+                   ${draggedNode === node.id ? 'scale-110 shadow-xl ring-2 ring-indigo-500' : ''}
+                `}>
+                   {node.type === 'router' && <Share2 className="h-6 w-6" />}
+                   {node.type === 'switch' && <Activity className="h-6 w-6" />}
+                   {node.type === 'server' && <Server className="h-6 w-6" />}
+                   {node.type === 'text' && <span className="text-lg font-bold text-slate-900 dark:text-white">{node.label}</span>}
                 </div>
-              );
-           })}
+
+                {/* Label */}
+                {node.type !== 'text' && (
+                   <span className="mt-2 text-xs font-semibold bg-white/80 dark:bg-slate-950/80 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 backdrop-blur-sm text-slate-700 dark:text-slate-300">
+                      {node.label}
+                   </span>
+                )}
+                
+                {/* Delete Button (Edit Mode Only) */}
+                {isEditMode && (
+                   <div 
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-600"
+                      onClick={(e) => { e.stopPropagation(); deleteNode(node.id); }}
+                   >
+                      <Trash2 className="h-3 w-3" />
+                   </div>
+                )}
+             </div>
+           ))}
         </div>
       </Card>
     </div>

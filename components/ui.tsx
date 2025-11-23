@@ -1,6 +1,7 @@
 import React from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { ChevronLeft, ChevronRight, MoreHorizontal, ArrowUpDown } from 'lucide-react';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -217,3 +218,194 @@ export const CommandItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes
   />
 ));
 CommandItem.displayName = "CommandItem";
+
+
+// --- Table Primitives ---
+
+export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(({ className, ...props }, ref) => (
+  <div className="w-full overflow-auto">
+    <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+  </div>
+))
+Table.displayName = "Table"
+
+export const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
+  <thead ref={ref} className={cn("[&_tr]:border-b dark:border-slate-800", className)} {...props} />
+))
+TableHeader.displayName = "TableHeader"
+
+export const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
+  <tbody ref={ref} className={cn("[&_tr:last-child]:border-0", className)} {...props} />
+))
+TableBody.displayName = "TableBody"
+
+export const TableFooter = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
+  <tfoot ref={ref} className={cn("bg-slate-900 font-medium text-slate-50 dark:bg-slate-50 dark:text-slate-900", className)} {...props} />
+))
+TableFooter.displayName = "TableFooter"
+
+export const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(({ className, ...props }, ref) => (
+  <tr ref={ref} className={cn("border-b transition-colors hover:bg-slate-100/50 data-[state=selected]:bg-slate-100 dark:hover:bg-slate-800/50 dark:data-[state=selected]:bg-slate-800 dark:border-slate-800", className)} {...props} />
+))
+TableRow.displayName = "TableRow"
+
+export const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
+  <th ref={ref} className={cn("h-12 px-4 text-left align-middle font-medium text-slate-500 [&:has([role=checkbox])]:pr-0 dark:text-slate-400", className)} {...props} />
+))
+TableHead.displayName = "TableHead"
+
+export const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
+  <td ref={ref} className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)} {...props} />
+))
+TableCell.displayName = "TableCell"
+
+export const TableCaption = React.forwardRef<HTMLTableCaptionElement, React.HTMLAttributes<HTMLTableCaptionElement>>(({ className, ...props }, ref) => (
+  <caption ref={ref} className={cn("mt-4 text-sm text-slate-500 dark:text-slate-400", className)} {...props} />
+))
+TableCaption.displayName = "TableCaption"
+
+
+// --- DataTable Component ---
+
+export type ColumnDef<T> = {
+  header: string;
+  accessorKey: keyof T;
+  cell?: (item: T) => React.ReactNode;
+  className?: string;
+};
+
+interface DataTableProps<T> {
+  data: T[];
+  columns: ColumnDef<T>[];
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  searchKey?: keyof T;
+}
+
+export function DataTable<T extends { id: string | number }>({ data, columns, onEdit, onDelete, searchKey }: DataTableProps<T>) {
+  const [sortKey, setSortKey] = React.useState<keyof T | null>(null);
+  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = React.useState(1);
+  const [search, setSearch] = React.useState('');
+  
+  const pageSize = 10;
+
+  // Filter
+  const filteredData = React.useMemo(() => {
+    if (!search || !searchKey) return data;
+    return data.filter(item => String(item[searchKey]).toLowerCase().includes(search.toLowerCase()));
+  }, [data, search, searchKey]);
+
+  // Sort
+  const sortedData = React.useMemo(() => {
+    if (!sortKey) return filteredData;
+    return [...filteredData].sort((a, b) => {
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredData, sortKey, sortDir]);
+
+  // Paginate
+  const paginatedData = React.useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return sortedData.slice(start, start + pageSize);
+  }, [sortedData, page]);
+
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+
+  const handleSort = (key: keyof T) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+         {searchKey && (
+            <div className="relative max-w-sm w-full">
+              <input 
+                 className="flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-50 dark:focus-visible:ring-slate-300" 
+                 placeholder="Search..."
+                 value={search}
+                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              />
+            </div>
+         )}
+      </div>
+      <div className="rounded-md border border-slate-200 dark:border-slate-800">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((col, i) => (
+                <TableHead 
+                   key={i} 
+                   className={cn("cursor-pointer hover:text-slate-700 dark:hover:text-slate-200", col.className)}
+                   onClick={() => handleSort(col.accessorKey)}
+                >
+                   <div className="flex items-center gap-1">
+                      {col.header}
+                      <ArrowUpDown className="h-3 w-3" />
+                   </div>
+                </TableHead>
+              ))}
+              {(onEdit || onDelete) && <TableHead className="text-right">Actions</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedData.length === 0 ? (
+               <TableRow>
+                  <TableCell colSpan={columns.length + (onEdit || onDelete ? 1 : 0)} className="h-24 text-center">
+                     No results.
+                  </TableCell>
+               </TableRow>
+            ) : (
+               paginatedData.map((item) => (
+                 <TableRow key={item.id}>
+                   {columns.map((col, i) => (
+                     <TableCell key={i} className={col.className}>
+                       {col.cell ? col.cell(item) : String(item[col.accessorKey])}
+                     </TableCell>
+                   ))}
+                   {(onEdit || onDelete) && (
+                     <TableCell className="text-right">
+                       <div className="flex justify-end gap-2">
+                          {onEdit && <Button size="sm" variant="ghost" onClick={() => onEdit(item)}>Edit</Button>}
+                          {onDelete && <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => onDelete(item)}>Delete</Button>}
+                       </div>
+                     </TableCell>
+                   )}
+                 </TableRow>
+               ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage(p => Math.max(1, p - 1))}
+          disabled={page === 1}
+        >
+          <ChevronLeft className="h-4 w-4" /> Previous
+        </Button>
+        <span className="text-sm text-slate-600 dark:text-slate-400">Page {page} of {totalPages || 1}</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+          disabled={page === totalPages || totalPages === 0}
+        >
+          Next <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}

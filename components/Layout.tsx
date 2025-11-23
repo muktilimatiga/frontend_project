@@ -47,7 +47,7 @@ const SidebarItem = ({ icon: Icon, label, to, isCollapsed }: { icon: any, label:
 };
 
 export const Sidebar = () => {
-  const { isCollapsed, toggleSidebar } = useAppStore();
+  const { isSidebarCollapsed: isCollapsed, toggleSidebar } = useAppStore();
 
   return (
     <aside 
@@ -110,7 +110,7 @@ export const Sidebar = () => {
 };
 
 export const Navbar = () => {
-  const { isCollapsed, toggleSidebar, theme, toggleTheme, toggleCli } = useAppStore();
+  const { isSidebarCollapsed: isCollapsed, toggleSidebar, theme, toggleTheme, toggleCli } = useAppStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -365,7 +365,7 @@ const CLIModal = () => {
 };
 
 export const AppLayout = () => {
-  const { isCollapsed, theme } = useAppStore();
+  const { isSidebarCollapsed: isCollapsed, theme } = useAppStore();
   const routerState = useRouterState();
 
   // Apply Theme Effect
