@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Fragment } from 'react';
 import { 
   Search, 
   Plus, 
@@ -554,7 +553,7 @@ export const HelpCenterPage = () => {
                   </div>
                ) : (
                   Object.entries(hierarchy).map(([category, subcategories]) => (
-                     <React.Fragment key={category}>
+                     <Fragment key={category}>
                         {/* Level 1: Category */}
                         <TreeRow 
                            level={0}
@@ -568,7 +567,7 @@ export const HelpCenterPage = () => {
                         {expandedItems[category] && Object.entries(subcategories).map(([subcategory, templates]) => {
                            const subKey = `${category}-${subcategory}`;
                            return (
-                              <React.Fragment key={subKey}>
+                              <Fragment key={subKey}>
                                  {/* Level 2: Subcategory */}
                                  <TreeRow 
                                     level={1}
@@ -583,7 +582,7 @@ export const HelpCenterPage = () => {
                                     const tmplKey = `tmpl-${template.id}`;
                                     const isOpen = !!expandedItems[tmplKey];
                                     return (
-                                       <React.Fragment key={template.id}>
+                                       <Fragment key={template.id}>
                                           <TreeRow 
                                              level={2}
                                              label={template.title}
@@ -600,13 +599,13 @@ export const HelpCenterPage = () => {
                                                 onDelete={() => initiateDelete(template)}
                                              />
                                           )}
-                                       </React.Fragment>
+                                       </Fragment>
                                     );
                                  })}
-                              </React.Fragment>
+                              </Fragment>
                            );
                         })}
-                     </React.Fragment>
+                     </Fragment>
                   ))
                )}
             </div>

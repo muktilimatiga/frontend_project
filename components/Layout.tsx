@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { Link, Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { 
   LayoutDashboard, 
-  Ticket, 
+  Ticket as TicketIcon, 
   Settings, 
   Users, 
   Menu, 
@@ -21,6 +21,7 @@ import {
   LifeBuoy
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { Toaster, toast } from 'sonner';
 import { useAppStore } from '../store';
 import { cn, Button, Input, Tooltip, ModalOverlay, Command, CommandInput, CommandList, CommandItem } from './ui';
 import { MockService, MockSocket } from '../mock';
@@ -75,7 +76,7 @@ export const Sidebar = () => {
       <div className="flex-1 overflow-y-auto py-4 flex flex-col justify-between scrollbar-none">
         <nav className="grid gap-1 px-2">
           <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" isCollapsed={isCollapsed} />
-          <SidebarItem icon={Ticket} label="Tickets" to="/tickets" isCollapsed={isCollapsed} />
+          <SidebarItem icon={TicketIcon} label="Tickets" to="/tickets" isCollapsed={isCollapsed} />
           <SidebarItem icon={Network} label="Topology" to="/topology" isCollapsed={isCollapsed} />
           <SidebarItem icon={Map} label="Maps" to="/maps" isCollapsed={isCollapsed} />
           <SidebarItem icon={Database} label="Database" to="/database" isCollapsed={isCollapsed} />
@@ -217,7 +218,7 @@ export const Navbar = () => {
                               {searchResults.tickets.map((t: any) => (
                                  <CommandItem key={t.id} onSelect={() => handleSelect('ticket', t.id)} onClick={() => handleSelect('ticket', t.id)}>
                                     <div className="flex items-center gap-2">
-                                       <Ticket className="h-4 w-4 text-slate-400" />
+                                       <TicketIcon className="h-4 w-4 text-slate-400" />
                                        <span className="font-medium text-xs bg-slate-100 px-1 rounded dark:bg-white/10">{t.id}</span>
                                        <span className="truncate">{t.title}</span>
                                     </div>
@@ -382,10 +383,31 @@ export const AppLayout = () => {
     }
   }, [theme]);
 
+  // Subscribe to Real-time events for Toasts
+  useEffect(() => {
+    const unsubscribe = MockSocket.subscribe((event) => {
+      if (event.type === 'NEW_TICKET') {
+         toast.info('New Ticket Created', {
+           description: `${event.payload.title}`,
+           action: {
+             label: 'View',
+             onClick: () => console.log('Navigate to ticket', event.payload.id)
+           }
+         });
+      } else if (event.type === 'NEW_LOG') {
+         toast(`New Activity on ${event.payload.ticketId}`, {
+           description: event.payload.message,
+         });
+      }
+    });
+    return unsubscribe;
+  }, []);
+
   const pathSegments = routerState.location.pathname.split('/').filter(Boolean);
   
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-black transition-colors duration-300">
+      <Toaster position="top-right" theme={theme === 'dark' ? 'dark' : 'light'} richColors />
       <Sidebar />
       <Navbar />
       <CLIModal />

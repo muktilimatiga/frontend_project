@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Download, ArrowLeft } from 'lucide-react';
 import { Button, DataTable, ColumnDef, Card, CardContent } from '../../../components/ui';
@@ -16,7 +16,7 @@ export const TableDataView = ({ tableName, onBack }: TableDataViewProps) => {
   });
 
   // Dynamic columns based on the first item
-  const columns: ColumnDef<any>[] = React.useMemo(() => {
+  const columns: ColumnDef<any>[] = useMemo(() => {
     if (data.length === 0) return [];
     const keys = Object.keys(data[0]);
     return keys.slice(0, 6).map(key => ({

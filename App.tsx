@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import {
   Outlet,
   RouterProvider,
@@ -19,17 +19,18 @@ import { MapsPage } from './routes/maps/index';
 import { DatabasePage } from './routes/database/index';
 import { HelpCenterPage } from './routes/help/index';
 import { SettingsPage } from './routes/settings/index';
-
-import { Button } from './components/ui';
+import { NotFoundPage, Error500Page } from './routes/errors';
 
 // --- TanStack Query Setup ---
 const queryClient = new QueryClient();
 
 // --- TanStack Router Setup ---
 
-// 1. Create Root Route (Layout)
+// 1. Create Root Route (Layout) with Error Handling
 const rootRoute = createRootRoute({
   component: AppLayout,
+  notFoundComponent: NotFoundPage,
+  errorComponent: Error500Page,
 });
 
 // 2. Create Child Routes
@@ -101,6 +102,7 @@ const memoryHistory = createMemoryHistory({
 const router = createRouter({ 
   routeTree,
   history: memoryHistory,
+  defaultPreload: 'intent',
 } as any);
 
 // --- Main App Component ---
