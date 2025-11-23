@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import * as React from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Download, ArrowLeft } from 'lucide-react';
 import { Button, DataTable, ColumnDef, Card, CardContent } from '../../../components/ui';

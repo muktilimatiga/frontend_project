@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Link, useRouter } from '@tanstack/react-router';
 import { AlertTriangle, FileQuestion, Home, RefreshCw } from 'lucide-react';
 import { Button } from '../components/ui';

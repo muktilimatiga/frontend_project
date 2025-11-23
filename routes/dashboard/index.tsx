@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import * as React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Network, Settings as SettingsIcon, FileText, Plus } from 'lucide-react';
 import { MockService, MockSocket } from '../../mock';

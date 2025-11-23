@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import * as React from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import { Link, Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { 
   LayoutDashboard, 

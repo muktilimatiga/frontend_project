@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, Search } from 'lucide-react';
 import { ModalOverlay, Label, Input, Select, Textarea, Button, Badge, Avatar, Switch, cn } from '../../../components/ui';

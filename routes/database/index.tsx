@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { Database, Download } from 'lucide-react';
 import { Button } from '../../components/ui';
 import { DatabaseTables } from './components/DatabaseTables';

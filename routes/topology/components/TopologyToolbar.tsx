@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Button } from '../../../components/ui';
 import { MousePointer2, Move, FileText, Plus, Zap, RotateCcw, RotateCw, MoreHorizontal } from 'lucide-react';
 import { cn, Select, Input } from '../../../components/ui';

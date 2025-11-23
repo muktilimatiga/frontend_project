@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Input, Badge } from '../../../components/ui';
 import { Search, CheckCircle2 } from 'lucide-react';
 import { Ticket } from '../../../types';

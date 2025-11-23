@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect, Fragment } from 'react';
+import * as React from 'react';
+import { useState, useMemo, useEffect, Fragment } from 'react';
 import { 
   Search, 
   Plus, 

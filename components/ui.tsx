@@ -1,4 +1,5 @@
-import React, { forwardRef, useState, useEffect, useRef, createContext, useContext, useMemo } from 'react';
+import * as React from 'react';
+import { forwardRef, useState, useEffect, useRef, createContext, useContext, useMemo } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ChevronLeft, ChevronRight, MoreHorizontal, ArrowUpDown } from 'lucide-react';
@@ -34,7 +35,7 @@ export const CardFooter = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
 CardFooter.displayName = "CardFooter";
 
 // --- Badge ---
-export const Badge = ({ children, variant = 'default', className }: { children?: React.ReactNode, variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'success' | 'warning', className?: string }) => {
+export const Badge = ({ children, variant = 'default', className, ...props }: React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'success' | 'warning' }) => {
   const variants = {
     default: "bg-slate-900 text-slate-50 hover:bg-slate-900/80 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90",
     secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-800/80",
@@ -44,7 +45,7 @@ export const Badge = ({ children, variant = 'default', className }: { children?:
     warning: "bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-900/50 dark:text-amber-50 dark:border dark:border-amber-900 dark:hover:bg-amber-900/90",
   };
   return (
-    <div className={cn("inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 border-transparent", variants[variant], className)}>
+    <div className={cn("inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 border-transparent", variants[variant], className)} {...props}>
       {children}
     </div>
   );
@@ -168,7 +169,7 @@ export const Avatar = ({ src, fallback, className }: { src?: string, fallback: s
 );
 
 // --- Modal Primitive ---
-export const ModalOverlay = ({ children, isOpen, onClose, className }: { children: React.ReactNode, isOpen: boolean, onClose: () => void, className?: string }) => {
+export const ModalOverlay = ({ children, isOpen, onClose, className }: { children?: React.ReactNode, isOpen: boolean, onClose: () => void, className?: string }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 p-4">
@@ -223,7 +224,7 @@ CommandItem.displayName = "CommandItem";
 // --- Dropdown Menu (Simplified Context-based) ---
 const DropdownMenuContext = createContext<{ isOpen: boolean; setIsOpen: (v: boolean) => void }>({ isOpen: false, setIsOpen: () => {} });
 
-export const DropdownMenu = ({ children }: { children: React.ReactNode }) => {
+export const DropdownMenu = ({ children }: { children?: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -248,7 +249,7 @@ export const DropdownMenu = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const DropdownMenuTrigger = ({ children }: { children: React.ReactNode }) => {
+export const DropdownMenuTrigger = ({ children }: { children?: React.ReactNode }) => {
   const { isOpen, setIsOpen } = useContext(DropdownMenuContext);
   return (
     <div onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }} className="cursor-pointer inline-flex">
@@ -257,7 +258,7 @@ export const DropdownMenuTrigger = ({ children }: { children: React.ReactNode })
   );
 };
 
-export const DropdownMenuContent = ({ children, className, align = 'end' }: { children: React.ReactNode, className?: string, align?: 'start' | 'end' }) => {
+export const DropdownMenuContent = ({ children, className, align = 'end' }: { children?: React.ReactNode, className?: string, align?: 'start' | 'end' }) => {
   const { isOpen } = useContext(DropdownMenuContext);
   if (!isOpen) return null;
   return (
@@ -267,7 +268,7 @@ export const DropdownMenuContent = ({ children, className, align = 'end' }: { ch
   );
 };
 
-export const DropdownMenuItem = ({ children, onClick, className }: { children: React.ReactNode, onClick?: (e: React.MouseEvent) => void, className?: string }) => {
+export const DropdownMenuItem = ({ children, onClick, className }: { children?: React.ReactNode, onClick?: (e: React.MouseEvent) => void, className?: string }) => {
     const { setIsOpen } = useContext(DropdownMenuContext);
   return (
     <div
@@ -283,7 +284,7 @@ export const DropdownMenuItem = ({ children, onClick, className }: { children: R
   );
 };
 
-export const DropdownMenuLabel = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+export const DropdownMenuLabel = ({ children, className }: { children?: React.ReactNode, className?: string }) => (
     <div className={cn("px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400", className)}>
         {children}
     </div>

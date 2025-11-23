@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Database, FileJson, Table, Eye, MoreHorizontal, Download } from 'lucide-react';
 import { 
   Card, CardHeader, CardTitle, CardContent, 

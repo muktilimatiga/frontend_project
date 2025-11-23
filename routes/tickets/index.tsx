@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, Button, DataTable, ColumnDef, Badge } from '../../components/ui';
 import { MockService } from '../../mock';

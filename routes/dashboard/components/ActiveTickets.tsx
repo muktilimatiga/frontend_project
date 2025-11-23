@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../../../components/ui';
 import { Play, UserCog, X } from 'lucide-react';
 import { Ticket } from '../../../types';

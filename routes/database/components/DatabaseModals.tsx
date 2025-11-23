@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { Database, Download, FileJson, FileText, HardDrive, Archive } from 'lucide-react';
 import { ModalOverlay, Button, Label, Input, Select, Switch, cn } from '../../../components/ui';
 

@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import * as React from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, Input, Button, DataTable, ColumnDef, Badge, cn } from '../../components/ui';
 import { 
@@ -131,7 +132,7 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
 };
 
 // --- Sub-Component: Topology Editor (The Canvas) ---
-const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: () => void }) => {
+export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: () => void }) => {
   // Initial Data (Mocked per topology for now, or just generic defaults)
   const initialNodes: Node[] = [
      { id: 'n1', type: 'router', x: 400, y: 300, label: 'Core Router', locked: true, color: '#3b82f6' },
@@ -513,8 +514,7 @@ export const TopologyPage = () => {
   const [selectedTopology, setSelectedTopology] = useState<any | null>(null);
 
   if (selectedTopology) {
-     return <TopologyEditor topology={selectedTopology} onBack={() => setSelectedTopology(null)} />;
+    return <TopologyEditor topology={selectedTopology} onBack={() => setSelectedTopology(null)} />;
   }
-
   return <TopologyList onSelect={setSelectedTopology} />;
 };
