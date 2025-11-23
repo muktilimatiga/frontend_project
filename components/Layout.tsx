@@ -31,7 +31,7 @@ const SidebarItem = ({ icon: Icon, label, to, isCollapsed }: { icon: any, label:
   return (
     <Link 
       to={to} 
-      className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 transition-all hover:text-slate-900 hover:bg-slate-100 data-[status=active]:bg-indigo-50 data-[status=active]:text-indigo-600 dark:text-slate-400 dark:hover:text-slate-50 dark:hover:bg-slate-800 dark:data-[status=active]:bg-slate-900 dark:data-[status=active]:text-indigo-400"
+      className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 transition-all hover:text-slate-900 hover:bg-slate-100 data-[status=active]:bg-indigo-50 data-[status=active]:text-indigo-600 dark:text-slate-400 dark:hover:text-slate-50 dark:hover:bg-white/10 dark:data-[status=active]:bg-white/10 dark:data-[status=active]:text-indigo-400"
       activeProps={{ 'data-status': 'active' }}
     >
       {isCollapsed ? (
@@ -52,13 +52,14 @@ export const Sidebar = () => {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen border-r border-slate-200 bg-white transition-all duration-300 flex flex-col dark:border-slate-800 dark:bg-[#020617]",
+        "fixed left-0 top-0 z-40 h-screen border-r border-slate-200 bg-white transition-all duration-300 flex flex-col dark:border-white/10 dark:bg-black",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex h-16 items-center border-b border-slate-200 px-4 justify-between dark:border-slate-800">
+      {/* Header */}
+      <div className="flex h-16 items-center border-b border-slate-200 px-4 justify-between dark:border-white/10">
         <div className={cn("flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-500", isCollapsed && "justify-center w-full")}>
-          <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white dark:bg-indigo-500">
+          <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white dark:bg-indigo-600 shrink-0">
             N
           </div>
           {!isCollapsed && <span>Nexus</span>}
@@ -70,7 +71,8 @@ export const Sidebar = () => {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4 flex flex-col justify-between">
+      {/* Nav Content */}
+      <div className="flex-1 overflow-y-auto py-4 flex flex-col justify-between scrollbar-none">
         <nav className="grid gap-1 px-2">
           <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" isCollapsed={isCollapsed} />
           <SidebarItem icon={Ticket} label="Tickets" to="/tickets" isCollapsed={isCollapsed} />
@@ -87,14 +89,18 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+      {/* Footer User/Toggle */}
+      <div className="border-t border-slate-200 p-4 dark:border-white/10">
         {isCollapsed ? (
-          <div className="flex justify-center">
-             <button onClick={toggleSidebar}><PanelLeftOpen className="h-5 w-5 text-slate-400 dark:text-slate-500" /></button>
+          <div className="flex justify-center flex-col items-center gap-4">
+             <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold dark:bg-white/10 dark:text-indigo-300 text-xs">
+               AC
+             </div>
+             <button onClick={toggleSidebar} className="mt-2"><PanelLeftOpen className="h-5 w-5 text-slate-400 dark:text-slate-500" /></button>
           </div>
         ) : (
           <div className="flex items-center gap-3">
-             <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold dark:bg-indigo-900/50 dark:text-indigo-300">
+             <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold dark:bg-white/10 dark:text-indigo-300">
                AC
              </div>
              <div className="flex flex-col">
@@ -137,14 +143,13 @@ export const Navbar = () => {
     if (type === 'page') {
       navigate({ to: idOrPath });
     } else {
-      // Mock navigation for items
       console.log(`Navigating to ${type}: ${idOrPath}`);
     }
   };
 
   return (
     <header className={cn(
-      "fixed top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 px-6 backdrop-blur transition-all duration-300 dark:border-slate-800 dark:bg-[#020617]/80",
+      "fixed top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 px-6 backdrop-blur transition-all duration-300 dark:border-white/10 dark:bg-black/80",
       isCollapsed ? "left-16 w-[calc(100%-4rem)]" : "left-64 w-[calc(100%-16rem)]"
     )}>
       {isCollapsed && (
@@ -160,7 +165,7 @@ export const Navbar = () => {
              onClick={() => setIsSearchOpen(true)}
           >
              <Search className="absolute left-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
-             <div className="w-full h-9 rounded-md border border-slate-300 bg-slate-50 px-3 py-1 pl-9 text-sm text-slate-500 dark:bg-slate-900/50 dark:border-slate-800 dark:text-slate-400 flex items-center">
+             <div className="w-full h-9 rounded-md border border-slate-300 bg-slate-50 px-3 py-1 pl-9 text-sm text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 flex items-center">
                 Search tickets, users, pages...
              </div>
           </div>
@@ -169,8 +174,8 @@ export const Navbar = () => {
           {isSearchOpen && (
             <>
                <div className="fixed inset-0 z-40" onClick={() => setIsSearchOpen(false)} />
-               <div className="absolute top-0 left-0 w-full z-50 mt-10 rounded-md border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-[#09090b]">
-                  <Command className="rounded-lg border shadow-md dark:border-slate-800">
+               <div className="absolute top-0 left-0 w-full z-50 mt-10 rounded-md border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-[#09090b]">
+                  <Command className="rounded-lg border shadow-md dark:border-white/10">
                      <CommandInput 
                         placeholder="Type to search..." 
                         autoFocus
@@ -193,12 +198,12 @@ export const Navbar = () => {
                            </div>
                         )}
                         {searchResults?.users?.length > 0 && (
-                           <div className="p-2 border-t border-slate-100 dark:border-slate-800">
+                           <div className="p-2 border-t border-slate-100 dark:border-white/10">
                               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 mb-2">Users</p>
                               {searchResults.users.map((user: any) => (
                                  <CommandItem key={user.id} onSelect={() => handleSelect('user', user.id)} onClick={() => handleSelect('user', user.id)}>
                                     <div className="flex items-center gap-2">
-                                       <div className="h-5 w-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] dark:bg-slate-700">{user.name.charAt(0)}</div>
+                                       <div className="h-5 w-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] dark:bg-white/10">{user.name.charAt(0)}</div>
                                        <span>{user.name}</span>
                                        <span className="text-xs text-slate-400 ml-auto">{user.email}</span>
                                     </div>
@@ -207,13 +212,13 @@ export const Navbar = () => {
                            </div>
                         )}
                         {searchResults?.tickets?.length > 0 && (
-                           <div className="p-2 border-t border-slate-100 dark:border-slate-800">
+                           <div className="p-2 border-t border-slate-100 dark:border-white/10">
                               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 mb-2">Tickets</p>
                               {searchResults.tickets.map((t: any) => (
                                  <CommandItem key={t.id} onSelect={() => handleSelect('ticket', t.id)} onClick={() => handleSelect('ticket', t.id)}>
                                     <div className="flex items-center gap-2">
                                        <Ticket className="h-4 w-4 text-slate-400" />
-                                       <span className="font-medium text-xs bg-slate-100 px-1 rounded dark:bg-slate-800">{t.id}</span>
+                                       <span className="font-medium text-xs bg-slate-100 px-1 rounded dark:bg-white/10">{t.id}</span>
                                        <span className="truncate">{t.title}</span>
                                     </div>
                                  </CommandItem>
@@ -255,20 +260,20 @@ export const Navbar = () => {
             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
           >
             <Bell className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-950" />
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
           </Button>
 
           {/* Notification Dropdown */}
           {isNotificationsOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsNotificationsOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-80 md:w-96 rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 z-20 overflow-hidden dark:border-slate-800 dark:bg-slate-950 dark:ring-white/10">
-                 <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="absolute right-0 top-full mt-2 w-80 md:w-96 rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 z-20 overflow-hidden dark:border-white/10 dark:bg-black dark:ring-white/10">
+                 <div className="p-4 border-b border-slate-100 dark:border-white/10">
                     <h3 className="font-semibold text-slate-900 dark:text-slate-50">Recent Activity</h3>
                  </div>
                  <div className="max-h-[300px] overflow-y-auto">
                     {logsQuery.data?.map((log) => (
-                      <div key={log.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 dark:border-slate-900 dark:hover:bg-slate-900 transition-colors">
+                      <div key={log.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5 transition-colors">
                         <div className="flex gap-3">
                            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700 shrink-0 dark:bg-indigo-900/50 dark:text-indigo-300">
                               {log.userName.charAt(0)}
@@ -286,7 +291,7 @@ export const Navbar = () => {
                       </div>
                     ))}
                  </div>
-                 <div className="p-2 border-t border-slate-100 bg-slate-50 text-center dark:border-slate-800 dark:bg-slate-900">
+                 <div className="p-2 border-t border-slate-100 bg-slate-50 text-center dark:border-white/10 dark:bg-white/5">
                     <button className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">View All Activity</button>
                  </div>
               </div>
@@ -377,7 +382,6 @@ export const AppLayout = () => {
     }
   }, [theme]);
 
-  // Simple breadcrumb logic based on path
   const pathSegments = routerState.location.pathname.split('/').filter(Boolean);
   
   return (

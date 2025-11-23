@@ -11,6 +11,8 @@ import React from 'react';
     email     String   @unique
     role      String   // 'admin', 'agent', 'user'
     avatarUrl String?
+    lat       Float?
+    lng       Float?
     tickets   Ticket[]
     logs      TicketLog[]
   }
@@ -46,6 +48,10 @@ export const UserSchema = z.object({
   email: z.string().email(),
   role: z.enum(['admin', 'agent', 'user']),
   avatarUrl: z.string().optional(),
+  coordinates: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  }).optional(),
 });
 
 export const TicketStatusSchema = z.enum(['open', 'in_progress', 'resolved', 'closed']);

@@ -9,8 +9,16 @@ import {
 } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppLayout } from './components/Layout';
-import { Dashboard } from './routes/dashboard';
-import { TopologyPage, MapsPage, DatabasePage, HelpCenterPage, TicketsPage, CustomersPage } from './routes/pages';
+
+// Modular Imports
+import { Dashboard } from './routes/dashboard/index';
+import { TicketsPage } from './routes/tickets/index';
+import { CustomersPage } from './routes/customers/index';
+import { TopologyPage } from './routes/topology/index';
+import { MapsPage } from './routes/maps/index';
+import { DatabasePage } from './routes/database/index';
+import { HelpCenterPage } from './routes/help/index';
+
 import { Button } from './components/ui';
 
 // --- TanStack Query Setup ---

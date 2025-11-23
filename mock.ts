@@ -3,12 +3,12 @@ import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User } f
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Alex Carter', email: 'alex@nexus.com', role: 'admin', avatarUrl: 'https://i.pravatar.cc/150?u=alex' },
-  { id: 'u2', name: 'Sarah Jones', email: 'sarah@client.com', role: 'user' },
-  { id: 'u3', name: 'Mike Chen', email: 'mike@tech.com', role: 'agent' },
-  { id: 'u4', name: 'Emma Wilson', email: 'emma@client.com', role: 'user' },
-  { id: 'u5', name: 'James Rod', email: 'james@corp.com', role: 'user' },
-  { id: 'u6', name: 'Lisa Ray', email: 'lisa@studio.com', role: 'user' },
+  { id: 'u1', name: 'Alex Carter', email: 'alex@nexus.com', role: 'admin', avatarUrl: 'https://i.pravatar.cc/150?u=alex', coordinates: { lat: 40.7128, lng: -74.0060 } },
+  { id: 'u2', name: 'Sarah Jones', email: 'sarah@client.com', role: 'user', coordinates: { lat: 40.7300, lng: -73.9950 } },
+  { id: 'u3', name: 'Mike Chen', email: 'mike@tech.com', role: 'agent', coordinates: { lat: 40.7500, lng: -73.9800 } },
+  { id: 'u4', name: 'Emma Wilson', email: 'emma@client.com', role: 'user', coordinates: { lat: 40.7100, lng: -74.0100 } },
+  { id: 'u5', name: 'James Rod', email: 'james@corp.com', role: 'user', coordinates: { lat: 40.7400, lng: -74.0000 } },
+  { id: 'u6', name: 'Lisa Ray', email: 'lisa@studio.com', role: 'user', coordinates: { lat: 40.7200, lng: -73.9900 } },
 ];
 
 export const MockService = {
@@ -89,6 +89,17 @@ export const MockService = {
   getCustomers: async (): Promise<User[]> => {
     await delay(500);
     return MOCK_USERS;
+  },
+  
+  getTopologies: async () => {
+    await delay(500);
+    return [
+       { id: 'topo-1', name: 'HQ Main Network', nodes: 24, status: 'Active', updatedAt: new Date().toISOString() },
+       { id: 'topo-2', name: 'Branch Office A - Backup', nodes: 8, status: 'Draft', updatedAt: new Date(Date.now() - 86400000).toISOString() },
+       { id: 'topo-3', name: 'Data Center Zone 1', nodes: 156, status: 'Active', updatedAt: new Date(Date.now() - 172800000).toISOString() },
+       { id: 'topo-4', name: 'Guest Wi-Fi Grid', nodes: 12, status: 'Maintenance', updatedAt: new Date(Date.now() - 432000000).toISOString() },
+       { id: 'topo-5', name: 'Proposed Expansion', nodes: 45, status: 'Draft', updatedAt: new Date(Date.now() - 604800000).toISOString() },
+    ];
   },
 
   getTicketLogs: async (): Promise<TicketLog[]> => {

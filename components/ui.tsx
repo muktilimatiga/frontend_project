@@ -220,6 +220,80 @@ export const CommandItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes
 CommandItem.displayName = "CommandItem";
 
 
+// --- Dropdown Menu (Simplified Context-based) ---
+const DropdownMenuContext = React.createContext<{ isOpen: boolean; setIsOpen: (v: boolean) => void }>({ isOpen: false, setIsOpen: () => {} });
+
+export const DropdownMenu = ({ children }: { children: React.ReactNode }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <DropdownMenuContext.Provider value={{ isOpen, setIsOpen }}>
+      <div className="relative inline-block text-left" ref={containerRef}>
+        {children}
+      </div>
+    </DropdownMenuContext.Provider>
+  );
+};
+
+export const DropdownMenuTrigger = ({ children }: { children: React.ReactNode }) => {
+  const { isOpen, setIsOpen } = React.useContext(DropdownMenuContext);
+  return (
+    <div onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }} className="cursor-pointer inline-flex">
+      {children}
+    </div>
+  );
+};
+
+export const DropdownMenuContent = ({ children, className, align = 'end' }: { children: React.ReactNode, className?: string, align?: 'start' | 'end' }) => {
+  const { isOpen } = React.useContext(DropdownMenuContext);
+  if (!isOpen) return null;
+  return (
+    <div className={cn("absolute z-50 mt-2 w-48 rounded-md border border-slate-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-white/10 dark:bg-[#09090b]", align === 'end' ? 'right-0 origin-top-right' : 'left-0 origin-top-left', className)}>
+      <div className="py-1">{children}</div>
+    </div>
+  );
+};
+
+export const DropdownMenuItem = ({ children, onClick, className }: { children: React.ReactNode, onClick?: (e: React.MouseEvent) => void, className?: string }) => {
+    const { setIsOpen } = React.useContext(DropdownMenuContext);
+  return (
+    <div
+      className={cn("block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white flex items-center gap-2", className)}
+      onClick={(e) => {
+        e.stopPropagation();
+        if(onClick) onClick(e);
+        setIsOpen(false);
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const DropdownMenuLabel = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div className={cn("px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400", className)}>
+        {children}
+    </div>
+);
+
+export const DropdownMenuSeparator = ({ className }: { className?: string }) => (
+    <div className={cn("h-px my-1 bg-slate-100 dark:bg-white/10", className)} />
+);
+
+
 // --- Table Primitives ---
 
 export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(({ className, ...props }, ref) => (
@@ -375,10 +449,21 @@ export function DataTable<T extends { id: string | number }>({ data, columns, on
                    ))}
                    {(onEdit || onDelete) && (
                      <TableCell className="text-right">
-                       <div className="flex justify-end gap-2">
-                          {onEdit && <Button size="sm" variant="ghost" onClick={() => onEdit(item)}>Edit</Button>}
-                          {onDelete && <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => onDelete(item)}>Delete</Button>}
-                       </div>
+                       <DropdownMenu>
+                           <DropdownMenuTrigger>
+                               <Button variant="ghost" className="h-8 w-8 p-0">
+                                   <span className="sr-only">Open menu</span>
+                                   <MoreHorizontal className="h-4 w-4" />
+                               </Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent align="end">
+                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                               <DropdownMenuItem onClick={() => navigator.clipboard.writeText(String(item.id))}>Copy ID</DropdownMenuItem>
+                               <DropdownMenuSeparator />
+                               {onEdit && <DropdownMenuItem onClick={() => onEdit(item)}>Edit Details</DropdownMenuItem>}
+                               {onDelete && <DropdownMenuItem onClick={() => onDelete(item)} className="text-red-600 dark:text-red-400">Delete</DropdownMenuItem>}
+                           </DropdownMenuContent>
+                       </DropdownMenu>
                      </TableCell>
                    )}
                  </TableRow>
