@@ -313,9 +313,10 @@ const StatusBadge = ({ status }: { status: Ticket['status'] }) => {
 };
 
 export const TicketDetailModal = ({ ticket, isOpen, onClose }: { ticket: Ticket | null, isOpen: boolean, onClose: () => void }) => {
+  // Fix: Wrapped queryFn in an arrow function and correctly passed ticket ID
   const logsQuery = useQuery({ 
     queryKey: ['logs', ticket?.id], 
-    queryFn: MockService.getTicketLogs,
+    queryFn: () => MockService.getTicketLogs(ticket?.id),
     enabled: !!ticket 
   });
 

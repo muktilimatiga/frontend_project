@@ -1,4 +1,4 @@
-import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User } from './types';
+import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User, BackendService } from './types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -11,7 +11,7 @@ const MOCK_USERS: User[] = [
   { id: 'u6', name: 'Lisa Ray', email: 'lisa@studio.com', role: 'user', coordinates: { lat: 40.7200, lng: -73.9900 } },
 ];
 
-export const MockService = {
+export const MockService: BackendService = {
   getDashboardStats: async (): Promise<DashboardStats> => {
     await delay(600);
     return {
@@ -117,14 +117,18 @@ export const MockService = {
     }));
   },
 
-  getTicketLogs: async (): Promise<TicketLog[]> => {
+  getTicketLogs: async (ticketId?: string): Promise<TicketLog[]> => {
     await delay(600);
-    return [
+    let logs = [
       { id: 'L-1', ticketId: 'T-1024', userId: 'u1', userName: 'Alex Carter', message: 'Investigating Safari specific rendering issue.', createdAt: new Date().toISOString() },
       { id: 'L-2', ticketId: 'T-1024', userId: 'u1', userName: 'Alex Carter', message: 'Reproduced on iOS 17.', createdAt: new Date(Date.now() - 1800000).toISOString() },
       { id: 'L-3', ticketId: 'T-1022', userId: 'u2', userName: 'Sarah Jones', message: 'Patch deployed to staging.', createdAt: new Date(Date.now() - 3600000).toISOString() },
       { id: 'L-4', ticketId: 'T-1023', userId: 'sys', userName: 'System', message: 'Ticket created via Email.', createdAt: new Date(Date.now() - 7200000).toISOString() },
     ];
+    if (ticketId) {
+      logs = logs.filter(l => l.ticketId === ticketId);
+    }
+    return logs;
   },
   
   updateTicketStatus: async (ticketId: string, status: string): Promise<boolean> => {
@@ -171,6 +175,8 @@ type Listener = (event: RealtimeEvent) => void;
 
 export const MockSocket = {
   listeners: new Set<Listener>(),
+  // Store interval ID to clear it later (prevents loops in sandbox)
+  intervalId: null as any,
   
   subscribe(listener: Listener) {
     this.listeners.add(listener);
@@ -206,9 +212,13 @@ const SIM_MESSAGES = [
 let logIdCounter = 100;
 let ticketIdCounter = 2000;
 
-// Only start interval if we are in a browser environment
+// Cleanup previous interval if exists (Hot Reload Fix)
 if (typeof window !== 'undefined') {
-  setInterval(() => {
+  if ((window as any).__mockInterval) {
+    clearInterval((window as any).__mockInterval);
+  }
+
+  const intervalId = setInterval(() => {
     // 1. Randomly add a new log (30% chance every 3s)
     if (Math.random() < 0.3) {
       const newLog: TicketLog = {
@@ -235,4 +245,7 @@ if (typeof window !== 'undefined') {
        MockSocket.emit({ type: 'NEW_TICKET', payload: newTicket });
     }
   }, 3000);
+
+  // Store interval on window to prevent duplicate loops
+  (window as any).__mockInterval = intervalId;
 }

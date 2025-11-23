@@ -105,3 +105,20 @@ export type NavItem = {
 export type RealtimeEvent = 
   | { type: 'NEW_TICKET'; payload: Ticket }
   | { type: 'NEW_LOG'; payload: TicketLog };
+
+// --- Service Interface ---
+// This ensures both your MockService and your Real Backend Service implement the same methods.
+export interface BackendService {
+  getDashboardStats: () => Promise<DashboardStats>;
+  getTrafficData: () => Promise<TrafficData>;
+  getTicketDistribution: () => Promise<{ name: string; value: number }[]>;
+  getRecentTickets: () => Promise<Ticket[]>;
+  getTickets: () => Promise<Ticket[]>;
+  getCustomers: () => Promise<User[]>;
+  getTopologies: () => Promise<any[]>;
+  getTableData: (tableName: string) => Promise<any[]>;
+  getTicketLogs: (ticketId?: string) => Promise<TicketLog[]>;
+  updateTicketStatus: (ticketId: string, status: string) => Promise<boolean>;
+  searchUsers: (query: string) => Promise<User[]>;
+  searchGlobal: (query: string) => Promise<{ users: User[]; tickets: any[]; pages: any[] }>;
+}

@@ -125,7 +125,8 @@ export const Navbar = () => {
   const [searchResults, setSearchResults] = useState<{users: any[], tickets: any[], pages: any[]} | null>(null);
   
   const navigate = useNavigate();
-  const logsQuery = useQuery({ queryKey: ['logs'], queryFn: MockService.getTicketLogs });
+  // Fix: Wrapped queryFn in an arrow function to prevent overload mismatch and incorrect argument passing
+  const logsQuery = useQuery({ queryKey: ['logs'], queryFn: () => MockService.getTicketLogs() });
 
   useEffect(() => {
     const delaySearch = setTimeout(async () => {

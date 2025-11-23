@@ -6,6 +6,9 @@
     <title>Nexus Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      // Polyfill process for libraries like Excalidraw
+      window.process = { env: { NODE_ENV: 'production' } };
+
       tailwind.config = {
         darkMode: 'class',
         theme: {
@@ -80,8 +83,9 @@
     "tailwind-merge": "https://esm.sh/tailwind-merge@2.2.1",
     "@tanstack/react-router": "https://esm.sh/@tanstack/react-router@1.19.1?deps=react@18.2.0,react-dom@18.2.0",
     "sonner": "https://esm.sh/sonner@1.4.3?deps=react@18.2.0,react-dom@18.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+    "@excalidraw/excalidraw": "https://esm.sh/@excalidraw/excalidraw@0.17.3?deps=react@18.2.0,react-dom@18.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
   }
 }
 </script>
