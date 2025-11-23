@@ -1,4 +1,5 @@
-import { BackendService, Ticket, TicketLog, DashboardStats, TrafficData, User } from '../types';
+
+import { BackendService, Ticket, TicketLog, DashboardStats, TrafficData, User, Device } from '../types';
 
 // Replace this with your actual backend URL
 const API_BASE_URL = typeof process !== 'undefined' && process.env.API_URL 
@@ -55,4 +56,6 @@ export const ApiService: BackendService = {
   searchUsers: (query: string) => fetchJson<User[]>(`/search/users?q=${encodeURIComponent(query)}`),
   
   searchGlobal: (query: string) => fetchJson<{ users: User[]; tickets: any[]; pages: any[] }>(`/search?q=${encodeURIComponent(query)}`),
+
+  getDevices: () => fetchJson<Device[]>('/devices'),
 };

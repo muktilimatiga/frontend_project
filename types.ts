@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import * as React from 'react';
 
@@ -94,6 +95,16 @@ export type TicketLog = z.infer<typeof TicketLogSchema>;
 export type DashboardStats = z.infer<typeof DashboardStatsSchema>;
 export type TrafficData = z.infer<typeof TrafficDataSchema>;
 
+export interface Device {
+  id: string;
+  name: string;
+  ip: string;
+  status: 'online' | 'offline' | 'warning';
+  folder: string;
+  type: string;
+  ping: number;
+}
+
 // --- App Types ---
 export type NavItem = {
   label: string;
@@ -121,4 +132,5 @@ export interface BackendService {
   updateTicketStatus: (ticketId: string, status: string) => Promise<boolean>;
   searchUsers: (query: string) => Promise<User[]>;
   searchGlobal: (query: string) => Promise<{ users: User[]; tickets: any[]; pages: any[] }>;
+  getDevices: () => Promise<Device[]>;
 }

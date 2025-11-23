@@ -1,4 +1,5 @@
-import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User, BackendService } from './types';
+
+import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User, BackendService, Device } from './types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -9,6 +10,17 @@ const MOCK_USERS: User[] = [
   { id: 'u4', name: 'Emma Wilson', email: 'emma@client.com', role: 'user', coordinates: { lat: 40.7100, lng: -74.0100 } },
   { id: 'u5', name: 'James Rod', email: 'james@corp.com', role: 'user', coordinates: { lat: 40.7400, lng: -74.0000 } },
   { id: 'u6', name: 'Lisa Ray', email: 'lisa@studio.com', role: 'user', coordinates: { lat: 40.7200, lng: -73.9900 } },
+];
+
+const MOCK_DEVICES: Device[] = [
+  { id: 'd1', name: 'Core Router HQ', ip: '192.168.1.1', status: 'online', folder: 'Routers', type: 'router', ping: 2 },
+  { id: 'd2', name: 'Switch Floor 1', ip: '192.168.1.2', status: 'online', folder: 'Switches', type: 'switch', ping: 4 },
+  { id: 'd3', name: 'Switch Floor 2', ip: '192.168.1.3', status: 'warning', folder: 'Switches', type: 'switch', ping: 150 },
+  { id: 'd4', name: 'Backup Server', ip: '10.0.0.5', status: 'online', folder: 'Servers', type: 'server', ping: 1 },
+  { id: 'd5', name: 'Web Server 01', ip: '10.0.0.10', status: 'offline', folder: 'Servers', type: 'server', ping: 0 },
+  { id: 'd6', name: 'Access Point Lobby', ip: '192.168.2.10', status: 'online', folder: 'Access Points', type: 'ap', ping: 8 },
+  { id: 'd7', name: 'Access Point Cafe', ip: '192.168.2.11', status: 'online', folder: 'Access Points', type: 'ap', ping: 12 },
+  { id: 'd8', name: 'Firewall Main', ip: '192.168.0.1', status: 'online', folder: 'Security', type: 'firewall', ping: 3 },
 ];
 
 export const MockService: BackendService = {
@@ -166,6 +178,11 @@ export const MockService: BackendService = {
     ].filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
 
     return { users, tickets, pages };
+  },
+
+  getDevices: async (): Promise<Device[]> => {
+    await delay(400);
+    return MOCK_DEVICES;
   }
 };
 

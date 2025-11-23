@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { User } from './types';
 
@@ -18,6 +19,10 @@ interface AppState {
   // CLI Modal State
   isCliOpen: boolean;
   toggleCli: () => void;
+
+  // Monitor Drawer State
+  isMonitorOpen: boolean;
+  toggleMonitor: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -39,4 +44,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   isCliOpen: false,
   toggleCli: () => set((state) => ({ isCliOpen: !state.isCliOpen })),
+
+  isMonitorOpen: false,
+  toggleMonitor: () => set((state) => ({ isMonitorOpen: !state.isMonitorOpen })),
 }));
