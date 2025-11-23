@@ -28,7 +28,7 @@
       }
       .dark {
         --tooltip-bg: #000;
-        --border: #333;
+        --border: #1f1f1f;
       }
       body {
         font-family: 'Inter', sans-serif;
@@ -37,7 +37,7 @@
       }
       .dark body {
         background-color: #000000; /* Pure Black */
-        color: #f8fafc;
+        color: #ffffff; /* Pure White for Max Contrast */
       }
       /* Custom scrollbar for cleaner look */
       ::-webkit-scrollbar {
@@ -51,11 +51,18 @@
         background: #cbd5e1;
         border-radius: 4px;
       }
+      .dark ::-webkit-scrollbar-track {
+        background: #000000;
+      }
       .dark ::-webkit-scrollbar-thumb {
-        background: #333;
+        background: #333333;
+        border: 1px solid #000000;
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #555555;
       }
     </style>
   <script type="importmap">

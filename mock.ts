@@ -102,6 +102,21 @@ export const MockService = {
     ];
   },
 
+  getTableData: async (tableName: string) => {
+    await delay(600);
+    if (tableName === 'users') return MOCK_USERS.map(u => ({ ...u, last_login: new Date().toISOString() }));
+    if (tableName === 'tickets') return (await MockService.getTickets()).slice(0, 20);
+    
+    // Generic rows for other tables
+    return Array.from({ length: 15 }).map((_, i) => ({
+       id: i + 1,
+       name: `${tableName}_record_${i}`,
+       status: i % 2 === 0 ? 'active' : 'archived',
+       created_at: new Date().toISOString(),
+       metadata: JSON.stringify({ version: 1, checked: true })
+    }));
+  },
+
   getTicketLogs: async (): Promise<TicketLog[]> => {
     await delay(600);
     return [
@@ -133,7 +148,7 @@ export const MockService = {
     
     const users = MOCK_USERS.filter(u => u.name.toLowerCase().includes(query.toLowerCase()));
     
-    // Quick mock ticket search (normally would call getRecentTickets but filtering here for speed)
+    // Quick mock ticket search
     const tickets = [
        { id: 'T-1024', title: 'Login page crashing on Safari', type: 'ticket' },
        { id: 'T-1023', title: 'Update subscription plan', type: 'ticket' }

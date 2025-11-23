@@ -18,6 +18,7 @@ import { TopologyPage } from './routes/topology/index';
 import { MapsPage } from './routes/maps/index';
 import { DatabasePage } from './routes/database/index';
 import { HelpCenterPage } from './routes/help/index';
+import { SettingsPage } from './routes/settings/index';
 
 import { Button } from './components/ui';
 
@@ -77,7 +78,7 @@ const customersRoute = createRoute({
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
-  component: () => <div className="p-4 text-slate-500">Settings view placeholder.</div>,
+  component: SettingsPage,
 });
 
 // 3. Create Route Tree and Router
