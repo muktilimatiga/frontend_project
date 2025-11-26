@@ -1,10 +1,199 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, Search } from 'lucide-react';
+import { ChevronLeft, Search, Lock, Unlock, X, MapPin, Wifi, CreditCard, CheckCircle2, Zap, User as UserIcon } from 'lucide-react';
 import { ModalOverlay, Label, Input, Select, Textarea, Button, Badge, Avatar, Switch, cn } from '../../../components/ui';
 import { MockService } from '../../../mock';
 import { Ticket, User } from '../../../types';
+
+// --- Reusable Components ---
+
+const TicketUserCard = ({ user, onChangeUser }: { user: User, onChangeUser?: () => void }) => {
+  return (
+    <div className="relative bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800">
+        {/* Decorative Header */}
+        <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 w-full" />
+        
+        <div className="px-6 pb-6">
+            <div className="flex justify-between items-start -mt-10 mb-4">
+                <div className="relative">
+                    <Avatar src={user.avatarUrl} fallback={user.name.charAt(0)} className="h-20 w-20 border-4 border-white dark:border-zinc-900 shadow-md text-xl" />
+                    <div className="absolute bottom-1 right-1 h-5 w-5 bg-emerald-500 border-2 border-white dark:border-zinc-900 rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="h-3 w-3 text-white" />
+                    </div>
+                </div>
+                {onChangeUser && (
+                    <Button variant="secondary" size="sm" className="mt-12 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700" onClick={onChangeUser}>
+                        Change Customer
+                    </Button>
+                )}
+            </div>
+
+            <div className="space-y-4">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        {user.name}
+                        <Badge variant="outline" className="text-xs font-normal text-slate-500 dark:text-slate-400">{user.id}</Badge>
+                        </h3>
+                        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            <span>{user.email}</span>
+                            <span className="w-1 h-1 bg-slate-300 dark:bg-zinc-700 rounded-full" />
+                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> New York, USA</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Technical Context Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                        <Wifi className="h-4 w-4" />
+                        </div>
+                        <div>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Status</p>
+                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Online</p>
+                        </div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <CreditCard className="h-4 w-4" />
+                        </div>
+                        <div>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Plan</p>
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">100 Mbps</p>
+                        </div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                        <Zap className="h-4 w-4" />
+                        </div>
+                        <div>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Device</p>
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Huawei ONT</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  );
+};
+
+const TicketFormFields = ({ 
+    formData, 
+    setFormData, 
+    readOnly = false 
+}: { 
+    formData: any, 
+    setFormData: (data: any) => void,
+    readOnly?: boolean
+}) => {
+    return (
+        <div className="p-6 space-y-5">
+            <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input 
+                    id="name" 
+                    value={formData.name} 
+                    onChange={e => setFormData({...formData, name: e.target.value})} 
+                    className="bg-slate-50/50 dark:bg-black/20"
+                    readOnly={readOnly}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="address">Installation Address</Label>
+                <Input 
+                    id="address" 
+                    value={formData.address} 
+                    onChange={e => setFormData({...formData, address: e.target.value})} 
+                    className="bg-slate-50/50 dark:bg-black/20"
+                    readOnly={readOnly}
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="contact">Contact Number</Label>
+                    <Input 
+                        id="contact" 
+                        value={formData.contact} 
+                        onChange={e => setFormData({...formData, contact: e.target.value})} 
+                        className="bg-slate-50/50 dark:bg-black/20"
+                        readOnly={readOnly}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="noInternet">No Internet ID</Label>
+                    <Input 
+                        id="noInternet" 
+                        value={formData.noInternet} 
+                        onChange={e => setFormData({...formData, noInternet: e.target.value})} 
+                        className="bg-slate-50/50 dark:bg-black/20"
+                        readOnly={readOnly}
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="ticketRef">Reference</Label>
+                    <Input 
+                        id="ticketRef" 
+                        value={formData.ticketRef} 
+                        readOnly 
+                        className="bg-slate-100 dark:bg-white/10 text-slate-500 cursor-not-allowed font-mono"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="priority">Priority</Label>
+                    <Select 
+                        id="priority" 
+                        value={formData.priority}
+                        onChange={e => setFormData({...formData, priority: e.target.value})}
+                        disabled={readOnly}
+                    >
+                        <option value="">Select...</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="type">Type</Label>
+                    <Select 
+                        id="type"
+                        value={formData.type}
+                        onChange={e => setFormData({...formData, type: e.target.value})}
+                        disabled={readOnly}
+                    >
+                        <option value="">Select...</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Billing">Billing</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Complaint">Complaint</option>
+                    </Select>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="description">Problem Description</Label>
+                <Textarea 
+                    id="description" 
+                    rows={4} 
+                    className="resize-none bg-slate-50/50 dark:bg-black/20 focus:ring-2 focus:ring-indigo-500/20"
+                    placeholder="Describe the customer's issue in detail..."
+                    value={formData.description}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                    readOnly={readOnly}
+                />
+            </div>
+        </div>
+    );
+};
 
 // --- Create Ticket Modal ---
 export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
@@ -13,12 +202,33 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
+  const [formData, setFormData] = useState({
+     name: '',
+     address: '',
+     contact: '',
+     noInternet: '',
+     ticketRef: '',
+     priority: '',
+     type: '',
+     description: ''
+  });
+
   useEffect(() => {
     if (isOpen) {
       setStep(1);
       setCustomerSearch('');
       setSelectedUser(null);
       setSearchResults([]);
+      setFormData({
+         name: '',
+         address: '',
+         contact: '',
+         noInternet: '',
+         ticketRef: '',
+         priority: '',
+         type: '',
+         description: ''
+      });
     }
   }, [isOpen]);
 
@@ -34,168 +244,99 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
     return () => clearTimeout(timer);
   }, [customerSearch]);
 
-  return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose}>
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Create Open Ticket</h2>
-        <div className="flex items-center gap-2 mb-4">
-           <div className={cn("h-2 rounded-full flex-1 transition-colors", step >= 1 ? "bg-indigo-600" : "bg-slate-200 dark:bg-white/10")} />
-           <div className={cn("h-2 rounded-full flex-1 transition-colors", step >= 2 ? "bg-indigo-600" : "bg-slate-200 dark:bg-white/10")} />
-        </div>
+  const handleUserSelect = (user: User) => {
+      setSelectedUser(user);
+      setStep(2);
+      // Pre-fill mock data based on user
+      setFormData({
+          name: user.name.toUpperCase(),
+          address: 'RT/RW.005/005, DSN. BENDILJET, DS. KARANGTALUN, KALID', // Mock Address
+          contact: '6282244311034', // Mock Contact
+          noInternet: '101037012073', // Mock ID
+          ticketRef: `TN${Math.floor(Math.random() * 100000).toString().padStart(6, '0')}`,
+          priority: '',
+          type: '',
+          description: ''
+      });
+  };
 
+  return (
+    <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
+        
         {step === 1 && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="space-y-2">
-                <Label htmlFor="customer-search">Find Customer</Label>
-                <div className="relative">
-                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                   <Input 
-                      id="customer-search" 
-                      placeholder="Search by name or email..." 
-                      className="pl-9"
-                      value={customerSearch}
-                      onChange={(e) => setCustomerSearch(e.target.value)}
-                      autoFocus
-                   />
+           <div className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Create Open Ticket</h2>
+              <div className="flex items-center gap-2 mb-4">
+                  <div className="h-2 rounded-full flex-1 bg-indigo-600" />
+                  <div className="h-2 rounded-full flex-1 bg-slate-200 dark:bg-white/10" />
+              </div>
+
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="space-y-2">
+                    <Label htmlFor="customer-search">Find Customer</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Input 
+                          id="customer-search" 
+                          placeholder="Search by name or email..." 
+                          className="pl-9"
+                          value={customerSearch}
+                          onChange={(e) => setCustomerSearch(e.target.value)}
+                          autoFocus
+                      />
+                    </div>
                 </div>
-             </div>
-             <div className="min-h-[200px] border border-slate-100 rounded-md p-2 dark:border-white/10">
-                {searchResults.length === 0 && customerSearch.length > 1 && (
-                   <p className="text-xs text-slate-500 text-center py-8">No customers found.</p>
-                )}
-                {searchResults.length === 0 && customerSearch.length <= 1 && (
-                   <p className="text-xs text-slate-500 text-center py-8">Start typing to search...</p>
-                )}
-                <div className="space-y-1">
-                   {searchResults.map(user => (
-                      <div 
-                         key={user.id} 
-                         onClick={() => { setSelectedUser(user); setStep(2); }}
-                         className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-white/5 rounded cursor-pointer transition-colors"
-                      >
-                         <Avatar fallback={user.name.charAt(0)} className="h-8 w-8 text-xs" />
-                         <div>
-                            <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{user.name}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
-                         </div>
-                         <Badge variant="outline" className="ml-auto text-[10px]">{user.role}</Badge>
-                      </div>
-                   ))}
+                <div className="min-h-[200px] border border-slate-100 rounded-md p-2 dark:border-white/10">
+                    {searchResults.length === 0 && customerSearch.length > 1 && (
+                      <p className="text-xs text-slate-500 text-center py-8">No customers found.</p>
+                    )}
+                    {searchResults.length === 0 && customerSearch.length <= 1 && (
+                      <p className="text-xs text-slate-500 text-center py-8">Start typing to search...</p>
+                    )}
+                    <div className="space-y-1">
+                      {searchResults.map(user => (
+                          <div 
+                            key={user.id} 
+                            onClick={() => handleUserSelect(user)}
+                            className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-white/5 rounded cursor-pointer transition-colors"
+                          >
+                            <Avatar fallback={user.name.charAt(0)} className="h-8 w-8 text-xs" />
+                            <div>
+                                <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{user.name}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                            </div>
+                            <Badge variant="outline" className="ml-auto text-[10px]">{user.role}</Badge>
+                          </div>
+                      ))}
+                    </div>
                 </div>
-             </div>
-             <div className="flex justify-end pt-2">
-                <Button variant="outline" onClick={onClose}>Cancel</Button>
-             </div>
-          </div>
+                <div className="flex justify-end pt-2">
+                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                </div>
+              </div>
+           </div>
         )}
 
         {step === 2 && selectedUser && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-             <div className="flex items-center gap-3 bg-indigo-50 p-3 rounded-md dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30">
-                <Avatar fallback={selectedUser.name.charAt(0)} className="h-10 w-10 text-sm bg-indigo-200 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-100" />
-                <div>
-                   <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{selectedUser.name}</p>
-                   <p className="text-xs text-slate-500 dark:text-slate-400">Customer • {selectedUser.email}</p>
-                </div>
-                <Button size="sm" variant="ghost" className="ml-auto h-6 w-6 p-0" onClick={() => setStep(1)}><ChevronLeft className="h-4 w-4" /></Button>
-             </div>
-
-             <div className="space-y-2">
-               <Label htmlFor="title">Subject</Label>
-               <Input id="title" placeholder="Brief description of the issue" autoFocus />
-             </div>
-             <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <Label htmlFor="priority">Priority</Label>
-                 <Select id="priority">
-                   <option>Low</option>
-                   <option>Medium</option>
-                   <option>High</option>
-                   <option>Critical</option>
-                 </Select>
-               </div>
-               <div className="space-y-2">
-                 <Label htmlFor="category">Category</Label>
-                 <Select id="category">
-                   <option>Technical</option>
-                   <option>Billing</option>
-                   <option>Feature Request</option>
-                 </Select>
-               </div>
-             </div>
-             <div className="space-y-2">
-               <Label htmlFor="desc">Description</Label>
-               <Textarea id="desc" placeholder="Detailed explanation..." rows={3} />
-             </div>
-             <div className="flex justify-end gap-2 pt-2">
-               <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
-               <Button onClick={onClose}>Create Ticket</Button>
-             </div>
+          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+             <TicketUserCard user={selectedUser} onChangeUser={() => setStep(1)} />
+             <TicketFormFields formData={formData} setFormData={setFormData} />
           </div>
         )}
       </div>
+
+      {step === 2 && selectedUser && (
+         <div className="flex justify-end gap-2 p-6 pt-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 sticky bottom-0 z-10 shadow-lg">
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none">Create Ticket</Button>
+         </div>
+      )}
     </ModalOverlay>
   );
 };
 
-// --- Config Modal ---
-export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClose: () => void, type: 'basic' | 'bridge' }) => {
-  const [isAuto, setIsAuto] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) setIsAuto(false);
-  }, [isOpen]);
-
-  return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose}>
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{type === 'basic' ? 'New Configuration' : 'New Config Bridge'}</h2>
-        
-        <div className="flex items-center justify-between bg-slate-50 dark:bg-white/5 p-3 rounded-md border border-slate-100 dark:border-white/10">
-           <div className="space-y-0.5">
-              <Label className="text-base">Automatic Configuration</Label>
-              <p className="text-xs text-slate-500">Let the system determine optimal settings.</p>
-           </div>
-           <Switch checked={isAuto} onCheckedChange={setIsAuto} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="config-name">Configuration Name</Label>
-          <Input id="config-name" placeholder="e.g. Main Router" />
-        </div>
-        {type === 'bridge' && (
-           <div className="space-y-2">
-             <Label htmlFor="interface">Interface</Label>
-             <Input id="interface" placeholder="eth0" disabled={isAuto} className={cn(isAuto && "opacity-50")} />
-           </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="params">Parameters (JSON)</Label>
-          <div className="relative">
-             <Textarea 
-                id="params" 
-                className={cn("font-mono text-xs transition-opacity", isAuto && "opacity-50 cursor-not-allowed")} 
-                rows={5} 
-                value={isAuto ? "{\n  \"mode\": \"auto\",\n  \"optimization\": true,\n  \"discovery\": \"dynamic\"\n}" : "{\n  \n}"}
-                readOnly={isAuto}
-             />
-             {isAuto && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                   <Badge variant="secondary" className="bg-white/90 shadow-sm dark:bg-black/90 backdrop-blur">Auto-Generated</Badge>
-                </div>
-             )}
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={onClose}>Save Config</Button>
-        </div>
-      </div>
-    </ModalOverlay>
-  );
-};
-
-// --- Process Action Modal ---
+// --- Process Action Modal (Detailed Version) ---
 export const ProcessActionModal = ({ 
   ticket, 
   isOpen, 
@@ -209,92 +350,489 @@ export const ProcessActionModal = ({
   onConfirm: (id: string, action: 'in_progress' | 'closed', note: string) => void,
   defaultAction?: 'forward' | 'close'
 }) => {
-  const [actionType, setActionType] = useState<'forward' | 'close'>(defaultAction);
-  const [note, setNote] = useState('');
+  const [formData, setFormData] = useState({
+     name: '',
+     address: '',
+     contact: '',
+     noInternet: '',
+     ticketRef: '',
+     priority: '',
+     type: '',
+     description: ''
+  });
+  const [mockUser, setMockUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-        setActionType(defaultAction);
-        setNote('');
+    if (isOpen && ticket) {
+        // Mock data population based on ticket
+        setFormData({
+            name: 'ALEX CARTER',
+            address: '123 FIBER OPTIC LANE, TECH CITY, NY 10001',
+            contact: '+1 555 019 2834',
+            noInternet: 'ONT-8293-X2',
+            ticketRef: ticket.id,
+            priority: ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1),
+            type: 'Technical',
+            description: ticket.title + ' - Investigating reported latency issues.'
+        });
+        
+        // Mock User for the card
+        setMockUser({
+            id: 'u-123',
+            name: 'Alex Carter',
+            email: 'alex@nexus.com',
+            role: 'user',
+            avatarUrl: 'https://i.pravatar.cc/150?u=alex',
+            coordinates: { lat: 40.7128, lng: -74.0060 }
+        });
     }
-  }, [isOpen, defaultAction]);
+  }, [isOpen, ticket]);
 
   if (!ticket) return null;
 
   return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose}>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Process Ticket <span className="text-slate-500 text-base font-normal">#{ticket.id}</span></h2>
-        </div>
-        
-        <div className="flex p-1 bg-slate-100 dark:bg-white/10 rounded-lg">
-            <button 
-                onClick={() => setActionType('forward')}
-                className={cn("flex-1 text-sm font-medium py-1.5 rounded-md transition-all", actionType === 'forward' ? "bg-white shadow-sm text-slate-900 dark:bg-white/20 dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-slate-400")}
-            >
-                Forward / Process
-            </button>
-            <button 
-                onClick={() => setActionType('close')}
-                className={cn("flex-1 text-sm font-medium py-1.5 rounded-md transition-all", actionType === 'close' ? "bg-white shadow-sm text-red-600 dark:bg-white/20 dark:text-red-400" : "text-slate-500 hover:text-slate-900 dark:text-slate-400")}
-            >
-                Close Ticket
-            </button>
+    <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+             <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
+                 <div className="flex items-center gap-2">
+                     <Badge variant="outline" className="bg-white dark:bg-zinc-800">{ticket.id}</Badge>
+                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Process Ticket</h2>
+                 </div>
+                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
+             </div>
+
+             {mockUser && (
+                 <TicketUserCard user={mockUser} />
+             )}
+
+             <TicketFormFields formData={formData} setFormData={setFormData} />
         </div>
 
-        <div className="space-y-3">
-            {actionType === 'forward' ? (
-                <>
-                    <div className="space-y-2">
-                        <Label>Assignee</Label>
-                        <Select>
-                            <option>Alex Carter (Me)</option>
-                            <option>Sarah Jones</option>
-                            <option>Technician Pool</option>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Priority Adjustment</Label>
-                        <Select defaultValue={ticket.priority}>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="critical">Critical</option>
-                        </Select>
-                    </div>
-                </>
-            ) : (
-                <div className="space-y-2">
-                    <Label>Resolution Code</Label>
-                    <Select>
-                        <option>Resolved</option>
-                        <option>Duplicate</option>
-                        <option>Cannot Reproduce</option>
-                        <option>Wont Fix</option>
-                    </Select>
-                </div>
-            )}
-
-            <div className="space-y-2">
-                <Label>Note / Comment</Label>
-                <Textarea 
-                    placeholder={actionType === 'forward' ? "Add instructions for the technician..." : "Reason for closing..."}
-                    value={note}
-                    onChange={e => setNote(e.target.value)}
-                />
+        <div className="flex justify-between items-center p-6 pt-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 sticky bottom-0 z-10 shadow-lg">
+            <div className="flex gap-2">
+            </div>
+            <div className="flex gap-2">
+                <Button variant="outline" onClick={onClose}>Cancel</Button>
+                <Button 
+                    onClick={() => onConfirm(ticket.id, 'in_progress', `Processed: ${formData.description}`)} 
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none"
+                >
+                    Update & Process
+                </Button>
             </div>
         </div>
+    </ModalOverlay>
+  );
+};
 
-        <div className="flex justify-end gap-2 pt-2">
+// --- Close Ticket Modal ---
+export const CloseTicketModal = ({
+    ticket,
+    isOpen,
+    onClose,
+    onConfirm
+}: {
+    ticket: Ticket | null,
+    isOpen: boolean,
+    onClose: () => void,
+    onConfirm: (id: string, note: string) => void
+}) => {
+    const [actionClose, setActionClose] = useState('');
+    
+    // Mock Data for View Only Fields
+    const mockData = {
+        name: 'NURYANTI',
+        address: 'DSN. KRAJAN, 02/03, NGENTRONG, CAMPURDARAT',
+        description: ticket?.title || 'Mas minta tolong ganti kata sandi',
+        lastAction: 'cek',
+        onuIndex: 'gpon-onu_1/1/6:62',
+        onuSn: 'ZTEGA6DD7279'
+    };
+
+    if (!ticket) return null;
+
+    return (
+        <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+             <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex justify-between items-center">
+                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Close Ticket</h2>
+                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
+             </div>
+             
+             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                 <div className="space-y-2">
+                     <Label className="text-xs text-slate-500">Name</Label>
+                     <Input value={mockData.name} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                 </div>
+                 <div className="space-y-2">
+                     <Label className="text-xs text-slate-500">Address</Label>
+                     <Input value={mockData.address} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Description</Label>
+                         <Textarea value={mockData.description} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300 min-h-[80px] resize-none" />
+                     </div>
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Last Action</Label>
+                         <Textarea value={mockData.lastAction} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300 min-h-[80px] resize-none" />
+                     </div>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">ONU index</Label>
+                         <Input value={mockData.onuIndex} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     </div>
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">ONU SN</Label>
+                         <Input value={mockData.onuSn} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     </div>
+                 </div>
+                 
+                 <div className="space-y-2 pt-2">
+                     <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Action Close</Label>
+                     <Textarea 
+                        value={actionClose} 
+                        onChange={(e) => setActionClose(e.target.value)} 
+                        className="min-h-[100px] border-slate-300 dark:border-zinc-700"
+                        placeholder="Detail resolution notes..."
+                     />
+                 </div>
+             </div>
+
+             <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 flex justify-end gap-2 sticky bottom-0 z-10">
+                 <Button variant="outline" onClick={onClose}>Cancel</Button>
+                 <Button onClick={() => onConfirm(ticket.id, actionClose)} className="bg-red-600 hover:bg-red-700 text-white dark:text-white">Submit & Close</Button>
+             </div>
+        </ModalOverlay>
+    );
+};
+
+// --- Forward Ticket (Technician) Modal ---
+export const ForwardTicketModal = ({
+    ticket,
+    isOpen,
+    onClose,
+    onConfirm
+}: {
+    ticket: Ticket | null,
+    isOpen: boolean,
+    onClose: () => void,
+    onConfirm: (id: string, note: string) => void
+}) => {
+    // Mock Data for View Only Fields
+    const mockData = {
+        name: 'AMINAH AGUSTINA',
+        address: 'DSN DADAPAN RT 02/RW 02 DS BOYOLANGU KEC BOYOLANGU',
+        description: ticket?.title || 'minta memperpendek jaringan',
+        lastAction: 'cek',
+        onuIndex: 'gpon-onu_1/1/6:62',
+        onuSn: 'ZTEGC84A09F0'
+    };
+
+    const [formData, setFormData] = useState({
+        serviceImpact: '',
+        rootCause: '',
+        networkImpact: '',
+        severity: 'LOW',
+        pic: '',
+        recommendedAction: ''
+    });
+
+    if (!ticket) return null;
+
+    return (
+        <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+             <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex justify-between items-center">
+                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Forward Ticket</h2>
+                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
+             </div>
+             
+             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                 <div className="space-y-2">
+                     <Label className="text-xs text-slate-500">Name</Label>
+                     <Input value={mockData.name} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                 </div>
+                 <div className="space-y-2">
+                     <Label className="text-xs text-slate-500">Address</Label>
+                     <Input value={mockData.address} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Description</Label>
+                         <Input value={mockData.description} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     </div>
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Last Action</Label>
+                         <Input value={mockData.lastAction} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     </div>
+                 </div>
+
+                 <div className="space-y-2">
+                     <Label className="text-xs text-slate-500">Service Impact/Desc</Label>
+                     <Input value={formData.serviceImpact} onChange={e => setFormData({...formData, serviceImpact: e.target.value})} />
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Root Cause</Label>
+                         <Input value={formData.rootCause} onChange={e => setFormData({...formData, rootCause: e.target.value})} />
+                     </div>
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Network Impact</Label>
+                         <Input value={formData.networkImpact} onChange={e => setFormData({...formData, networkImpact: e.target.value})} />
+                     </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">ONU index</Label>
+                         <Input value={mockData.onuIndex} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     </div>
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">ONU SN</Label>
+                         <Input value={mockData.onuSn} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     </div>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Severity</Label>
+                         <Select value={formData.severity} onChange={e => setFormData({...formData, severity: e.target.value})}>
+                            <option value="LOW">LOW</option>
+                            <option value="MEDIUM">MEDIUM</option>
+                            <option value="HIGH">HIGH</option>
+                         </Select>
+                     </div>
+                     <div className="space-y-2">
+                         <Label className="text-xs text-slate-500">Person In Charge</Label>
+                         <Select value={formData.pic} onChange={e => setFormData({...formData, pic: e.target.value})}>
+                            <option value="">--Choose One--</option>
+                            <option value="tech1">Technician A</option>
+                            <option value="tech2">Technician B</option>
+                            <option value="tech3">Technician C</option>
+                         </Select>
+                     </div>
+                 </div>
+
+                 <div className="space-y-2">
+                     <Label className="text-xs text-slate-500">Recommended Action</Label>
+                     <Textarea 
+                        value={formData.recommendedAction} 
+                        onChange={(e) => setFormData({...formData, recommendedAction: e.target.value})} 
+                        className="min-h-[80px]"
+                     />
+                 </div>
+             </div>
+
+             <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 flex justify-end gap-2 sticky bottom-0 z-10">
+                 <Button variant="outline" onClick={onClose}>Cancel</Button>
+                 <Button onClick={() => onConfirm(ticket.id, formData.recommendedAction)} className="bg-indigo-600 hover:bg-indigo-700 text-white">Forward to Tech</Button>
+             </div>
+        </ModalOverlay>
+    );
+};
+
+
+// --- Config Modal ---
+export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClose: () => void, type: 'basic' | 'bridge' }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [formData, setFormData] = useState({
+     olt: 'OLT-01',
+     name: '',
+     address: '',
+     pppoeUser: '',
+     pppoePass: '',
+     package: '100mbps',
+     ethLock: false,
+     interface: 'eth1'
+  });
+
+  // Reset on open
+  useEffect(() => {
+     if(isOpen) {
+        setSearchTerm('');
+        setSearchResults([]);
+        setFormData({
+            olt: 'OLT-01',
+            name: '',
+            address: '',
+            pppoeUser: '',
+            pppoePass: '',
+            package: '100mbps',
+            ethLock: false,
+            interface: 'eth1'
+        });
+     }
+  }, [isOpen]);
+
+  // Search Mock
+  useEffect(() => {
+     const timer = setTimeout(async () => {
+        if (searchTerm.length > 1) {
+           const res = await MockService.searchUsers(searchTerm);
+           setSearchResults(res);
+        } else {
+           setSearchResults([]);
+        }
+     }, 300);
+     return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const handleSelectUser = (user: User) => {
+     setFormData(prev => ({
+        ...prev,
+        name: user.name,
+        address: '123 Fiber Street, Suite 400, New York, NY 10001', // Mock address
+        pppoeUser: user.email.split('@')[0],
+        pppoePass: 'password123',
+        ethLock: false
+     }));
+     setSearchTerm('');
+     setSearchResults([]);
+  };
+
+  return (
+    <ModalOverlay isOpen={isOpen} onClose={onClose}>
+      <div className="space-y-5">
+         <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+               {type === 'basic' ? 'New Service Configuration' : 'New Bridge Configuration'}
+            </h2>
+            {/* Removed redundant close button to prevent double close action */}
+         </div>
+
+         {/* Search Section */}
+         <div className="space-y-2 relative">
+            <Label>Import from CRM</Label>
+            <div className="relative">
+               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+               <Input 
+                  placeholder="Search subscriber by name or ID..." 
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  autoFocus
+               />
+            </div>
+            {/* Dropdown Results */}
+            {searchResults.length > 0 && (
+               <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                  {searchResults.map(u => (
+                     <div 
+                        key={u.id}
+                        className="p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer flex items-center gap-2 border-b border-slate-50 dark:border-white/5 last:border-0"
+                        onClick={() => handleSelectUser(u)}
+                     >
+                        <Avatar fallback={u.name.charAt(0)} className="h-8 w-8 text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" />
+                        <div>
+                           <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{u.name}</p>
+                           <p className="text-xs text-slate-500">{u.email}</p>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            )}
+         </div>
+
+         <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+               <Label>OLT Device</Label>
+               <Select 
+                  value={formData.olt} 
+                  onChange={e => setFormData({...formData, olt: e.target.value})}
+               >
+                  <option value="OLT-01">Huawei MA5608T - HQ</option>
+                  <option value="OLT-02">ZTE C320 - Branch A</option>
+                  <option value="OLT-03">Nokia 7360 - North</option>
+               </Select>
+            </div>
+            <div className="space-y-2">
+               <Label>Service Package</Label>
+               <Select 
+                  value={formData.package} 
+                  onChange={e => setFormData({...formData, package: e.target.value})}
+               >
+                  <option value="50mbps">Home Basic (50 Mbps)</option>
+                  <option value="100mbps">Home Stream (100 Mbps)</option>
+                  <option value="300mbps">Gamer Pro (300 Mbps)</option>
+                  <option value="1gbps">Gigabit Business</option>
+               </Select>
+            </div>
+         </div>
+
+         <div className="space-y-2">
+            <Label>Subscriber Name</Label>
+            <Input 
+               value={formData.name} 
+               onChange={e => setFormData({...formData, name: e.target.value})}
+               placeholder="Full Name"
+            />
+         </div>
+
+         <div className="space-y-2">
+            <Label>Installation Address</Label>
+            <Textarea 
+               value={formData.address} 
+               onChange={e => setFormData({...formData, address: e.target.value})}
+               placeholder="Street address, unit, city..."
+               className="min-h-[60px]"
+            />
+         </div>
+
+         <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-lg border border-slate-100 dark:border-white/10">
+            <div className="space-y-2">
+               <Label>PPPoE Username</Label>
+               <Input 
+                  value={formData.pppoeUser} 
+                  onChange={e => setFormData({...formData, pppoeUser: e.target.value})}
+                  placeholder="username"
+               />
+            </div>
+            <div className="space-y-2">
+               <Label>PPPoE Password</Label>
+               <Input 
+                  type="password"
+                  value={formData.pppoePass} 
+                  onChange={e => setFormData({...formData, pppoePass: e.target.value})}
+                  placeholder="••••••"
+               />
+            </div>
+         </div>
+
+         {type === 'bridge' && (
+             <div className="space-y-2">
+               <Label>Bridge Interface</Label>
+               <Input 
+                  value={formData.interface}
+                  onChange={e => setFormData({...formData, interface: e.target.value})}
+                  placeholder="e.g. eth1, nas0_1"
+               />
+             </div>
+         )}
+
+         <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center gap-2">
+               <div className={cn("p-2 rounded-full", formData.ethLock ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" : "bg-slate-100 text-slate-500 dark:bg-white/10")}>
+                  {formData.ethLock ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+               </div>
+               <div className="space-y-0.5">
+                  <Label className="cursor-pointer" onClick={() => setFormData({...formData, ethLock: !formData.ethLock})}>Ethernet Port Lock</Label>
+                  <p className="text-xs text-slate-500">Restrict port access to specific MAC</p>
+               </div>
+            </div>
+            <Switch 
+               checked={formData.ethLock} 
+               onCheckedChange={c => setFormData({...formData, ethLock: c})} 
+            />
+         </div>
+
+         <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button 
-                variant={actionType === 'close' ? 'destructive' : 'default'}
-                onClick={() => onConfirm(ticket.id, actionType === 'forward' ? 'in_progress' : 'closed', note)}
-            >
-                {actionType === 'forward' ? 'Start Processing' : 'Close Ticket'}
+            <Button onClick={() => { console.log(formData); onClose(); }}>
+               {type === 'basic' ? 'Provision Service' : 'Configure Bridge'}
             </Button>
-        </div>
+         </div>
       </div>
     </ModalOverlay>
   );

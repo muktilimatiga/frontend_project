@@ -258,11 +258,51 @@ export const DropdownMenuTrigger = ({ children, className }: { children?: React.
   );
 };
 
-export const DropdownMenuContent = ({ children, className, align = 'end' }: { children?: React.ReactNode, className?: string, align?: 'start' | 'end' }) => {
+export const DropdownMenuContent = ({ 
+  children, 
+  className, 
+  align = 'end', 
+  side = 'bottom',
+  ...props
+}: { 
+  children?: React.ReactNode, 
+  className?: string, 
+  align?: 'start' | 'end' | 'center', 
+  side?: 'top' | 'bottom' | 'left' | 'right' 
+} & React.HTMLAttributes<HTMLDivElement>) => {
   const { isOpen } = useContext(DropdownMenuContext);
   if (!isOpen) return null;
+
+  let positionClasses = "";
+  if (side === 'bottom') {
+      positionClasses = "mt-2";
+      if (align === 'end') positionClasses += " right-0 origin-top-right";
+      else if (align === 'start') positionClasses += " left-0 origin-top-left";
+      else if (align === 'center') positionClasses += " left-1/2 -translate-x-1/2 origin-top";
+  } else if (side === 'top') {
+      positionClasses = "bottom-full mb-2";
+      if (align === 'end') positionClasses += " right-0 origin-bottom-right";
+      else if (align === 'start') positionClasses += " left-0 origin-bottom-left";
+      else if (align === 'center') positionClasses += " left-1/2 -translate-x-1/2 origin-bottom";
+  } else if (side === 'right') {
+      positionClasses = "left-full ml-2 top-0 origin-top-left";
+      if (align === 'center') positionClasses += " -translate-y-1/2 top-1/2";
+      if (align === 'end') positionClasses += " bottom-0 top-auto";
+  } else if (side === 'left') {
+      positionClasses = "right-full mr-2 top-0 origin-top-right";
+      if (align === 'center') positionClasses += " -translate-y-1/2 top-1/2";
+      if (align === 'end') positionClasses += " bottom-0 top-auto";
+  }
+
   return (
-    <div className={cn("absolute z-50 mt-2 w-48 rounded-md border border-slate-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-zinc-800 dark:bg-zinc-900", align === 'end' ? 'right-0 origin-top-right' : 'left-0 origin-top-left', className)}>
+    <div 
+      className={cn(
+        "absolute z-50 w-48 rounded-md border border-slate-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-zinc-800 dark:bg-zinc-900", 
+        positionClasses, 
+        className
+      )}
+      {...props}
+    >
       <div className="py-1">{children}</div>
     </div>
   );

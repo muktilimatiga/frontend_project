@@ -1,21 +1,30 @@
 import * as React from 'react';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import * as ExcalidrawLib from '@excalidraw/excalidraw';
+import { 
+  ReactFlow, 
+  Background, 
+  Controls, 
+  MiniMap, 
+  useNodesState, 
+  useEdgesState, 
+  addEdge,
+  Connection,
+  Edge,
+  Node,
+  useReactFlow,
+  ReactFlowProvider,
+  Panel
+} from '@xyflow/react';
 import { Card, Button, DataTable, ColumnDef, Badge } from '../../components/ui';
-import { Plus, ChevronLeft, Save } from 'lucide-react';
+import { Plus, ChevronLeft } from 'lucide-react';
 import { MockService } from '../../mock';
 import { useAppStore } from '../../store';
 import { toast } from 'sonner';
 import { ImportNodeModal } from './components/ImportNodeModal';
 import { TopologyPropertiesPanel } from './components/TopologyPropertiesPanel';
 import { TopologyToolbar } from './components/TopologyToolbar';
-import { NETWORK_SVGS } from './constants';
-
-// --- Safe Excalidraw Import ---
-const Excalidraw = (ExcalidrawLib as any).Excalidraw || (ExcalidrawLib as any).default?.Excalidraw || (ExcalidrawLib as any).default;
-const MainMenu = (ExcalidrawLib as any).MainMenu || (ExcalidrawLib as any).default?.MainMenu || (() => null);
-const WelcomeScreen = (ExcalidrawLib as any).WelcomeScreen || (ExcalidrawLib as any).default?.WelcomeScreen || (() => null);
+import CustomNode from './components/CustomNode';
 
 // --- Sub-Component: Topology List View ---
 const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
@@ -53,7 +62,7 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Network Topologies</h1>
-            <p className="text-slate-500 dark:text-slate-400">Select a topology map to view or edit using Excalidraw.</p>
+            <p className="text-slate-500 dark:text-slate-400">Select a topology map to view or edit using React Flow.</p>
           </div>
           <Button onClick={() => onSelect({ id: 'new', name: 'New Topology', status: 'Draft', nodes: 0, updatedAt: new Date().toISOString() })}>
              <Plus className="h-4 w-4 mr-2" /> New Topology
@@ -76,384 +85,172 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
   );
 };
 
-// --- Sub-Component: Excalidraw Editor ---
-export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: () => void }) => {
+// --- Sub-Component: React Flow Editor ---
+const EditorContent = ({ topology, onBack }: { topology: any, onBack: () => void }) => {
   const { theme } = useAppStore();
-  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [selectedNodeData, setSelectedNodeData] = useState<{ id: string, label: string, locked: boolean, strokeColor: string } | null>(null);
-  
-  // Toolbar State
-  const [isEditMode, setIsEditMode] = useState(true);
-  const [activeTool, setActiveTool] = useState<'select' | 'cable' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'text'>('select');
-  const [cableStyle, setCableStyle] = useState<'solid' | 'dotted' | 'dashed'>('solid');
-  const [cableColor, setCableColor] = useState(theme === 'dark' ? '#ffffff' : '#000000');
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const reactFlowInstance = useReactFlow();
 
-  // Memoize initialData to prevent Excalidraw from re-rendering and triggering onChange loops
-  const initialData = useMemo(() => ({
-      appState: { 
-         viewBackgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
-         currentItemStrokeColor: theme === 'dark' ? '#a5b4fc' : '#4f46e5',
-         currentItemBackgroundColor: 'transparent',
-         gridSize: 20,
-      },
-      elements: [],
-  }), []); // Keep dependency empty to only run on mount
+  // Load initial dummy data if new
+  useEffect(() => {
+    if (nodes.length === 0 && topology.id !== 'new') {
+       // Simulate loading existing data
+       const initialNodes = [
+         { id: '1', type: 'custom', position: { x: 250, y: 5 }, data: { label: 'Internet', iconType: 'cloud', strokeColor: '#3b82f6' } },
+         { id: '2', type: 'custom', position: { x: 250, y: 150 }, data: { label: 'Core Router', iconType: 'router', strokeColor: '#ef4444' } },
+         { id: '3', type: 'custom', position: { x: 100, y: 300 }, data: { label: 'Switch A', iconType: 'switch', strokeColor: '#10b981' } },
+         { id: '4', type: 'custom', position: { x: 400, y: 300 }, data: { label: 'Switch B', iconType: 'switch', strokeColor: '#10b981' } },
+       ];
+       const initialEdges = [
+         { id: 'e1-2', source: '1', target: '2', animated: true, style: { stroke: '#94a3b8' } },
+         { id: 'e2-3', source: '2', target: '3', style: { stroke: '#94a3b8' } },
+         { id: 'e2-4', source: '2', target: '4', style: { stroke: '#94a3b8' } },
+       ];
+       setNodes(initialNodes);
+       setEdges(initialEdges);
+       setTimeout(() => reactFlowInstance.fitView(), 100);
+    }
+  }, [topology.id, reactFlowInstance, nodes.length, setNodes, setEdges]);
 
-  const uiOptions = useMemo(() => ({
-      canvasActions: {
-         changeViewBackgroundColor: true,
-         clearCanvas: false, // We have our own
-         export: { saveFileToDisk: true },
-         loadScene: true,
-         saveToActiveFile: false,
-         toggleTheme: false,
-         saveAsImage: true,
+  // Handle Connections
+  const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+
+  // Handle Node Selection
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
+  }, []);
+
+  // Update Node Data
+  const handleNodeUpdate = (updates: Partial<any>) => {
+    if (!selectedNode) return;
+    setNodes((nds) => nds.map((node) => {
+      if (node.id === selectedNode.id) {
+        // If locking logic needed, handle here (e.g., node.draggable = !updates.locked)
+        const updatedNode = {
+           ...node,
+           draggable: updates.locked !== undefined ? !updates.locked : node.draggable,
+           data: { ...node.data, ...updates }
+        };
+        // Update local selection state immediately for UI responsiveness
+        if (updates.label !== undefined) setSelectedNode(updatedNode); 
+        return updatedNode;
       }
-  }), []);
-
-  // Effect to update Excalidraw theme when app theme changes
-  useEffect(() => {
-     if (excalidrawAPI) {
-        excalidrawAPI.updateScene({
-           appState: {
-              viewBackgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
-              currentItemStrokeColor: theme === 'dark' ? '#a5b4fc' : '#4f46e5',
-           }
-        });
-     }
-  }, [theme, excalidrawAPI]);
-
-  const handleSave = () => {
-     if (!excalidrawAPI) return;
-     toast.success('Topology Saved', {
-        description: `${topology.name} has been updated successfully.`
-     });
-  };
-
-  // Sync state with Excalidraw events
-  useEffect(() => {
-    if (!excalidrawAPI) return;
-
-    const onChange = (elements: any[], appState: any) => {
-        setCanUndo(true); 
-        setCanRedo(true);
-
-        const selectedIds = Object.keys(appState.selectedElementIds);
-        if (selectedIds.length === 0) {
-            setSelectedNodeData(null);
-            return;
-        }
-
-        const elementId = selectedIds[0];
-        const element = elements.find(el => el.id === elementId);
-
-        if (element) {
-            let groupElements = [element];
-            if (element.groupIds && element.groupIds.length > 0) {
-                const groupId = element.groupIds[0];
-                groupElements = elements.filter(el => el.groupIds && el.groupIds.includes(groupId));
-            }
-
-            const textEl = groupElements.find(el => el.type === 'text');
-            const visualEl = groupElements.find(el => el.type !== 'text'); 
-
-            if (textEl || visualEl) {
-                setSelectedNodeData({
-                    id: visualEl?.id || textEl?.id || element.id,
-                    label: textEl ? textEl.text : '',
-                    locked: element.locked,
-                    strokeColor: textEl?.strokeColor || visualEl?.strokeColor || '#000000',
-                });
-            } else {
-                setSelectedNodeData({
-                    id: element.id,
-                    label: '',
-                    locked: element.locked,
-                    strokeColor: element.strokeColor
-                });
-            }
-        }
-    };
-
-    const unsubscribe = excalidrawAPI.onChange(onChange);
-    return () => {};
-  }, [excalidrawAPI]);
-
-  // Toolbar Handlers
-  const handleSetTool = (tool: 'select' | 'cable' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'text') => {
-    setActiveTool(tool);
-    if (!excalidrawAPI) return;
-
-    if (tool === 'select') {
-      excalidrawAPI.setActiveTool({ type: "selection" });
-    } else if (tool === 'cable') {
-      excalidrawAPI.setActiveTool({ type: "arrow" });
-      excalidrawAPI.updateScene({ appState: { currentItemStrokeStyle: cableStyle === 'dotted' ? 'dotted' : cableStyle === 'dashed' ? 'dashed' : 'solid', currentItemStrokeColor: cableColor } });
-    } else if (tool === 'rect') {
-      excalidrawAPI.setActiveTool({ type: "rectangle" });
-    } else if (tool === 'circle') {
-      excalidrawAPI.setActiveTool({ type: "ellipse" });
-    } else if (tool === 'diamond') {
-      excalidrawAPI.setActiveTool({ type: "diamond" });
-    } else if (tool === 'arrow') {
-      excalidrawAPI.setActiveTool({ type: "arrow" }); // Generic arrow tool, separate from our 'cable' logic styling
-      excalidrawAPI.updateScene({ appState: { currentItemStrokeStyle: 'solid' } });
-    } else if (tool === 'text') {
-      excalidrawAPI.setActiveTool({ type: "text" });
+      return node;
+    }));
+    // Keep selection valid
+    if (selectedNode) {
+       setSelectedNode(prev => prev ? ({...prev, data: {...prev.data, ...updates}} as Node) : null);
     }
   };
 
-  const handleCableStyleChange = (style: 'solid' | 'dotted' | 'dashed') => {
-     setCableStyle(style);
-     if (activeTool === 'cable' && excalidrawAPI) {
-        excalidrawAPI.updateScene({ appState: { currentItemStrokeStyle: style } });
-     }
-  };
-
-  const handleCableColorChange = (color: string) => {
-     setCableColor(color);
-     if (activeTool === 'cable' && excalidrawAPI) {
-        excalidrawAPI.updateScene({ appState: { currentItemStrokeColor: color } });
-     }
-  };
-
-  const updateSelectedNode = async (updates: Partial<{ label: string; locked: boolean; strokeColor: string; iconType: string; customImage: string }>) => {
-      if (!excalidrawAPI) return;
-      const elements = excalidrawAPI.getSceneElements();
-      const appState = excalidrawAPI.getAppState();
-      const selectedIds = Object.keys(appState.selectedElementIds);
-
-      if (selectedIds.length === 0) return;
-
-      const primaryId = selectedIds[0];
-      const primaryEl = elements.find((el: any) => el.id === primaryId);
-      if (!primaryEl) return;
-
-      let targetElements = [primaryEl];
-      if (primaryEl.groupIds && primaryEl.groupIds.length > 0) {
-          const groupId = primaryEl.groupIds[0];
-          targetElements = elements.filter((el: any) => el.groupIds && el.groupIds.includes(groupId));
-      }
-
-      const textEl = targetElements.find((el: any) => el.type === 'text');
-      const visualEl = targetElements.find((el: any) => el.type === 'image' || el.type === 'rectangle' || el.type === 'ellipse');
-
-      if (updates.label !== undefined && textEl) {
-          textEl.text = updates.label; 
-          if (visualEl) {
-             textEl.x = visualEl.x + (visualEl.width / 2) - (updates.label.length * 4);
-          }
-      }
-
-      if (updates.locked !== undefined) {
-          targetElements.forEach((el: any) => el.locked = updates.locked);
-      }
-
-      if (updates.strokeColor !== undefined) {
-          targetElements.forEach((el: any) => el.strokeColor = updates.strokeColor);
-      }
-
-      if (updates.iconType || updates.customImage) {
-          let dataURL = updates.customImage;
-          
-          if (updates.iconType && !dataURL) {
-             const svgString = NETWORK_SVGS[updates.iconType] || NETWORK_SVGS['default'];
-             const color = updates.strokeColor || (theme === 'dark' ? '#ffffff' : '#000000');
-             const encodedSvg = btoa(unescape(encodeURIComponent(svgString.replace(/currentColor/g, color))));
-             dataURL = `data:image/svg+xml;base64,${encodedSvg}`;
-          }
-
-          if (dataURL && visualEl && visualEl.type === 'image') {
-              const fileId = `file_${Date.now()}`;
-              await excalidrawAPI.addFiles([{
-                 id: fileId,
-                 dataURL: dataURL,
-                 mimeType: 'image/svg+xml',
-                 created: Date.now()
-              }]);
-              visualEl.fileId = fileId;
-          }
-      }
-
-      excalidrawAPI.updateScene({ elements: elements });
-      setSelectedNodeData(prev => prev ? ({ ...prev, ...updates }) : null);
-  };
-
-
-  const insertNodeToScene = async (type: string, label: string, imageSrc?: string) => {
-    if (!excalidrawAPI) return;
-
-    let dataURL = imageSrc;
-
-    if (!dataURL) {
-      const svgString = NETWORK_SVGS[type] || NETWORK_SVGS['default'];
-      const color = theme === 'dark' ? '#ffffff' : '#000000';
-      const encodedSvg = btoa(unescape(encodeURIComponent(svgString.replace(/currentColor/g, color))));
-      dataURL = `data:image/svg+xml;base64,${encodedSvg}`;
-    }
-
-    if (!dataURL) return;
-
-    const fileId = `${type}_${Date.now()}`;
-    await excalidrawAPI.addFiles([{
-        id: fileId,
-        dataURL: dataURL,
-        mimeType: imageSrc ? 'image/png' : 'image/svg+xml',
-        created: Date.now(),
-    }]);
-
-    const appState = excalidrawAPI.getAppState();
-    const centerX = appState.scrollX + (appState.width / 2);
-    const centerY = appState.scrollY + (appState.height / 2);
-
-    const imgId = `img_${Date.now()}`;
-    const imageElement = {
-        id: imgId,
-        type: "image",
-        fileId: fileId,
-        status: "saved",
-        x: centerX - 25,
-        y: centerY - 25,
-        width: 50,
-        height: 50,
-        strokeColor: "transparent",
-        backgroundColor: "transparent",
+  const handleAddNode = (type: string, label: string) => {
+    const id = `node_${Date.now()}`;
+    const newNode = {
+      id,
+      type: 'custom',
+      position: { x: Math.random() * 400, y: Math.random() * 300 },
+      data: { label, iconType: type, strokeColor: theme === 'dark' ? '#ffffff' : '#000000' },
     };
-
-    const txtId = `txt_${Date.now()}`;
-    const textElement = {
-        id: txtId,
-        type: "text",
-        text: label,
-        x: centerX - (label.length * 4), 
-        y: centerY + 30,
-        fontSize: 16,
-        fontFamily: 1,
-        strokeColor: theme === 'dark' ? '#ffffff' : '#000000',
-        textAlign: 'center',
-        verticalAlign: 'top',
-    };
-
-    const groupId = `grp_${Date.now()}`;
-    const newElements = [
-        { ...imageElement, groupIds: [groupId] },
-        { ...textElement, groupIds: [groupId] }
-    ];
-    
-    excalidrawAPI.updateScene({
-        elements: [
-            ...excalidrawAPI.getSceneElements(),
-            ...newElements
-        ]
-    });
-
+    setNodes((nds) => nds.concat(newNode));
     setIsImportOpen(false);
-    toast.success('Node Added', { description: `${label} added to canvas.` });
+    toast.success('Node Added');
   };
+
+  const handleDeleteSelected = () => {
+     if(selectedNode) {
+        setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
+        setEdges((eds) => eds.filter((e) => e.source !== selectedNode.id && e.target !== selectedNode.id));
+        setSelectedNode(null);
+     }
+  };
+
+  const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] gap-4 animate-in fade-in duration-500">
       <ImportNodeModal 
         isOpen={isImportOpen} 
         onClose={() => setIsImportOpen(false)} 
-        onSelect={insertNodeToScene}
+        onSelect={handleAddNode}
       />
 
+      {/* Header */}
       <div className="flex items-center justify-between shrink-0">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8 -ml-2">
                <ChevronLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{topology.name}</h1>
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 ml-8 text-sm">Status: {topology.status} • Excalidraw Editor Active</p>
+            <div>
+               <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{topology.name}</h1>
+               <p className="text-xs text-slate-500 dark:text-slate-400">React Flow Engine • {nodes.length} Nodes</p>
+            </div>
         </div>
         
-        <div className="flex items-center gap-2">
-           <TopologyToolbar 
-              isEditMode={isEditMode}
-              activeTool={activeTool}
-              onToggleMode={(mode) => { setIsEditMode(mode); excalidrawAPI?.updateScene({ appState: { viewModeEnabled: !mode } }); }}
-              onSetTool={handleSetTool}
-              onImportClick={() => setIsImportOpen(true)}
-              onClear={() => excalidrawAPI?.resetScene()}
-              onZoomIn={() => {
-                 const current = excalidrawAPI?.getAppState().zoom;
-                 excalidrawAPI?.updateScene({ appState: { zoom: { value: (current?.value || 1) + 0.1 } } })
-              }}
-              onZoomOut={() => {
-                 const current = excalidrawAPI?.getAppState().zoom;
-                 excalidrawAPI?.updateScene({ appState: { zoom: { value: Math.max(0.1, (current?.value || 1) - 0.1) } } })
-              }}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={() => { 
-                const action = excalidrawAPI?.getAction('undo');
-                if(action) excalidrawAPI.actionManager.executeAction(action);
-              }}
-              onRedo={() => {
-                const action = excalidrawAPI?.getAction('redo');
-                if(action) excalidrawAPI.actionManager.executeAction(action);
-              }}
-              cableStyle={cableStyle}
-              cableColor={cableColor}
-              onCableStyleChange={handleCableStyleChange}
-              onCableColorChange={handleCableColorChange}
-           />
-           <div className="w-px h-8 bg-slate-200 dark:bg-white/10 mx-2" />
-           <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white">
-              <Save className="mr-2 h-4 w-4" /> Save
-           </Button>
-        </div>
+        <TopologyToolbar 
+           onImportClick={() => setIsImportOpen(true)}
+           onFitView={() => reactFlowInstance.fitView()}
+           onZoomIn={() => reactFlowInstance.zoomIn()}
+           onZoomOut={() => reactFlowInstance.zoomOut()}
+           onSave={() => toast.success('Topology saved successfully.')}
+           onDelete={handleDeleteSelected}
+           hasSelection={!!selectedNode}
+        />
       </div>
 
-      <div className="flex-1 w-full border border-slate-200 dark:border-white/20 rounded-xl overflow-hidden shadow-sm relative flex">
-         <div className="flex-1 h-full relative">
-            {Excalidraw ? (
-                <Excalidraw 
-                   theme={theme === 'dark' ? 'dark' : 'light'}
-                   excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
-                   initialData={initialData}
-                   UIOptions={uiOptions}
-                >
-                   {MainMenu && (
-                       <MainMenu>
-                          <MainMenu.DefaultItems.Export />
-                          <MainMenu.DefaultItems.SaveAsImage />
-                          <MainMenu.DefaultItems.ClearCanvas />
-                          <MainMenu.Separator />
-                          <MainMenu.DefaultItems.ChangeCanvasBackground />
-                       </MainMenu>
-                   )}
-                   {WelcomeScreen && <WelcomeScreen />}
-                </Excalidraw>
-            ) : (
-                <div className="flex items-center justify-center h-full text-slate-500">
-                    Failed to load Excalidraw. Please refresh.
-                </div>
+      {/* Canvas */}
+      <div className="flex-1 w-full border border-slate-200 dark:border-white/20 rounded-xl overflow-hidden shadow-sm relative">
+         <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            onPaneClick={onPaneClick}
+            nodeTypes={nodeTypes}
+            fitView
+            className={theme === 'dark' ? 'dark' : ''}
+         >
+            <Background color={theme === 'dark' ? '#333' : '#ddd'} gap={20} />
+            <Controls className="bg-white dark:bg-black border-slate-200 dark:border-white/20 fill-slate-900 dark:fill-white" />
+            <MiniMap 
+               className="bg-white dark:bg-black border-slate-200 dark:border-white/20" 
+               maskColor={theme === 'dark' ? 'rgba(0,0,0, 0.7)' : 'rgba(255,255,255, 0.7)'}
+            />
+            {selectedNode && (
+               <Panel position="top-right" className="m-0">
+                  <TopologyPropertiesPanel 
+                     data={{
+                        label: selectedNode.data.label as string,
+                        iconType: selectedNode.data.iconType as string,
+                        strokeColor: selectedNode.data.strokeColor as string,
+                        locked: !selectedNode.draggable
+                     }}
+                     onUpdate={handleNodeUpdate}
+                     onClose={() => setSelectedNode(null)}
+                  />
+               </Panel>
             )}
-         </div>
-
-         {/* Property Editor Panel */}
-         {selectedNodeData && (
-             <TopologyPropertiesPanel 
-                data={selectedNodeData} 
-                onUpdate={updateSelectedNode}
-                onClose={() => {
-                   if (excalidrawAPI) {
-                      excalidrawAPI.updateScene({ appState: { selectedElementIds: {} } });
-                   }
-                   setSelectedNodeData(null);
-                }}
-             />
-         )}
+         </ReactFlow>
       </div>
     </div>
   );
+};
+
+// --- Wrapper Provider ---
+export const TopologyEditor = (props: { topology: any, onBack: () => void }) => {
+   return (
+      <ReactFlowProvider>
+         <EditorContent {...props} />
+      </ReactFlowProvider>
+   );
 };
 
 // --- Main Page Component ---

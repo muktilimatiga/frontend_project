@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -11,7 +12,7 @@ import { DashboardStatsGrid } from './components/StatCards';
 import { TrafficChart, DistributionChart } from './components/Charts';
 import { ActiveTickets } from './components/ActiveTickets';
 import { RecentClosedTickets } from './components/RecentClosedTickets';
-import { CreateTicketModal, ConfigModal, ProcessActionModal, TicketDetailModal } from './components/Modals';
+import { CreateTicketModal, ConfigModal, ProcessActionModal, TicketDetailModal, CloseTicketModal, ForwardTicketModal } from './components/Modals';
 
 export const Dashboard = () => {
   const queryClient = useQueryClient();
@@ -21,8 +22,11 @@ export const Dashboard = () => {
   const [isFabOpen, setIsFabOpen] = useState(false);
   const [modalType, setModalType] = useState<'none' | 'create_ticket' | 'config' | 'config_bridge'>('none');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  
+  // Action Modals State
   const [processTicket, setProcessTicket] = useState<Ticket | null>(null);
-  const [processDefaultAction, setProcessDefaultAction] = useState<'forward' | 'close'>('forward');
+  const [closeTicket, setCloseTicket] = useState<Ticket | null>(null);
+  const [forwardTicket, setForwardTicket] = useState<Ticket | null>(null);
 
   // Queries
   const statsQuery = useQuery({ queryKey: ['stats'], queryFn: MockService.getDashboardStats });
@@ -50,20 +54,44 @@ export const Dashboard = () => {
   }, [ticketsQuery.data, closedSearch]);
 
   // Handlers
-  const handleProcessConfirm = async (id: string, status: 'in_progress' | 'closed', note: string) => {
+  const handleUpdateStatus = async (id: string, status: 'in_progress' | 'closed', note: string) => {
     await MockService.updateTicketStatus(id, status);
     // Optimistic Update
     queryClient.setQueryData(['recentTickets'], (old: Ticket[] | undefined) => {
        if (!old) return [];
        return old.map(t => t.id === id ? { ...t, status: status as any } : t);
     });
-    console.log(`Ticket ${id} processed with note: ${note}`);
-    setProcessTicket(null);
+    console.log(`Ticket ${id} updated to ${status} with note: ${note}`);
+  };
+
+  const handleProcessConfirm = (id: string, status: 'in_progress' | 'closed', note: string) => {
+      handleUpdateStatus(id, status, note);
+      setProcessTicket(null);
+  };
+  
+  const handleCloseConfirm = (id: string, note: string) => {
+      handleUpdateStatus(id, 'closed', note);
+      setCloseTicket(null);
+  };
+
+  const handleForwardConfirm = (id: string, note: string) => {
+      // In a real app, you would assign a technician here
+      console.log(`Forwarding ticket ${id} to technician. Note: ${note}`);
+      // Assuming forwarding keeps it in_progress or moves to a sub-status
+      handleUpdateStatus(id, 'in_progress', `Forwarded to technician: ${note}`);
+      setForwardTicket(null);
   };
 
   const handleProcessTrigger = (ticket: Ticket, action: 'forward' | 'close') => {
-      setProcessDefaultAction(action);
-      setProcessTicket(ticket);
+      if (action === 'close') {
+          setCloseTicket(ticket);
+      } else {
+          setProcessTicket(ticket);
+      }
+  };
+
+  const handleTechnicianAssign = (ticket: Ticket) => {
+      setForwardTicket(ticket);
   };
 
   // Real-time Subscription
@@ -98,12 +126,25 @@ export const Dashboard = () => {
       <ConfigModal isOpen={modalType === 'config'} onClose={() => setModalType('none')} type="basic" />
       <ConfigModal isOpen={modalType === 'config_bridge'} onClose={() => setModalType('none')} type="bridge" />
       <TicketDetailModal isOpen={!!selectedTicket} ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
+      
+      {/* Action Modals */}
       <ProcessActionModal 
         isOpen={!!processTicket} 
         ticket={processTicket} 
         onClose={() => setProcessTicket(null)} 
         onConfirm={handleProcessConfirm}
-        defaultAction={processDefaultAction} 
+      />
+      <CloseTicketModal 
+        isOpen={!!closeTicket}
+        ticket={closeTicket}
+        onClose={() => setCloseTicket(null)}
+        onConfirm={handleCloseConfirm}
+      />
+      <ForwardTicketModal 
+        isOpen={!!forwardTicket}
+        ticket={forwardTicket}
+        onClose={() => setForwardTicket(null)}
+        onConfirm={handleForwardConfirm}
       />
 
       {/* Header */}
@@ -128,7 +169,7 @@ export const Dashboard = () => {
             tickets={activeTickets} 
             onSelectTicket={setSelectedTicket}
             onProcess={handleProcessTrigger}
-            onTechnicianAssign={() => alert('Assigned to technician pool.')}
+            onTechnicianAssign={handleTechnicianAssign}
         />
       </div>
 

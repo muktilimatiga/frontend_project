@@ -1,6 +1,7 @@
+
 import * as React from 'react';
-import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../../../components/ui';
-import { Play, UserCog, X } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Button, Badge, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../../../components/ui';
+import { Play, UserCog, X, MoreHorizontal, Eye, ArrowRight } from 'lucide-react';
 import { Ticket } from '../../../types';
 
 const StatusBadge = ({ status }: { status: Ticket['status'] }) => {
@@ -27,7 +28,7 @@ interface ActiveTicketsProps {
   tickets: Ticket[];
   onSelectTicket: (t: Ticket) => void;
   onProcess: (t: Ticket, action: 'forward' | 'close') => void;
-  onTechnicianAssign: () => void;
+  onTechnicianAssign: (t: Ticket) => void;
 }
 
 export const ActiveTickets = ({ tickets, onSelectTicket, onProcess, onTechnicianAssign }: ActiveTicketsProps) => {
@@ -54,42 +55,70 @@ export const ActiveTickets = ({ tickets, onSelectTicket, onProcess, onTechnician
                      <PriorityDot priority={ticket.priority} />
                    </div>
                  </div>
-                 <StatusBadge status={ticket.status} />
+                 
+                 <div className="flex items-center gap-2">
+                    <StatusBadge status={ticket.status} />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onSelectTicket(ticket)}>
+                                <Eye className="mr-2 h-4 w-4" /> View Details
+                            </DropdownMenuItem>
+                            {ticket.status === 'open' && (
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onProcess(ticket, 'forward'); }} className="text-indigo-600 dark:text-indigo-400">
+                                    <Play className="mr-2 h-4 w-4" /> Process Ticket
+                                </DropdownMenuItem>
+                            )}
+                             {ticket.status === 'in_progress' && (
+                                <>
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTechnicianAssign(ticket); }}>
+                                        <UserCog className="mr-2 h-4 w-4" /> Assign Technician
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onProcess(ticket, 'close'); }} className="text-red-600 dark:text-red-400">
+                                        <X className="mr-2 h-4 w-4" /> Close Ticket
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                 </div>
               </div>
               
               <div className="flex items-center gap-2 pt-1">
                  {ticket.status === 'open' && (
                     <Button 
                        size="sm" 
-                       className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:text-white"
+                       className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:text-white flex-1 md:flex-none"
                        onClick={(e) => { e.stopPropagation(); onProcess(ticket, 'forward'); }}
                     >
                        <Play className="mr-1 h-3 w-3" /> Process Ticket
                     </Button>
                  )}
                  {ticket.status === 'in_progress' && (
-                    <>
-                       <Button 
-                          size="sm" 
-                          variant="secondary"
-                          className="h-7 text-xs"
-                          onClick={(e) => { e.stopPropagation(); onTechnicianAssign(); }}
-                       >
-                          <UserCog className="mr-1 h-3 w-3" /> Technician
-                       </Button>
-                       <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="h-7 text-xs hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                          onClick={(e) => { e.stopPropagation(); onProcess(ticket, 'close'); }}
-                       >
-                          <X className="mr-1 h-3 w-3" /> Close
-                       </Button>
-                    </>
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <Button 
+                            size="sm" 
+                            variant="secondary"
+                            className="h-7 text-xs flex-1"
+                            onClick={(e) => { e.stopPropagation(); onTechnicianAssign(ticket); }}
+                        >
+                            <UserCog className="mr-1 h-3 w-3" /> Technician
+                        </Button>
+                        <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="h-7 text-xs hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                            onClick={(e) => { e.stopPropagation(); onProcess(ticket, 'close'); }}
+                        >
+                            <X className="mr-1 h-3 w-3" /> Close
+                        </Button>
+                    </div>
                  )}
-                 <Button size="sm" variant="ghost" className="h-7 text-xs ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                    View Details
-                 </Button>
               </div>
             </div>
           ))}
