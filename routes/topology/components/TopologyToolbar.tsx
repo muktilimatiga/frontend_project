@@ -1,15 +1,21 @@
 import * as React from 'react';
 import { Button } from '../../../components/ui';
-import { MousePointer2, Move, FileText, Plus, Zap, RotateCcw, RotateCw, MoreHorizontal } from 'lucide-react';
-import { cn, Select, Input } from '../../../components/ui';
+import { 
+  MousePointer2, Move, FileText, Plus, Zap, 
+  RotateCcw, RotateCw, Diamond, ArrowRight, Trash2,
+  ZoomIn, ZoomOut
+} from 'lucide-react';
+import { cn } from '../../../components/ui';
 
 interface TopologyToolbarProps {
   isEditMode: boolean;
-  activeTool: 'select' | 'cable';
+  activeTool: 'select' | 'cable' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'text';
   onToggleMode: (mode: boolean) => void;
-  onSetTool: (tool: 'select' | 'cable') => void;
-  onAddShape: (type: 'rect' | 'circle' | 'text', label?: string) => void;
+  onSetTool: (tool: 'select' | 'cable' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'text') => void;
   onImportClick: () => void;
+  onClear: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
   
   // History
   canUndo: boolean;
@@ -29,8 +35,10 @@ export const TopologyToolbar = ({
   activeTool, 
   onToggleMode, 
   onSetTool, 
-  onAddShape, 
   onImportClick,
+  onClear,
+  onZoomIn,
+  onZoomOut,
   canUndo,
   canRedo,
   onUndo,
@@ -42,9 +50,9 @@ export const TopologyToolbar = ({
 }: TopologyToolbarProps) => {
   return (
     <div className="flex flex-col gap-2 items-end">
-    <div className="flex gap-2 bg-white dark:bg-black p-1.5 rounded-lg border border-slate-200 dark:border-white/20 shadow-sm">
+    <div className="flex gap-2 bg-white dark:bg-black p-1.5 rounded-lg border border-slate-200 dark:border-white/20 shadow-sm flex-wrap justify-end">
        {/* Mode Switcher */}
-       <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/10 p-1 rounded-md mr-2">
+       <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/10 p-1 rounded-md mr-1">
           <button 
              onClick={() => onToggleMode(false)}
              className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all", !isEditMode ? "bg-white text-slate-900 shadow-sm dark:bg-black dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-slate-400")}
@@ -101,9 +109,36 @@ export const TopologyToolbar = ({
 
            {/* Shapes */}
            <div className="flex items-center gap-1">
-             <Button size="icon" variant="outline" className="h-8 w-8" title="Add Rectangle" onClick={() => onAddShape('rect')}><div className="h-3 w-4 border-2 border-current rounded-[2px]" /></Button>
-             <Button size="icon" variant="outline" className="h-8 w-8" title="Add Circle" onClick={() => onAddShape('circle')}><div className="h-4 w-4 rounded-full border-2 border-current" /></Button>
-             <Button size="icon" variant="outline" className="h-8 w-8" title="Add Text" onClick={() => onAddShape('text', 'Label')}><FileText className="h-4 w-4" /></Button>
+             <Button size="icon" variant={activeTool === 'rect' ? 'secondary' : 'ghost'} className="h-8 w-8" title="Rectangle" onClick={() => onSetTool('rect')}>
+                <div className="h-3 w-4 border-2 border-current rounded-[2px]" />
+             </Button>
+             <Button size="icon" variant={activeTool === 'circle' ? 'secondary' : 'ghost'} className="h-8 w-8" title="Circle" onClick={() => onSetTool('circle')}>
+                <div className="h-4 w-4 rounded-full border-2 border-current" />
+             </Button>
+             <Button size="icon" variant={activeTool === 'diamond' ? 'secondary' : 'ghost'} className="h-8 w-8" title="Diamond" onClick={() => onSetTool('diamond')}>
+                <Diamond className="h-4 w-4" />
+             </Button>
+             <Button size="icon" variant={activeTool === 'arrow' ? 'secondary' : 'ghost'} className="h-8 w-8" title="Arrow" onClick={() => onSetTool('arrow')}>
+                <ArrowRight className="h-4 w-4" />
+             </Button>
+             <Button size="icon" variant={activeTool === 'text' ? 'secondary' : 'ghost'} className="h-8 w-8" title="Text" onClick={() => onSetTool('text')}>
+                <FileText className="h-4 w-4" />
+             </Button>
+           </div>
+
+           <div className="w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+           {/* Canvas Controls */}
+           <div className="flex items-center gap-1">
+             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onZoomOut} title="Zoom Out">
+                <ZoomOut className="h-4 w-4" />
+             </Button>
+             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onZoomIn} title="Zoom In">
+                <ZoomIn className="h-4 w-4" />
+             </Button>
+             <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 dark:hover:text-red-400" onClick={onClear} title="Clear Canvas">
+                <Trash2 className="h-4 w-4" />
+             </Button>
            </div>
 
            <div className="w-px bg-slate-200 dark:bg-white/10 mx-1" />

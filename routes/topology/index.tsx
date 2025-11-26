@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import * as ExcalidrawLib from '@excalidraw/excalidraw';
 import { Card, Button, DataTable, ColumnDef, Badge } from '../../components/ui';
@@ -9,6 +9,7 @@ import { useAppStore } from '../../store';
 import { toast } from 'sonner';
 import { ImportNodeModal } from './components/ImportNodeModal';
 import { TopologyPropertiesPanel } from './components/TopologyPropertiesPanel';
+import { TopologyToolbar } from './components/TopologyToolbar';
 import { NETWORK_SVGS } from './constants';
 
 // --- Safe Excalidraw Import ---
@@ -81,6 +82,49 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedNodeData, setSelectedNodeData] = useState<{ id: string, label: string, locked: boolean, strokeColor: string } | null>(null);
+  
+  // Toolbar State
+  const [isEditMode, setIsEditMode] = useState(true);
+  const [activeTool, setActiveTool] = useState<'select' | 'cable' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'text'>('select');
+  const [cableStyle, setCableStyle] = useState<'solid' | 'dotted' | 'dashed'>('solid');
+  const [cableColor, setCableColor] = useState(theme === 'dark' ? '#ffffff' : '#000000');
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  // Memoize initialData to prevent Excalidraw from re-rendering and triggering onChange loops
+  const initialData = useMemo(() => ({
+      appState: { 
+         viewBackgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
+         currentItemStrokeColor: theme === 'dark' ? '#a5b4fc' : '#4f46e5',
+         currentItemBackgroundColor: 'transparent',
+         gridSize: 20,
+      },
+      elements: [],
+  }), []); // Keep dependency empty to only run on mount
+
+  const uiOptions = useMemo(() => ({
+      canvasActions: {
+         changeViewBackgroundColor: true,
+         clearCanvas: false, // We have our own
+         export: { saveFileToDisk: true },
+         loadScene: true,
+         saveToActiveFile: false,
+         toggleTheme: false,
+         saveAsImage: true,
+      }
+  }), []);
+
+  // Effect to update Excalidraw theme when app theme changes
+  useEffect(() => {
+     if (excalidrawAPI) {
+        excalidrawAPI.updateScene({
+           appState: {
+              viewBackgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
+              currentItemStrokeColor: theme === 'dark' ? '#a5b4fc' : '#4f46e5',
+           }
+        });
+     }
+  }, [theme, excalidrawAPI]);
 
   const handleSave = () => {
      if (!excalidrawAPI) return;
@@ -89,26 +133,24 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
      });
   };
 
-  // Listen for Selection Changes
+  // Sync state with Excalidraw events
   useEffect(() => {
     if (!excalidrawAPI) return;
 
     const onChange = (elements: any[], appState: any) => {
+        setCanUndo(true); 
+        setCanRedo(true);
+
         const selectedIds = Object.keys(appState.selectedElementIds);
-        
         if (selectedIds.length === 0) {
             setSelectedNodeData(null);
             return;
         }
 
-        // We check if we selected a "Node" group (Text + Image)
-        // For simplicity, we grab the first selected element
-        // If it's part of a group, Excalidraw selects the group usually
         const elementId = selectedIds[0];
         const element = elements.find(el => el.id === elementId);
 
         if (element) {
-            // Find related elements in the same group
             let groupElements = [element];
             if (element.groupIds && element.groupIds.length > 0) {
                 const groupId = element.groupIds[0];
@@ -116,17 +158,16 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
             }
 
             const textEl = groupElements.find(el => el.type === 'text');
-            const visualEl = groupElements.find(el => el.type !== 'text'); // Image or Rectangle
+            const visualEl = groupElements.find(el => el.type !== 'text'); 
 
             if (textEl || visualEl) {
                 setSelectedNodeData({
-                    id: visualEl?.id || textEl?.id || element.id, // ID to track logic
+                    id: visualEl?.id || textEl?.id || element.id,
                     label: textEl ? textEl.text : '',
                     locked: element.locked,
                     strokeColor: textEl?.strokeColor || visualEl?.strokeColor || '#000000',
                 });
             } else {
-                // Generic element
                 setSelectedNodeData({
                     id: element.id,
                     label: '',
@@ -138,13 +179,46 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
     };
 
     const unsubscribe = excalidrawAPI.onChange(onChange);
-    return () => { 
-        // Excalidraw onChange returns a cleanup function in newer versions, 
-        // but if not, we rely on standard React cleanup which might just detach if the component unmounts.
-        // The library handles listeners internally usually.
-    };
+    return () => {};
   }, [excalidrawAPI]);
 
+  // Toolbar Handlers
+  const handleSetTool = (tool: 'select' | 'cable' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'text') => {
+    setActiveTool(tool);
+    if (!excalidrawAPI) return;
+
+    if (tool === 'select') {
+      excalidrawAPI.setActiveTool({ type: "selection" });
+    } else if (tool === 'cable') {
+      excalidrawAPI.setActiveTool({ type: "arrow" });
+      excalidrawAPI.updateScene({ appState: { currentItemStrokeStyle: cableStyle === 'dotted' ? 'dotted' : cableStyle === 'dashed' ? 'dashed' : 'solid', currentItemStrokeColor: cableColor } });
+    } else if (tool === 'rect') {
+      excalidrawAPI.setActiveTool({ type: "rectangle" });
+    } else if (tool === 'circle') {
+      excalidrawAPI.setActiveTool({ type: "ellipse" });
+    } else if (tool === 'diamond') {
+      excalidrawAPI.setActiveTool({ type: "diamond" });
+    } else if (tool === 'arrow') {
+      excalidrawAPI.setActiveTool({ type: "arrow" }); // Generic arrow tool, separate from our 'cable' logic styling
+      excalidrawAPI.updateScene({ appState: { currentItemStrokeStyle: 'solid' } });
+    } else if (tool === 'text') {
+      excalidrawAPI.setActiveTool({ type: "text" });
+    }
+  };
+
+  const handleCableStyleChange = (style: 'solid' | 'dotted' | 'dashed') => {
+     setCableStyle(style);
+     if (activeTool === 'cable' && excalidrawAPI) {
+        excalidrawAPI.updateScene({ appState: { currentItemStrokeStyle: style } });
+     }
+  };
+
+  const handleCableColorChange = (color: string) => {
+     setCableColor(color);
+     if (activeTool === 'cable' && excalidrawAPI) {
+        excalidrawAPI.updateScene({ appState: { currentItemStrokeColor: color } });
+     }
+  };
 
   const updateSelectedNode = async (updates: Partial<{ label: string; locked: boolean; strokeColor: string; iconType: string; customImage: string }>) => {
       if (!excalidrawAPI) return;
@@ -154,7 +228,6 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
 
       if (selectedIds.length === 0) return;
 
-      // Identify the group
       const primaryId = selectedIds[0];
       const primaryEl = elements.find((el: any) => el.id === primaryId);
       if (!primaryEl) return;
@@ -168,29 +241,21 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
       const textEl = targetElements.find((el: any) => el.type === 'text');
       const visualEl = targetElements.find((el: any) => el.type === 'image' || el.type === 'rectangle' || el.type === 'ellipse');
 
-      // 1. Update Label
       if (updates.label !== undefined && textEl) {
-          // Excalidraw text elements are immutable-ish, we use updateScene
-          // But we just pass the updated element object
-          // We need to preserve original props
           textEl.text = updates.label; 
-          // Re-centering text might be complex, simplified here:
           if (visualEl) {
-             textEl.x = visualEl.x + (visualEl.width / 2) - (updates.label.length * 4); // Approx
+             textEl.x = visualEl.x + (visualEl.width / 2) - (updates.label.length * 4);
           }
       }
 
-      // 2. Update Lock
       if (updates.locked !== undefined) {
           targetElements.forEach((el: any) => el.locked = updates.locked);
       }
 
-      // 3. Update Color
       if (updates.strokeColor !== undefined) {
           targetElements.forEach((el: any) => el.strokeColor = updates.strokeColor);
       }
 
-      // 4. Update Icon (Image)
       if (updates.iconType || updates.customImage) {
           let dataURL = updates.customImage;
           
@@ -202,28 +267,18 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
           }
 
           if (dataURL && visualEl && visualEl.type === 'image') {
-              // Add new file
               const fileId = `file_${Date.now()}`;
               await excalidrawAPI.addFiles([{
                  id: fileId,
                  dataURL: dataURL,
-                 mimeType: 'image/svg+xml', // or png
+                 mimeType: 'image/svg+xml',
                  created: Date.now()
               }]);
-              
-              // Update element to point to new file
               visualEl.fileId = fileId;
           }
       }
 
-      // Commit Updates
-      excalidrawAPI.updateScene({
-          elements: elements // We mutated elements in place (which works with some libraries) or we should map. 
-                             // Excalidraw usually expects a new array or mutated objects passed to updateScene.
-                             // Safest is to pass the modified objects.
-      });
-      
-      // Update local state to reflect changes in panel immediately
+      excalidrawAPI.updateScene({ elements: elements });
       setSelectedNodeData(prev => prev ? ({ ...prev, ...updates }) : null);
   };
 
@@ -319,12 +374,39 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
         </div>
         
         <div className="flex items-center gap-2">
-           <Button variant="outline" onClick={() => setIsImportOpen(true)}>
-               <Plus className="mr-2 h-4 w-4" /> Add Node
-           </Button>
-           <Button variant="outline" onClick={onBack}>Cancel</Button>
+           <TopologyToolbar 
+              isEditMode={isEditMode}
+              activeTool={activeTool}
+              onToggleMode={(mode) => { setIsEditMode(mode); excalidrawAPI?.updateScene({ appState: { viewModeEnabled: !mode } }); }}
+              onSetTool={handleSetTool}
+              onImportClick={() => setIsImportOpen(true)}
+              onClear={() => excalidrawAPI?.resetScene()}
+              onZoomIn={() => {
+                 const current = excalidrawAPI?.getAppState().zoom;
+                 excalidrawAPI?.updateScene({ appState: { zoom: { value: (current?.value || 1) + 0.1 } } })
+              }}
+              onZoomOut={() => {
+                 const current = excalidrawAPI?.getAppState().zoom;
+                 excalidrawAPI?.updateScene({ appState: { zoom: { value: Math.max(0.1, (current?.value || 1) - 0.1) } } })
+              }}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={() => { 
+                const action = excalidrawAPI?.getAction('undo');
+                if(action) excalidrawAPI.actionManager.executeAction(action);
+              }}
+              onRedo={() => {
+                const action = excalidrawAPI?.getAction('redo');
+                if(action) excalidrawAPI.actionManager.executeAction(action);
+              }}
+              cableStyle={cableStyle}
+              cableColor={cableColor}
+              onCableStyleChange={handleCableStyleChange}
+              onCableColorChange={handleCableColorChange}
+           />
+           <div className="w-px h-8 bg-slate-200 dark:bg-white/10 mx-2" />
            <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white">
-              <Save className="mr-2 h-4 w-4" /> Save Topology
+              <Save className="mr-2 h-4 w-4" /> Save
            </Button>
         </div>
       </div>
@@ -335,25 +417,8 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
                 <Excalidraw 
                    theme={theme === 'dark' ? 'dark' : 'light'}
                    excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
-                   initialData={{
-                      appState: { 
-                         viewBackgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
-                         currentItemStrokeColor: theme === 'dark' ? '#a5b4fc' : '#4f46e5',
-                         currentItemBackgroundColor: 'transparent',
-                      },
-                      elements: [],
-                   }}
-                   UIOptions={{
-                      canvasActions: {
-                         changeViewBackgroundColor: true,
-                         clearCanvas: true,
-                         export: { saveFileToDisk: true },
-                         loadScene: true,
-                         saveToActiveFile: false,
-                         toggleTheme: false,
-                         saveAsImage: true,
-                      }
-                   }}
+                   initialData={initialData}
+                   UIOptions={uiOptions}
                 >
                    {MainMenu && (
                        <MainMenu>
@@ -379,7 +444,6 @@ export const TopologyEditor = ({ topology, onBack }: { topology: any, onBack: ()
                 data={selectedNodeData} 
                 onUpdate={updateSelectedNode}
                 onClose={() => {
-                   // Deselect
                    if (excalidrawAPI) {
                       excalidrawAPI.updateScene({ appState: { selectedElementIds: {} } });
                    }
