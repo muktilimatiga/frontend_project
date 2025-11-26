@@ -1,14 +1,13 @@
 
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { EnhancedTable, ColumnDef } from '../../components/ui/EnhancedTable';
 import { Button, Badge, Avatar } from '../../components/ui';
-import { MockService } from '../../mock';
 import { User } from '../../types';
 import { Plus, Download } from 'lucide-react';
+import { useCustomers } from '../../hooks/useQueries';
 
 export const CustomersPage = () => {
-  const { data: customers = [] } = useQuery({ queryKey: ['customers'], queryFn: MockService.getCustomers });
+  const { data: customers = [] } = useCustomers();
 
   const columns: ColumnDef<User>[] = [
     { 

@@ -1,12 +1,12 @@
+
 import * as React from 'react';
 import { useRef, useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Card } from '../../components/ui';
-import { MockService } from '../../mock';
 import { User } from '../../types';
 import { AddNodeModal } from './components/AddNodeModal';
 import { MapToolbar } from './components/MapToolbar';
 import { MapSearch } from './components/MapSearch';
+import { useCustomers } from '../../hooks/useQueries';
 
 declare const L: any;
 
@@ -20,7 +20,7 @@ export const MapsPage = () => {
   const [distance, setDistance] = useState<number | null>(null);
   const [markers, setMarkers] = useState<any[]>([]);
   
-  const { data: customers = [] } = useQuery({ queryKey: ['customers'], queryFn: MockService.getCustomers });
+  const { data: customers = [] } = useCustomers();
 
   const handleUserSelect = (user: User) => {
      if (user.coordinates && mapInstance.current) {

@@ -1,10 +1,10 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { Input } from '../../../components/ui';
-import { MockService } from '../../../mock';
 import { User } from '../../../types';
+import { useCustomers } from '../../../hooks/useQueries';
 
 interface MapSearchProps {
   onSelectUser: (user: User) => void;
@@ -13,7 +13,7 @@ interface MapSearchProps {
 export const MapSearch = ({ onSelectUser }: MapSearchProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const { data: customers = [] } = useQuery({ queryKey: ['customers'], queryFn: MockService.getCustomers });
+  const { data: customers = [] } = useCustomers();
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {

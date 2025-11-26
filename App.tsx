@@ -17,6 +17,7 @@ import { CustomersPage } from './routes/customers/index';
 import { TopologyPage } from './routes/topology/index';
 import { MapsPage } from './routes/maps/index';
 import { DatabasePage } from './routes/database/index';
+import { MonitorPage } from './routes/monitor/index';
 import { HelpCenterPage } from './routes/help/index';
 import { SettingsPage } from './routes/settings/index';
 import { NotFoundPage, Error500Page } from './routes/errors';
@@ -64,6 +65,12 @@ const databaseRoute = createRoute({
   component: DatabasePage,
 });
 
+const monitorRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/monitor',
+  component: MonitorPage,
+});
+
 const helpRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/help',
@@ -89,6 +96,7 @@ const routeTree = rootRoute.addChildren([
   topologyRoute,
   mapsRoute,
   databaseRoute,
+  monitorRoute,
   helpRoute,
   customersRoute,
   settingsRoute

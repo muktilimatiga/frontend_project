@@ -1,11 +1,12 @@
 
 import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Network, Settings as SettingsIcon, FileText, Plus } from 'lucide-react';
-import { MockService, MockSocket } from '../../mock';
+import { MockSocket } from '../../mock';
 import { Badge, Button, cn } from '../../components/ui';
 import { Ticket, TicketLog, DashboardStats } from '../../types';
+import { useDashboardStats, useTrafficData, useRecentTickets, useTicketDistribution, useUpdateTicketStatus, queryKeys } from '../../hooks/useQueries';
 
 // Import refactored components
 import { DashboardStatsGrid } from './components/StatCards';
@@ -28,11 +29,12 @@ export const Dashboard = () => {
   const [closeTicket, setCloseTicket] = useState<Ticket | null>(null);
   const [forwardTicket, setForwardTicket] = useState<Ticket | null>(null);
 
-  // Queries
-  const statsQuery = useQuery({ queryKey: ['stats'], queryFn: MockService.getDashboardStats });
-  const trafficQuery = useQuery({ queryKey: ['traffic'], queryFn: MockService.getTrafficData });
-  const ticketsQuery = useQuery({ queryKey: ['recentTickets'], queryFn: MockService.getRecentTickets });
-  const distributionQuery = useQuery({ queryKey: ['distribution'], queryFn: MockService.getTicketDistribution });
+  // Queries using custom hooks
+  const statsQuery = useDashboardStats();
+  const trafficQuery = useTrafficData();
+  const ticketsQuery = useRecentTickets();
+  const distributionQuery = useTicketDistribution();
+  const updateTicketStatus = useUpdateTicketStatus();
 
   // Filter: Recent Tickets (Open & In Progress)
   const activeTickets = useMemo(() => {
@@ -54,13 +56,8 @@ export const Dashboard = () => {
   }, [ticketsQuery.data, closedSearch]);
 
   // Handlers
-  const handleUpdateStatus = async (id: string, status: 'in_progress' | 'closed', note: string) => {
-    await MockService.updateTicketStatus(id, status);
-    // Optimistic Update
-    queryClient.setQueryData(['recentTickets'], (old: Ticket[] | undefined) => {
-       if (!old) return [];
-       return old.map(t => t.id === id ? { ...t, status: status as any } : t);
-    });
+  const handleUpdateStatus = (id: string, status: 'in_progress' | 'closed', note: string) => {
+    updateTicketStatus.mutate({ id, status });
     console.log(`Ticket ${id} updated to ${status} with note: ${note}`);
   };
 
@@ -77,7 +74,6 @@ export const Dashboard = () => {
   const handleForwardConfirm = (id: string, note: string) => {
       // In a real app, you would assign a technician here
       console.log(`Forwarding ticket ${id} to technician. Note: ${note}`);
-      // Assuming forwarding keeps it in_progress or moves to a sub-status
       handleUpdateStatus(id, 'in_progress', `Forwarded to technician: ${note}`);
       setForwardTicket(null);
   };
@@ -98,17 +94,17 @@ export const Dashboard = () => {
   useEffect(() => {
     const unsubscribe = MockSocket.subscribe((event) => {
       if (event.type === 'NEW_TICKET') {
-        queryClient.setQueryData(['recentTickets'], (oldData: Ticket[] | undefined) => {
+        queryClient.setQueryData(queryKeys.tickets.recent(), (oldData: Ticket[] | undefined) => {
            if (!oldData) return [event.payload];
            return [event.payload, ...oldData];
         });
-        queryClient.setQueryData(['stats'], (oldData: DashboardStats | undefined) => {
+        queryClient.setQueryData(queryKeys.dashboard.stats, (oldData: DashboardStats | undefined) => {
            if (!oldData) return oldData;
            return { ...oldData, totalTickets: oldData.totalTickets + 1, openTickets: oldData.openTickets + 1 };
         });
       }
       if (event.type === 'NEW_LOG') {
-         queryClient.setQueryData(['logs'], (oldData: TicketLog[] | undefined) => {
+         queryClient.setQueryData(queryKeys.tickets.logs(), (oldData: TicketLog[] | undefined) => {
           if (!oldData) return [event.payload];
           return [event.payload, ...oldData].slice(0, 15);
         });

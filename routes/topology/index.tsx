@@ -1,6 +1,6 @@
+
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { 
   ReactFlow, 
   Background, 
@@ -18,17 +18,17 @@ import {
 } from '@xyflow/react';
 import { Card, Button, DataTable, ColumnDef, Badge } from '../../components/ui';
 import { Plus, ChevronLeft } from 'lucide-react';
-import { MockService } from '../../mock';
 import { useAppStore } from '../../store';
 import { toast } from 'sonner';
 import { ImportNodeModal } from './components/ImportNodeModal';
 import { TopologyPropertiesPanel } from './components/TopologyPropertiesPanel';
 import { TopologyToolbar } from './components/TopologyToolbar';
 import CustomNode from './components/CustomNode';
+import { useTopologies } from '../../hooks/useQueries';
 
 // --- Sub-Component: Topology List View ---
 const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
-  const { data: topologies = [], isLoading } = useQuery({ queryKey: ['topologies'], queryFn: MockService.getTopologies });
+  const { data: topologies = [], isLoading } = useTopologies();
 
   const columns: ColumnDef<any>[] = [
     { 
@@ -92,6 +92,8 @@ const EditorContent = ({ topology, onBack }: { topology: any, onBack: () => void
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [ExcalidrawModule, setExcalidrawModule] = useState<any>(null); // Kept for future if needed, but using React Flow now.
+
   const reactFlowInstance = useReactFlow();
 
   // Load initial dummy data if new

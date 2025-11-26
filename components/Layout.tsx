@@ -151,7 +151,7 @@ export const Sidebar = () => {
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Search} label="Search" onClick={toggleSearch} />
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LayoutDashboard} label="Dashboard" to="/" isActive={isActive('/')} />
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={TicketIcon} label="Tickets" to="/tickets" isActive={isActive('/tickets')} />
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Monitor} label="Monitor" to="#" onClick={() => document.dispatchEvent(new CustomEvent('toggle-monitor'))} isActive={false} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Monitor} label="Monitor" to="/monitor" isActive={isActive('/monitor')} />
         </div>
 
         {/* Group 2 */}
@@ -448,7 +448,7 @@ export const AppLayout = () => {
       <Sidebar />
       <Navbar />
       <CLIModal />
-      <MonitorDrawer />
+      {/* MonitorDrawer removed as we now have a full page */}
       <GlobalSearch />
       
       {/* Main Content Area - Padded for sidebar */}

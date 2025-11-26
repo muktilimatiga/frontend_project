@@ -1,103 +1,55 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, Search, Lock, Unlock, X, MapPin, Wifi, CreditCard, CheckCircle2, Zap, User as UserIcon } from 'lucide-react';
+import { ChevronLeft, Search, Lock, Unlock, X } from 'lucide-react';
 import { ModalOverlay, Label, Input, Select, Textarea, Button, Badge, Avatar, Switch, cn } from '../../../components/ui';
 import { MockService } from '../../../mock';
 import { Ticket, User } from '../../../types';
+import { useTicketStore } from '../stores/ticketStore';
+import { useTicketLogs } from '../../../hooks/useQueries';
+import { CustomerCard } from './CustomerCard';
 
-// --- Reusable Components ---
+// --- Types ---
+interface TicketFormData {
+  name: string;
+  address: string;
+  contact: string;
+  noInternet: string;
+  ticketRef: string;
+  priority: string;
+  type: string;
+  description: string;
+}
 
-const TicketUserCard = ({ user, onChangeUser }: { user: User, onChangeUser?: () => void }) => {
-  return (
-    <div className="relative bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800">
-        {/* Decorative Header */}
-        <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 w-full" />
-        
-        <div className="px-6 pb-6">
-            <div className="flex justify-between items-start -mt-10 mb-4">
-                <div className="relative">
-                    <Avatar src={user.avatarUrl} fallback={user.name.charAt(0)} className="h-20 w-20 border-4 border-white dark:border-zinc-900 shadow-md text-xl" />
-                    <div className="absolute bottom-1 right-1 h-5 w-5 bg-emerald-500 border-2 border-white dark:border-zinc-900 rounded-full flex items-center justify-center">
-                        <CheckCircle2 className="h-3 w-3 text-white" />
-                    </div>
-                </div>
-                {onChangeUser && (
-                    <Button variant="secondary" size="sm" className="mt-12 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700" onClick={onChangeUser}>
-                        Change Customer
-                    </Button>
-                )}
-            </div>
+// --- Reusable Pure Components ---
 
-            <div className="space-y-4">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                    <div>
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        {user.name}
-                        <Badge variant="outline" className="text-xs font-normal text-slate-500 dark:text-slate-400">{user.id}</Badge>
-                        </h3>
-                        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            <span>{user.email}</span>
-                            <span className="w-1 h-1 bg-slate-300 dark:bg-zinc-700 rounded-full" />
-                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> New York, USA</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Technical Context Grid */}
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                        <Wifi className="h-4 w-4" />
-                        </div>
-                        <div>
-                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Status</p>
-                        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Online</p>
-                        </div>
-                    </div>
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                        <CreditCard className="h-4 w-4" />
-                        </div>
-                        <div>
-                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Plan</p>
-                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">100 Mbps</p>
-                        </div>
-                    </div>
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                        <Zap className="h-4 w-4" />
-                        </div>
-                        <div>
-                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Device</p>
-                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Huawei ONT</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-  );
-};
+interface TicketFormFieldsProps {
+    data: TicketFormData;
+    onChange?: (updates: Partial<TicketFormData>) => void;
+    readOnly?: boolean;
+}
 
 const TicketFormFields = ({ 
-    formData, 
-    setFormData, 
+    data, 
+    onChange, 
     readOnly = false 
-}: { 
-    formData: any, 
-    setFormData: (data: any) => void,
-    readOnly?: boolean
-}) => {
+}: TicketFormFieldsProps) => {
+    
+    // Helper to safely call onChange if provided
+    const handleChange = (field: keyof TicketFormData, value: string) => {
+        if (onChange) {
+            onChange({ [field]: value });
+        }
+    };
+
     return (
         <div className="p-6 space-y-5">
             <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input 
                     id="name" 
-                    value={formData.name} 
-                    onChange={e => setFormData({...formData, name: e.target.value})} 
+                    value={data.name} 
+                    onChange={e => handleChange('name', e.target.value)} 
                     className="bg-slate-50/50 dark:bg-black/20"
                     readOnly={readOnly}
                 />
@@ -107,8 +59,8 @@ const TicketFormFields = ({
                 <Label htmlFor="address">Installation Address</Label>
                 <Input 
                     id="address" 
-                    value={formData.address} 
-                    onChange={e => setFormData({...formData, address: e.target.value})} 
+                    value={data.address} 
+                    onChange={e => handleChange('address', e.target.value)} 
                     className="bg-slate-50/50 dark:bg-black/20"
                     readOnly={readOnly}
                 />
@@ -119,8 +71,8 @@ const TicketFormFields = ({
                     <Label htmlFor="contact">Contact Number</Label>
                     <Input 
                         id="contact" 
-                        value={formData.contact} 
-                        onChange={e => setFormData({...formData, contact: e.target.value})} 
+                        value={data.contact} 
+                        onChange={e => handleChange('contact', e.target.value)} 
                         className="bg-slate-50/50 dark:bg-black/20"
                         readOnly={readOnly}
                     />
@@ -129,8 +81,8 @@ const TicketFormFields = ({
                     <Label htmlFor="noInternet">No Internet ID</Label>
                     <Input 
                         id="noInternet" 
-                        value={formData.noInternet} 
-                        onChange={e => setFormData({...formData, noInternet: e.target.value})} 
+                        value={data.noInternet} 
+                        onChange={e => handleChange('noInternet', e.target.value)} 
                         className="bg-slate-50/50 dark:bg-black/20"
                         readOnly={readOnly}
                     />
@@ -142,7 +94,7 @@ const TicketFormFields = ({
                     <Label htmlFor="ticketRef">Reference</Label>
                     <Input 
                         id="ticketRef" 
-                        value={formData.ticketRef} 
+                        value={data.ticketRef} 
                         readOnly 
                         className="bg-slate-100 dark:bg-white/10 text-slate-500 cursor-not-allowed font-mono"
                     />
@@ -151,8 +103,8 @@ const TicketFormFields = ({
                     <Label htmlFor="priority">Priority</Label>
                     <Select 
                         id="priority" 
-                        value={formData.priority}
-                        onChange={e => setFormData({...formData, priority: e.target.value})}
+                        value={data.priority}
+                        onChange={e => handleChange('priority', e.target.value)}
                         disabled={readOnly}
                     >
                         <option value="">Select...</option>
@@ -166,8 +118,8 @@ const TicketFormFields = ({
                     <Label htmlFor="type">Type</Label>
                     <Select 
                         id="type"
-                        value={formData.type}
-                        onChange={e => setFormData({...formData, type: e.target.value})}
+                        value={data.type}
+                        onChange={e => handleChange('type', e.target.value)}
                         disabled={readOnly}
                     >
                         <option value="">Select...</option>
@@ -186,8 +138,8 @@ const TicketFormFields = ({
                     rows={4} 
                     className="resize-none bg-slate-50/50 dark:bg-black/20 focus:ring-2 focus:ring-indigo-500/20"
                     placeholder="Describe the customer's issue in detail..."
-                    value={formData.description}
-                    onChange={e => setFormData({...formData, description: e.target.value})}
+                    value={data.description}
+                    onChange={e => handleChange('description', e.target.value)}
                     readOnly={readOnly}
                 />
             </div>
@@ -195,73 +147,42 @@ const TicketFormFields = ({
     );
 };
 
-// --- Create Ticket Modal ---
+// --- Create Ticket Modal (Zustand + Props) ---
 export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const [step, setStep] = useState(1);
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
-  const [formData, setFormData] = useState({
-     name: '',
-     address: '',
-     contact: '',
-     noInternet: '',
-     ticketRef: '',
-     priority: '',
-     type: '',
-     description: ''
-  });
+  const { 
+      step, 
+      setStep, 
+      searchQuery, 
+      setSearchQuery, 
+      searchResults, 
+      searchCustomers, 
+      selectUser, 
+      selectedUser, 
+      formData,
+      updateFormData,
+      reset 
+  } = useTicketStore();
 
   useEffect(() => {
     if (isOpen) {
-      setStep(1);
-      setCustomerSearch('');
-      setSelectedUser(null);
-      setSearchResults([]);
-      setFormData({
-         name: '',
-         address: '',
-         contact: '',
-         noInternet: '',
-         ticketRef: '',
-         priority: '',
-         type: '',
-         description: ''
-      });
+      reset();
     }
   }, [isOpen]);
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-       if (customerSearch.length > 1) {
-          const res = await MockService.searchUsers(customerSearch);
-          setSearchResults(res);
-       } else {
-          setSearchResults([]);
-       }
+    const timer = setTimeout(() => {
+       searchCustomers(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
-  }, [customerSearch]);
+  }, [searchQuery]);
 
-  const handleUserSelect = (user: User) => {
-      setSelectedUser(user);
-      setStep(2);
-      // Pre-fill mock data based on user
-      setFormData({
-          name: user.name.toUpperCase(),
-          address: 'RT/RW.005/005, DSN. BENDILJET, DS. KARANGTALUN, KALID', // Mock Address
-          contact: '6282244311034', // Mock Contact
-          noInternet: '101037012073', // Mock ID
-          ticketRef: `TN${Math.floor(Math.random() * 100000).toString().padStart(6, '0')}`,
-          priority: '',
-          type: '',
-          description: ''
-      });
+  const handleClose = () => {
+      onClose();
+      setTimeout(reset, 200); 
   };
 
   return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+    <ModalOverlay isOpen={isOpen} onClose={handleClose} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
       <div className="flex-1 overflow-y-auto">
         
         {step === 1 && (
@@ -281,24 +202,24 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
                           id="customer-search" 
                           placeholder="Search by name or email..." 
                           className="pl-9"
-                          value={customerSearch}
-                          onChange={(e) => setCustomerSearch(e.target.value)}
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
                           autoFocus
                       />
                     </div>
                 </div>
                 <div className="min-h-[200px] border border-slate-100 rounded-md p-2 dark:border-white/10">
-                    {searchResults.length === 0 && customerSearch.length > 1 && (
+                    {searchResults.length === 0 && searchQuery.length > 1 && (
                       <p className="text-xs text-slate-500 text-center py-8">No customers found.</p>
                     )}
-                    {searchResults.length === 0 && customerSearch.length <= 1 && (
+                    {searchResults.length === 0 && searchQuery.length <= 1 && (
                       <p className="text-xs text-slate-500 text-center py-8">Start typing to search...</p>
                     )}
                     <div className="space-y-1">
                       {searchResults.map(user => (
                           <div 
                             key={user.id} 
-                            onClick={() => handleUserSelect(user)}
+                            onClick={() => selectUser(user)}
                             className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-white/5 rounded cursor-pointer transition-colors"
                           >
                             <Avatar fallback={user.name.charAt(0)} className="h-8 w-8 text-xs" />
@@ -312,7 +233,7 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
                     </div>
                 </div>
                 <div className="flex justify-end pt-2">
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button variant="outline" onClick={handleClose}>Cancel</Button>
                 </div>
               </div>
            </div>
@@ -320,99 +241,74 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
 
         {step === 2 && selectedUser && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-             <TicketUserCard user={selectedUser} onChangeUser={() => setStep(1)} />
-             <TicketFormFields formData={formData} setFormData={setFormData} />
+             <CustomerCard user={selectedUser} onChangeUser={() => setStep(1)} />
+             <TicketFormFields data={formData} onChange={updateFormData} />
           </div>
         )}
       </div>
 
       {step === 2 && selectedUser && (
          <div className="flex justify-end gap-2 p-6 pt-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 sticky bottom-0 z-10 shadow-lg">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={onClose} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none">Create Ticket</Button>
+            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none">Create Ticket</Button>
          </div>
       )}
     </ModalOverlay>
   );
 };
 
-// --- Process Action Modal (Detailed Version) ---
+// --- Process Action Modal (Zustand + Props) ---
 export const ProcessActionModal = ({ 
   ticket, 
   isOpen, 
   onClose, 
-  onConfirm, 
-  defaultAction = 'forward' 
+  onConfirm
 }: { 
   ticket: Ticket | null, 
   isOpen: boolean, 
   onClose: () => void, 
   onConfirm: (id: string, action: 'in_progress' | 'closed', note: string) => void,
-  defaultAction?: 'forward' | 'close'
 }) => {
-  const [formData, setFormData] = useState({
-     name: '',
-     address: '',
-     contact: '',
-     noInternet: '',
-     ticketRef: '',
-     priority: '',
-     type: '',
-     description: ''
-  });
-  const [mockUser, setMockUser] = useState<User | null>(null);
+  const { initializeFromTicket, selectedUser, formData, updateFormData, reset } = useTicketStore();
 
   useEffect(() => {
     if (isOpen && ticket) {
-        // Mock data population based on ticket
-        setFormData({
-            name: 'ALEX CARTER',
-            address: '123 FIBER OPTIC LANE, TECH CITY, NY 10001',
-            contact: '+1 555 019 2834',
-            noInternet: 'ONT-8293-X2',
-            ticketRef: ticket.id,
-            priority: ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1),
-            type: 'Technical',
-            description: ticket.title + ' - Investigating reported latency issues.'
-        });
-        
-        // Mock User for the card
-        setMockUser({
-            id: 'u-123',
-            name: 'Alex Carter',
-            email: 'alex@nexus.com',
-            role: 'user',
-            avatarUrl: 'https://i.pravatar.cc/150?u=alex',
-            coordinates: { lat: 40.7128, lng: -74.0060 }
-        });
+        initializeFromTicket(ticket);
+    } else {
+        reset();
     }
   }, [isOpen, ticket]);
+
+  const handleClose = () => {
+      onClose();
+      setTimeout(reset, 200);
+  };
 
   if (!ticket) return null;
 
   return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+    <ModalOverlay isOpen={isOpen} onClose={handleClose} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
         <div className="flex-1 overflow-y-auto">
              <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
                  <div className="flex items-center gap-2">
                      <Badge variant="outline" className="bg-white dark:bg-zinc-800">{ticket.id}</Badge>
                      <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Process Ticket</h2>
                  </div>
-                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
              </div>
 
-             {mockUser && (
-                 <TicketUserCard user={mockUser} />
+             {selectedUser && (
+                 <CustomerCard user={selectedUser} />
              )}
 
-             <TicketFormFields formData={formData} setFormData={setFormData} />
+             <TicketFormFields data={formData} onChange={updateFormData} />
         </div>
 
         <div className="flex justify-between items-center p-6 pt-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 sticky bottom-0 z-10 shadow-lg">
             <div className="flex gap-2">
             </div>
             <div className="flex gap-2">
-                <Button variant="outline" onClick={onClose}>Cancel</Button>
+                <Button variant="outline" onClick={handleClose}>Cancel</Button>
                 <Button 
                     onClick={() => onConfirm(ticket.id, 'in_progress', `Processed: ${formData.description}`)} 
                     className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none"
@@ -425,7 +321,7 @@ export const ProcessActionModal = ({
   );
 };
 
-// --- Close Ticket Modal ---
+// --- Close Ticket Modal (Read-Only Fields) ---
 export const CloseTicketModal = ({
     ticket,
     isOpen,
@@ -438,16 +334,22 @@ export const CloseTicketModal = ({
     onConfirm: (id: string, note: string) => void
 }) => {
     const [actionClose, setActionClose] = useState('');
-    
-    // Mock Data for View Only Fields
-    const mockData = {
+    const [viewData, setViewData] = useState<TicketFormData>({
         name: 'NURYANTI',
         address: 'DSN. KRAJAN, 02/03, NGENTRONG, CAMPURDARAT',
         description: ticket?.title || 'Mas minta tolong ganti kata sandi',
-        lastAction: 'cek',
-        onuIndex: 'gpon-onu_1/1/6:62',
-        onuSn: 'ZTEGA6DD7279'
-    };
+        contact: '',
+        noInternet: 'gpon-onu_1/1/6:62',
+        ticketRef: ticket?.id || '',
+        priority: ticket?.priority || '',
+        type: 'Technical'
+    });
+    
+    useEffect(() => {
+        if (ticket) {
+            setViewData(prev => ({ ...prev, description: ticket.title, ticketRef: ticket.id, priority: ticket.priority }));
+        }
+    }, [ticket]);
 
     if (!ticket) return null;
 
@@ -461,30 +363,30 @@ export const CloseTicketModal = ({
              <div className="flex-1 overflow-y-auto p-6 space-y-4">
                  <div className="space-y-2">
                      <Label className="text-xs text-slate-500">Name</Label>
-                     <Input value={mockData.name} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     <Input value={viewData.name} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
                  </div>
                  <div className="space-y-2">
                      <Label className="text-xs text-slate-500">Address</Label>
-                     <Input value={mockData.address} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                     <Input value={viewData.address} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                      <div className="space-y-2">
                          <Label className="text-xs text-slate-500">Description</Label>
-                         <Textarea value={mockData.description} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300 min-h-[80px] resize-none" />
+                         <Textarea value={viewData.description} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300 min-h-[80px] resize-none" />
                      </div>
                      <div className="space-y-2">
                          <Label className="text-xs text-slate-500">Last Action</Label>
-                         <Textarea value={mockData.lastAction} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300 min-h-[80px] resize-none" />
+                         <Textarea value="cek" readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300 min-h-[80px] resize-none" />
                      </div>
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                      <div className="space-y-2">
                          <Label className="text-xs text-slate-500">ONU index</Label>
-                         <Input value={mockData.onuIndex} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                         <Input value={viewData.noInternet} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
                      </div>
                      <div className="space-y-2">
                          <Label className="text-xs text-slate-500">ONU SN</Label>
-                         <Input value={mockData.onuSn} readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
+                         <Input value="ZTEGA6DD7279" readOnly className="bg-slate-50 dark:bg-zinc-900/50 text-slate-600 dark:text-slate-300" />
                      </div>
                  </div>
                  
@@ -519,7 +421,6 @@ export const ForwardTicketModal = ({
     onClose: () => void,
     onConfirm: (id: string, note: string) => void
 }) => {
-    // Mock Data for View Only Fields
     const mockData = {
         name: 'AMINAH AGUSTINA',
         address: 'DSN DADAPAN RT 02/RW 02 DS BOYOLANGU KEC BOYOLANGU',
@@ -699,7 +600,6 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                {type === 'basic' ? 'New Service Configuration' : 'New Bridge Configuration'}
             </h2>
-            {/* Removed redundant close button to prevent double close action */}
          </div>
 
          {/* Search Section */}
@@ -851,12 +751,8 @@ const StatusBadge = ({ status }: { status: Ticket['status'] }) => {
 };
 
 export const TicketDetailModal = ({ ticket, isOpen, onClose }: { ticket: Ticket | null, isOpen: boolean, onClose: () => void }) => {
-  // Fix: Wrapped queryFn in an arrow function and correctly passed ticket ID
-  const logsQuery = useQuery({ 
-    queryKey: ['logs', ticket?.id], 
-    queryFn: () => MockService.getTicketLogs(ticket?.id),
-    enabled: !!ticket 
-  });
+  // Use custom hook for logs
+  const logsQuery = useTicketLogs(ticket?.id);
 
   if (!ticket) return null;
 
@@ -871,7 +767,7 @@ export const TicketDetailModal = ({ ticket, isOpen, onClose }: { ticket: Ticket 
                  <StatusBadge status={ticket.status} />
               </div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">{ticket.title}</h2>
-              <p className="text-xs text-slate-500 mt-1">Created on {new Date(ticket.createdAt).toLocaleString()}</p>
+              <p className="text-xs text-slate-500 mt-1">Created on {new Date(ticket.createdAt).toLocaleDateString()}</p>
            </div>
         </div>
 

@@ -1,11 +1,10 @@
 
 import * as React from 'react';
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Download, ArrowLeft, Plus, Filter } from 'lucide-react';
 import { Button, Card, CardContent, cn } from '../../../components/ui';
 import { EnhancedTable, ColumnDef } from '../../../components/ui/EnhancedTable';
-import { MockService } from '../../../mock';
+import { useTableData } from '../../../hooks/useQueries';
 
 interface TableDataViewProps {
   tableName: string;
@@ -13,10 +12,7 @@ interface TableDataViewProps {
 }
 
 export const TableDataView = ({ tableName, onBack }: TableDataViewProps) => {
-  const { data = [], isLoading } = useQuery({ 
-     queryKey: ['tableData', tableName], 
-     queryFn: () => MockService.getTableData(tableName) 
-  });
+  const { data = [], isLoading } = useTableData(tableName);
 
   // Stats Mock
   const stats = [

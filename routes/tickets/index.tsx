@@ -1,11 +1,10 @@
 
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { EnhancedTable, ColumnDef } from '../../components/ui/EnhancedTable';
 import { Button, Badge } from '../../components/ui';
-import { MockService } from '../../mock';
 import { Ticket } from '../../types';
 import { Plus, Filter } from 'lucide-react';
+import { useTickets } from '../../hooks/useQueries';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: any = { 
@@ -28,7 +27,7 @@ const PriorityDot = ({ priority }: { priority: string }) => {
 };
 
 export const TicketsPage = () => {
-  const { data: tickets = [] } = useQuery({ queryKey: ['allTickets'], queryFn: MockService.getTickets });
+  const { data: tickets = [] } = useTickets();
 
   const columns: ColumnDef<Ticket>[] = [
     { header: 'Ticket ID', accessorKey: 'id', className: 'font-mono text-xs text-slate-500' },

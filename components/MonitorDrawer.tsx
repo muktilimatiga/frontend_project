@@ -1,7 +1,6 @@
 
 import * as React from 'react';
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { 
   X, 
   Search, 
@@ -17,9 +16,9 @@ import {
   Shield
 } from 'lucide-react';
 import { useAppStore } from '../store';
-import { MockService } from '../mock'; // Use centralized Service if available, but direct import for now as per patterns
 import { Device } from '../types';
 import { Input, cn } from './ui';
+import { useDevices } from '../hooks/useQueries';
 
 const StatusDot = ({ status }: { status: Device['status'] }) => {
   const color = status === 'online' ? 'text-emerald-500' : status === 'warning' ? 'text-amber-500' : 'text-red-500';
@@ -41,11 +40,7 @@ export const MonitorDrawer = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({ 'Routers': true, 'Switches': true });
 
-  const { data: devices = [] } = useQuery({ 
-    queryKey: ['devices'], 
-    queryFn: MockService.getDevices,
-    enabled: isMonitorOpen // Only fetch when open
-  });
+  const { data: devices = [] } = useDevices(isMonitorOpen);
 
   const toggleFolder = (folder: string) => {
     setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }));
