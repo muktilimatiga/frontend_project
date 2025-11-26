@@ -108,7 +108,7 @@ export const MonitorDrawer = () => {
               {searchQuery ? 'No devices found.' : 'No devices available.'}
             </div>
           ) : (
-            Object.entries(groupedDevices).map(([folder, items]) => (
+            Object.entries(groupedDevices).map(([folder, items]: [string, Device[]]) => (
               <div key={folder} className="mb-1">
                 {/* Folder Header */}
                 <div 

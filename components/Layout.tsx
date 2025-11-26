@@ -1,19 +1,15 @@
 
 import * as React from 'react';
-import { useEffect, useState, useRef, useContext } from 'react';
-import { Link, Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { 
   LayoutDashboard, 
   Ticket as TicketIcon, 
   Settings, 
   Users, 
-  Menu, 
   Bell, 
   Search, 
   ChevronRight,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
   Sun,
   Moon,
   Terminal,
@@ -21,239 +17,201 @@ import {
   Map,
   Database,
   LifeBuoy,
-  Monitor
+  Monitor,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Toaster, toast } from 'sonner';
 import { useAppStore } from '../store';
-import { cn, Button, Input, Tooltip, ModalOverlay, Command, CommandInput, CommandList, CommandItem } from './ui';
+import { cn, Button, Tooltip, ModalOverlay, Avatar } from './ui';
 import { MockService, MockSocket } from '../mock';
-import { TicketLog } from '../types';
 import { MonitorDrawer } from './MonitorDrawer';
+import { GlobalSearch } from './GlobalSearch';
 
-// Sidebar Item Component
-const SidebarItem = ({ icon: Icon, label, to, isCollapsed }: { icon: any, label: string, to: string, isCollapsed: boolean }) => {
-  return (
-    <Link 
-      to={to} 
-      className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 transition-all hover:text-slate-900 hover:bg-slate-100 data-[status=active]:bg-indigo-50 data-[status=active]:text-indigo-600 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 dark:data-[status=active]:bg-white/10 dark:data-[status=active]:text-white"
-      activeProps={{ 'data-status': 'active' }}
-    >
-      {isCollapsed ? (
-        <Tooltip text={label}>
-          <Icon className="h-5 w-5" />
-        </Tooltip>
-      ) : (
-        <Icon className="h-5 w-5" />
+// --- Sidebar Icon / Item Component ---
+const SidebarIcon = ({ 
+  icon: Icon, 
+  label, 
+  to, 
+  isActive, 
+  onClick, 
+  isCollapsed 
+}: { 
+  icon: any, 
+  label: string, 
+  to?: string, 
+  isActive?: boolean, 
+  onClick?: () => void,
+  isCollapsed: boolean
+}) => {
+  const content = (
+    <div 
+      className={cn(
+        "relative flex items-center transition-all duration-200 group rounded-xl",
+        isCollapsed 
+          ? "justify-center w-10 h-10" 
+          : "w-full px-3 py-2.5 gap-3",
+        isActive 
+          ? "bg-slate-100 text-indigo-600 dark:bg-white/10 dark:text-white" 
+          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200"
       )}
-      {!isCollapsed && <span className="text-sm font-medium">{label}</span>}
-    </Link>
+    >
+      <Icon className={cn("h-5 w-5 shrink-0", isActive && "stroke-[2.5px]")} />
+      
+      {!isCollapsed && (
+        <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 animate-in fade-in">
+          {label}
+        </span>
+      )}
+
+      {/* Active Indicator (Collapsed Only) */}
+      {isActive && isCollapsed && (
+        <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-1 h-4 bg-indigo-600 rounded-l-full hidden" />
+      )} 
+    </div>
+  );
+
+  // If collapsed, wrap in Tooltip. If expanded, no tooltip needed.
+  const wrappedContent = isCollapsed ? (
+    <Tooltip text={label}>{content}</Tooltip>
+  ) : content;
+
+  if (to) {
+    return (
+      <Link to={to} className={cn("block focus:outline-none", !isCollapsed && "w-full")}>
+        {wrappedContent}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={cn("block focus:outline-none text-left", !isCollapsed && "w-full")}>
+      {wrappedContent}
+    </button>
   );
 };
 
 export const Sidebar = () => {
-  const { isSidebarCollapsed: isCollapsed, toggleSidebar } = useAppStore();
+  const { user, toggleSearch, isSidebarCollapsed, toggleSidebar } = useAppStore();
+  const routerState = useRouterState();
+  const currentPath = routerState.location.pathname;
+
+  const isActive = (path: string) => {
+    if (path === '/') return currentPath === '/';
+    return currentPath.startsWith(path);
+  };
 
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen border-r border-slate-200 bg-white transition-all duration-300 flex flex-col dark:border-white/20 dark:bg-black",
-        isCollapsed ? "w-16" : "w-64"
+        "fixed left-0 top-0 z-50 h-screen flex flex-col border-r border-slate-200 bg-white dark:bg-black dark:border-white/10 transition-all duration-300",
+        isSidebarCollapsed ? "w-[72px] items-center py-6" : "w-64 px-4 py-6"
       )}
     >
-      {/* Header */}
-      <div className="flex h-16 items-center border-b border-slate-200 px-4 justify-between dark:border-white/20">
-        <div className={cn("flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-500", isCollapsed && "justify-center w-full")}>
-          <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white dark:bg-indigo-600 shrink-0">
-            N
+      {/* Top: Brand & Toggle */}
+      <div className={cn("mb-8 flex items-center", isSidebarCollapsed ? "justify-center" : "justify-between px-2")}>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20 cursor-pointer shrink-0">
+             <span className="text-white font-bold text-lg">N</span>
           </div>
-          {!isCollapsed && <span>Nexus</span>}
+          {!isSidebarCollapsed && (
+            <span className="font-bold text-xl text-slate-900 dark:text-white whitespace-nowrap">Nexus</span>
+          )}
         </div>
-        {!isCollapsed && (
-           <button onClick={toggleSidebar} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-             <PanelLeftClose className="h-4 w-4" />
+        
+        {!isSidebarCollapsed && (
+           <button onClick={toggleSidebar} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+              <PanelLeftClose className="h-5 w-5" />
            </button>
         )}
       </div>
 
-      {/* Nav Content */}
-      <div className="flex-1 overflow-y-auto py-4 flex flex-col justify-between scrollbar-none">
-        <nav className="grid gap-1 px-2">
-          <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" isCollapsed={isCollapsed} />
-          <SidebarItem icon={TicketIcon} label="Tickets" to="/tickets" isCollapsed={isCollapsed} />
-          <SidebarItem icon={Network} label="Topology" to="/topology" isCollapsed={isCollapsed} />
-          <SidebarItem icon={Map} label="Maps" to="/maps" isCollapsed={isCollapsed} />
-          <SidebarItem icon={Database} label="Database" to="/database" isCollapsed={isCollapsed} />
-          <SidebarItem icon={Users} label="Customers" to="/customers" isCollapsed={isCollapsed} />
-        </nav>
+      {/* Navigation Groups */}
+      <div className={cn("flex-1 flex flex-col gap-6 overflow-y-auto scrollbar-none", isSidebarCollapsed ? "w-full px-3 items-center" : "w-full")}>
         
-        {/* Footer Nav */}
-        <nav className="grid gap-1 px-2 mt-auto pb-2">
-           <SidebarItem icon={LifeBuoy} label="Help Center" to="/help" isCollapsed={isCollapsed} />
-           <SidebarItem icon={Settings} label="Settings" to="/settings" isCollapsed={isCollapsed} />
-        </nav>
+        {/* Group 1 */}
+        <div className={cn("flex flex-col gap-1", isSidebarCollapsed ? "items-center" : "items-stretch")}>
+           {!isSidebarCollapsed && <div className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Workspace</div>}
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Search} label="Search" onClick={toggleSearch} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LayoutDashboard} label="Dashboard" to="/" isActive={isActive('/')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={TicketIcon} label="Tickets" to="/tickets" isActive={isActive('/tickets')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Monitor} label="Monitor" to="#" onClick={() => document.dispatchEvent(new CustomEvent('toggle-monitor'))} isActive={false} />
+        </div>
+
+        {/* Group 2 */}
+        <div className={cn("flex flex-col gap-1 pt-2 border-t border-slate-100 dark:border-white/5", isSidebarCollapsed ? "items-center" : "items-stretch")}>
+           {!isSidebarCollapsed && <div className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1 mt-2">Resources</div>}
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Network} label="Topology" to="/topology" isActive={isActive('/topology')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Database} label="Database" to="/database" isActive={isActive('/database')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Map} label="Maps" to="/maps" isActive={isActive('/maps')} />
+        </div>
+
+        {/* Group 3 */}
+        <div className={cn("flex flex-col gap-1 pt-2 border-t border-slate-100 dark:border-white/5", isSidebarCollapsed ? "items-center" : "items-stretch")}>
+           {!isSidebarCollapsed && <div className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1 mt-2">Support</div>}
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Users} label="Customers" to="/customers" isActive={isActive('/customers')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} />
+        </div>
+
       </div>
 
-      {/* Footer User/Toggle */}
-      <div className="border-t border-slate-200 p-4 dark:border-white/20">
-        {isCollapsed ? (
-          <div className="flex justify-center flex-col items-center gap-4">
-             <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold dark:bg-white/10 dark:text-white text-xs">
-               AC
-             </div>
-             <button onClick={toggleSidebar} className="mt-2"><PanelLeftOpen className="h-5 w-5 text-slate-400 dark:text-slate-500" /></button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-             <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold dark:bg-white/10 dark:text-white">
-               AC
-             </div>
-             <div className="flex flex-col">
-               <span className="text-sm font-medium text-slate-900 dark:text-white">Alex Carter</span>
-               <span className="text-xs text-slate-500 dark:text-slate-400">Admin</span>
-             </div>
-             <LogOut className="ml-auto h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600 dark:hover:text-white" />
-          </div>
-        )}
+      {/* Bottom: Settings & User */}
+      <div className={cn("mt-auto flex flex-col gap-2 pt-4 w-full border-t border-slate-100 dark:border-white/5", isSidebarCollapsed ? "items-center px-3" : "items-stretch")}>
+         <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Settings} label="Settings" to="/settings" isActive={isActive('/settings')} />
+         
+         {isSidebarCollapsed ? (
+            <div className="pt-2 flex flex-col items-center gap-4">
+               <Tooltip text={user?.name || 'Profile'}>
+                  <div className="p-0.5 rounded-xl border border-slate-200 hover:border-indigo-500 cursor-pointer transition-colors dark:border-white/20">
+                     <Avatar src={user?.avatarUrl} fallback="U" className="w-9 h-9 rounded-lg" />
+                  </div>
+               </Tooltip>
+               <button onClick={toggleSidebar} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                  <PanelLeftOpen className="h-5 w-5" />
+               </button>
+            </div>
+         ) : (
+            <div className="flex items-center gap-3 mt-2 px-2 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+               <Avatar src={user?.avatarUrl} fallback="U" className="w-9 h-9 rounded-lg" />
+               <div className="flex flex-col overflow-hidden">
+                  <span className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.name}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</span>
+               </div>
+            </div>
+         )}
       </div>
     </aside>
   );
 };
 
 export const Navbar = () => {
-  const { isSidebarCollapsed: isCollapsed, toggleSidebar, theme, toggleTheme, toggleCli, toggleMonitor } = useAppStore();
+  const { theme, toggleTheme, toggleCli, isSidebarCollapsed } = useAppStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<{users: any[], tickets: any[], pages: any[]} | null>(null);
-  
-  const navigate = useNavigate();
-  // Fix: Wrapped queryFn in an arrow function to prevent overload mismatch and incorrect argument passing
   const logsQuery = useQuery({ queryKey: ['logs'], queryFn: () => MockService.getTicketLogs() });
 
   useEffect(() => {
-    const delaySearch = setTimeout(async () => {
-      if (searchQuery.length > 1) {
-        const results = await MockService.searchGlobal(searchQuery);
-        setSearchResults(results);
-      } else {
-        setSearchResults(null);
-      }
-    }, 300);
-    return () => clearTimeout(delaySearch);
-  }, [searchQuery]);
-
-  const handleSelect = (type: string, idOrPath: string) => {
-    setIsSearchOpen(false);
-    setSearchQuery('');
-    if (type === 'page') {
-      navigate({ to: idOrPath });
-    } else {
-      console.log(`Navigating to ${type}: ${idOrPath}`);
-    }
-  };
+     const handler = () => useAppStore.getState().toggleMonitor();
+     document.addEventListener('toggle-monitor', handler);
+     return () => document.removeEventListener('toggle-monitor', handler);
+  }, []);
 
   return (
-    <header className={cn(
-      "fixed top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 px-6 backdrop-blur transition-all duration-300 dark:border-white/20 dark:bg-black/80",
-      isCollapsed ? "left-16 w-[calc(100%-4rem)]" : "left-64 w-[calc(100%-16rem)]"
-    )}>
-      {isCollapsed && (
-        <button onClick={toggleSidebar} className="md:hidden">
-          <Menu className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-        </button>
+    <header 
+      className={cn(
+        "fixed top-0 right-0 z-30 flex h-16 items-center justify-between gap-4 px-8 transition-all duration-300",
+        isSidebarCollapsed ? "left-[72px]" : "left-64"
       )}
-      
-      <div className="flex flex-1 items-center gap-4 md:gap-8">
-        <div className="relative flex-1 md:w-full md:max-w-sm">
-          <div 
-             className="relative flex items-center cursor-text"
-             onClick={() => setIsSearchOpen(true)}
-          >
-             <Search className="absolute left-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
-             <div className="w-full h-9 rounded-md border border-slate-300 bg-slate-50 px-3 py-1 pl-9 text-sm text-slate-500 dark:bg-black dark:border-white/20 dark:text-slate-300 flex items-center">
-                Search tickets, users, pages...
-             </div>
-          </div>
-          
-          {/* Global Search Dropdown */}
-          {isSearchOpen && (
-            <>
-               <div className="fixed inset-0 z-40" onClick={() => setIsSearchOpen(false)} />
-               <div className="absolute top-0 left-0 w-full z-50 mt-10 rounded-md border border-slate-200 bg-white shadow-xl dark:border-white/20 dark:bg-black">
-                  <Command className="rounded-lg border shadow-md dark:border-white/20">
-                     <CommandInput 
-                        placeholder="Type to search..." 
-                        autoFocus
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                     />
-                     <CommandList className="max-h-[400px]">
-                        {!searchQuery && <div className="p-4 text-xs text-slate-500 text-center">Start typing to search...</div>}
-                        {searchResults?.pages?.length > 0 && (
-                           <div className="p-2">
-                              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 mb-2">Pages</p>
-                              {searchResults.pages.map((page: any) => (
-                                 <CommandItem key={page.to} onSelect={() => handleSelect('page', page.to)} onClick={() => handleSelect('page', page.to)}>
-                                    <div className="flex items-center gap-2">
-                                       <LayoutDashboard className="h-4 w-4 text-slate-400" />
-                                       <span>{page.title}</span>
-                                    </div>
-                                 </CommandItem>
-                              ))}
-                           </div>
-                        )}
-                        {searchResults?.users?.length > 0 && (
-                           <div className="p-2 border-t border-slate-100 dark:border-white/10">
-                              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 mb-2">Users</p>
-                              {searchResults.users.map((user: any) => (
-                                 <CommandItem key={user.id} onSelect={() => handleSelect('user', user.id)} onClick={() => handleSelect('user', user.id)}>
-                                    <div className="flex items-center gap-2">
-                                       <div className="h-5 w-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] dark:bg-white/20 dark:text-white">{user.name.charAt(0)}</div>
-                                       <span>{user.name}</span>
-                                       <span className="text-xs text-slate-400 ml-auto">{user.email}</span>
-                                    </div>
-                                 </CommandItem>
-                              ))}
-                           </div>
-                        )}
-                        {searchResults?.tickets?.length > 0 && (
-                           <div className="p-2 border-t border-slate-100 dark:border-white/10">
-                              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 mb-2">Tickets</p>
-                              {searchResults.tickets.map((t: any) => (
-                                 <CommandItem key={t.id} onSelect={() => handleSelect('ticket', t.id)} onClick={() => handleSelect('ticket', t.id)}>
-                                    <div className="flex items-center gap-2">
-                                       <TicketIcon className="h-4 w-4 text-slate-400" />
-                                       <span className="font-medium text-xs bg-slate-100 px-1 rounded dark:bg-white/20 dark:text-white">{t.id}</span>
-                                       <span className="truncate">{t.title}</span>
-                                    </div>
-                                 </CommandItem>
-                              ))}
-                           </div>
-                        )}
-                        {searchQuery && !searchResults?.pages?.length && !searchResults?.users?.length && !searchResults?.tickets?.length && (
-                           <div className="p-4 text-xs text-slate-500 text-center">No results found.</div>
-                        )}
-                     </CommandList>
-                  </Command>
-               </div>
-            </>
-          )}
-        </div>
-      </div>
+    >
+      {/* Left: Placeholder */}
+      <div className="flex items-center text-sm font-medium text-slate-500 dark:text-slate-400"></div>
 
+      {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        {/* CLI Trigger */}
         <Button variant="ghost" size="icon" onClick={toggleCli} title="Open PowerShell CLI">
            <Terminal className="h-5 w-5 text-slate-500 dark:text-slate-400" />
         </Button>
 
-        {/* Monitor Trigger */}
-        <Button variant="ghost" size="icon" onClick={toggleMonitor} title="Device Monitor">
-           <Monitor className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-        </Button>
-
-        {/* Theme Toggle */}
         <Button variant="ghost" size="icon" onClick={toggleTheme}>
           {theme === 'light' ? (
              <Sun className="h-5 w-5 text-orange-500" />
@@ -262,7 +220,6 @@ export const Navbar = () => {
           )}
         </Button>
 
-        {/* Notifications */}
         <div className="relative">
           <Button 
             variant="ghost" 
@@ -278,7 +235,7 @@ export const Navbar = () => {
           {isNotificationsOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsNotificationsOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-80 md:w-96 rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 z-20 overflow-hidden dark:border-white/20 dark:bg-black dark:ring-white/10">
+              <div className="absolute right-0 top-full mt-2 w-80 md:w-96 rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 z-20 overflow-hidden dark:border-white/20 dark:bg-black dark:ring-white/10 animate-in fade-in zoom-in-95 duration-200">
                  <div className="p-4 border-b border-slate-100 dark:border-white/10">
                     <h3 className="font-semibold text-slate-900 dark:text-white">Recent Activity</h3>
                  </div>
@@ -325,7 +282,6 @@ const CLIModal = () => {
       const cmd = input.trim();
       setHistory(prev => [...prev, `PS C:\\Nexus> ${cmd}`]);
       
-      // Fake command processing
       if (cmd === 'help') {
         setHistory(prev => [...prev, 'Available commands:', '  status      Check system status', '  clear       Clear terminal', '  exit        Close terminal']);
       } else if (cmd === 'status') {
@@ -348,7 +304,6 @@ const CLIModal = () => {
         className="w-[800px] h-[500px] bg-[#0c0c0c] rounded-lg shadow-2xl border border-[#333] flex flex-col font-mono text-sm overflow-hidden"
         onClick={(e) => e.stopPropagation()} 
       >
-        {/* Title Bar */}
         <div className="h-8 bg-[#1f1f1f] flex items-center justify-between px-3 border-b border-[#333]">
            <div className="flex items-center gap-2">
              <Terminal className="h-3 w-3 text-slate-400" />
@@ -356,8 +311,6 @@ const CLIModal = () => {
            </div>
            <button onClick={toggleCli} className="text-slate-400 hover:text-white">✕</button>
         </div>
-        
-        {/* Terminal Content */}
         <div className="flex-1 p-4 overflow-y-auto text-slate-200" onClick={() => document.getElementById('cli-input')?.focus()}>
            {history.map((line, i) => (
              <div key={i} className="whitespace-pre-wrap mb-1">{line}</div>
@@ -380,11 +333,11 @@ const CLIModal = () => {
   );
 };
 
+// --- Main App Layout ---
 export const AppLayout = () => {
-  const { isSidebarCollapsed: isCollapsed, theme } = useAppStore();
+  const { theme, isSidebarCollapsed } = useAppStore();
   const routerState = useRouterState();
 
-  // Apply Theme Effect
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -393,7 +346,6 @@ export const AppLayout = () => {
     }
   }, [theme]);
 
-  // Subscribe to Real-time events for Toasts
   useEffect(() => {
     const unsubscribe = MockSocket.subscribe((event) => {
       if (event.type === 'NEW_TICKET') {
@@ -416,26 +368,32 @@ export const AppLayout = () => {
   const pathSegments = routerState.location.pathname.split('/').filter(Boolean);
   
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-black transition-colors duration-300">
-      <Toaster position="top-right" theme={theme === 'dark' ? 'dark' : 'light'} richColors />
+    <div className="min-h-screen bg-slate-50/50 dark:bg-black transition-colors duration-300 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-900/30 dark:selection:text-white">
+      <Toaster position="top-right" theme={theme === 'dark' ? 'dark' : 'light'} richColors closeButton />
+      
+      {/* Components */}
       <Sidebar />
       <Navbar />
       <CLIModal />
       <MonitorDrawer />
+      <GlobalSearch />
       
-      <main className={cn(
-        "pt-16 transition-all duration-300 min-h-screen",
-        isCollapsed ? "pl-16" : "pl-64"
-      )}>
-        <div className="container mx-auto p-6">
+      {/* Main Content Area - Padded for sidebar */}
+      <main 
+        className={cn(
+          "pt-20 min-h-screen transition-all duration-300",
+          isSidebarCollapsed ? "pl-[72px]" : "pl-64"
+        )}
+      >
+        <div className="container max-w-7xl mx-auto p-6 md:p-8">
           {/* Breadcrumb */}
-          <nav className="mb-6 flex items-center text-sm text-slate-500 dark:text-slate-400">
-            <Link to="/" className="hover:text-slate-900 dark:hover:text-white">Home</Link>
-            {pathSegments.length > 0 && <ChevronRight className="mx-2 h-4 w-4" />}
+          <nav className="mb-8 flex items-center text-sm text-slate-500 dark:text-slate-400 animate-in fade-in slide-in-from-left-4 duration-500">
+            <Link to="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">Home</Link>
+            {pathSegments.length > 0 && <ChevronRight className="mx-2 h-4 w-4 opacity-50" />}
             {pathSegments.map((segment, index) => (
               <div key={segment} className="flex items-center">
                 <span className="capitalize font-medium text-slate-900 dark:text-white">{segment}</span>
-                {index < pathSegments.length - 1 && <ChevronRight className="mx-2 h-4 w-4" />}
+                {index < pathSegments.length - 1 && <ChevronRight className="mx-2 h-4 w-4 opacity-50" />}
               </div>
             ))}
           </nav>

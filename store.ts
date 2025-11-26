@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { User } from './types';
 
 interface AppState {
-  // Sidebar State
+  // Sidebar State (Kept for compatibility, but UI will be fixed narrow)
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   
@@ -23,10 +23,15 @@ interface AppState {
   // Monitor Drawer State
   isMonitorOpen: boolean;
   toggleMonitor: () => void;
+
+  // Global Search State
+  isSearchOpen: boolean;
+  toggleSearch: () => void;
+  setSearchOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  isSidebarCollapsed: false,
+  isSidebarCollapsed: true, // Default to collapsed/narrow view
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   
   user: {
@@ -47,4 +52,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   isMonitorOpen: false,
   toggleMonitor: () => set((state) => ({ isMonitorOpen: !state.isMonitorOpen })),
+
+  isSearchOpen: false,
+  toggleSearch: () => set((state) => ({ isSearchOpen: !state.isSearchOpen })),
+  setSearchOpen: (open) => set({ isSearchOpen: open }),
 }));
