@@ -34,6 +34,22 @@ export const CardFooter = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
 ));
 CardFooter.displayName = "CardFooter";
 
+// --- Separator ---
+export const Separator = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { orientation?: 'horizontal' | 'vertical' }>(
+  ({ className, orientation = "horizontal", ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "shrink-0 bg-slate-200 dark:bg-zinc-800",
+        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        className
+      )}
+      {...props}
+    />
+  )
+)
+Separator.displayName = "Separator"
+
 // --- Badge ---
 export const Badge = ({ children, variant = 'default', className, ...props }: React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'success' | 'warning' }) => {
   const variants = {

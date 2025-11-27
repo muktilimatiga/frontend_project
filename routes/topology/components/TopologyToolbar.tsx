@@ -7,10 +7,15 @@ import {
   ZoomOut,
   Maximize,
   Save,
-  MousePointer2
+  MousePointer2,
+  Eye,
+  Edit3
 } from 'lucide-react';
+import { cn } from '../../../components/ui';
 
 interface TopologyToolbarProps {
+  mode: 'view' | 'edit';
+  onModeChange: (mode: 'view' | 'edit') => void;
   onImportClick: () => void;
   onFitView: () => void;
   onZoomIn: () => void;
@@ -21,6 +26,8 @@ interface TopologyToolbarProps {
 }
 
 export const TopologyToolbar = ({ 
+  mode,
+  onModeChange,
   onImportClick,
   onFitView,
   onZoomIn,
@@ -32,7 +39,39 @@ export const TopologyToolbar = ({
   return (
     <div className="flex items-center gap-2 bg-white dark:bg-black p-1.5 rounded-lg border border-slate-200 dark:border-white/20 shadow-sm flex-wrap">
        
-       <Button onClick={onImportClick} size="sm" className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white">
+       <div className="flex bg-slate-100 dark:bg-white/10 p-0.5 rounded-md">
+          <button
+             onClick={() => onModeChange('view')}
+             className={cn(
+                "flex items-center px-3 py-1.5 text-xs font-medium rounded-sm transition-all",
+                mode === 'view' 
+                   ? "bg-white text-slate-900 shadow-sm dark:bg-zinc-800 dark:text-white" 
+                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
+             )}
+          >
+             <Eye className="mr-1.5 h-3.5 w-3.5" /> View
+          </button>
+          <button
+             onClick={() => onModeChange('edit')}
+             className={cn(
+                "flex items-center px-3 py-1.5 text-xs font-medium rounded-sm transition-all",
+                mode === 'edit' 
+                   ? "bg-white text-slate-900 shadow-sm dark:bg-zinc-800 dark:text-white" 
+                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
+             )}
+          >
+             <Edit3 className="mr-1.5 h-3.5 w-3.5" /> Edit
+          </button>
+       </div>
+
+       <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
+
+       <Button 
+          onClick={onImportClick} 
+          size="sm" 
+          disabled={mode === 'view'}
+          className={cn("h-8 text-xs", mode === 'view' && "opacity-50 cursor-not-allowed")}
+       >
           <Plus className="mr-2 h-3 w-3" /> Add Node
        </Button>
 
@@ -51,7 +90,7 @@ export const TopologyToolbar = ({
          </Button>
        </div>
 
-       {hasSelection && (
+       {hasSelection && mode === 'edit' && (
          <>
            <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
            <Button 

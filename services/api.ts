@@ -1,31 +1,35 @@
 
 import { BackendService, Ticket, TicketLog, DashboardStats, TrafficData, User, Device } from '../types';
+import { MockService } from '../mock';
 
-// Replace this with your actual backend URL
-const API_BASE_URL = typeof process !== 'undefined' && process.env.API_URL 
-  ? process.env.API_URL 
-  : 'http://localhost:4000/api';
+// Toggle this to switch between Mock Data and Real Backend
+const USE_MOCK_DATA = true; 
 
-const headers = {
-  'Content-Type': 'application/json',
-  // Add authentication headers here if needed (e.g., Bearer token)
-  // 'Authorization': `Bearer ${localStorage.getItem('token')}`
-};
+// Replace this with your actual backend URL when deploying
+const API_BASE_URL = 'http://localhost:4000/api';
 
 async function fetchJson<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: { ...headers, ...options.headers },
-  });
+  try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers: { 
+            'Content-Type': 'application/json',
+            ...options.headers 
+        },
+      });
 
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+  } catch (error) {
+      console.error("API Call Failed:", error);
+      throw error;
   }
-
-  return response.json();
 }
 
-export const ApiService: BackendService = {
+const RealApiService: BackendService = {
   getDashboardStats: () => fetchJson<DashboardStats>('/dashboard/stats'),
   
   getTrafficData: () => fetchJson<TrafficData>('/dashboard/traffic'),
@@ -59,3 +63,6 @@ export const ApiService: BackendService = {
 
   getDevices: () => fetchJson<Device[]>('/devices'),
 };
+
+// Export the service based on configuration
+export const ApiService = USE_MOCK_DATA ? MockService : RealApiService;
