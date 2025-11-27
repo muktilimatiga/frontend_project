@@ -4,7 +4,7 @@ import { ArrowUpRight, TicketCheck, AlertCircle, Clock } from 'lucide-react';
 import { DashboardStats } from '../../../types';
 
 const StatCard = ({ title, value, icon: Icon, trend }: { title: string, value: string | number, icon: any, trend?: string }) => (
-  <Card className="dark:bg-[#000000] dark:border-white/20">
+  <Card className="dark:bg-card dark:border-slate-700/50">
     <CardContent className="p-6">
       <div className="flex items-center justify-between space-y-0 pb-2">
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>

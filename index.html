@@ -14,8 +14,32 @@
         theme: {
           extend: {
             colors: {
-              border: "hsl(var(--border))",
-              background: "hsl(var(--background))",
+              border: "var(--border)",
+              background: "var(--background)",
+              // Custom Rich Dark Palette
+              main: '#0f172a',    // Deep Slate (Background)
+              card: '#1e293b',    // Lighter Slate (Cards)
+              primary: {
+                DEFAULT: '#6366f1', // Indigo 500
+                foreground: '#ffffff',
+                glow: 'rgba(99, 102, 241, 0.5)'
+              },
+              muted: {
+                DEFAULT: '#64748b', // Slate 500
+                foreground: '#94a3b8' // Slate 400
+              },
+              // Extended Slate for nuances
+              slate: {
+                750: '#293548', 
+                800: '#1e293b',
+                850: '#162032',
+                900: '#0f172a',
+                950: '#020617',
+              }
+            },
+            boxShadow: {
+              'glow': '0 0 15px -3px rgba(99, 102, 241, 0.4)',
+              'card-dark': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15)',
             }
           }
         }
@@ -29,21 +53,44 @@
       :root {
         --tooltip-bg: #fff;
         --border: #e2e8f0;
+        --background: #f8fafc;
       }
       .dark {
-        --tooltip-bg: #18181b; /* zinc-900 */
-        --border: #27272a; /* zinc-800 */
+        --tooltip-bg: #1e293b; 
+        --border: #334155; 
+        --background: #0f172a; /* Rich Dark Main */
       }
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f8fafc;
-        color: #0f172a; /* slate-900 */
+        background-color: var(--background);
+        color: #0f172a;
       }
       .dark body {
-        background-color: #09090b; /* zinc-950 - Modern Dark Theme */
-        color: #f4f4f5; /* zinc-100 */
+        color: #f1f5f9;
       }
-      /* Custom scrollbar for cleaner look */
+      
+      /* Active Menu Glow Effect */
+      .nav-item-glow {
+        position: relative;
+      }
+      .nav-item-glow::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 10%;
+        bottom: 10%;
+        width: 3px;
+        background-color: #6366f1;
+        box-shadow: 2px 0 12px 1px rgba(99, 102, 241, 0.6);
+        border-radius: 0 4px 4px 0;
+        z-index: 20;
+      }
+      .dark .nav-item-active-bg {
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.0) 100%);
+        color: #818cf8;
+      }
+      
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -56,17 +103,17 @@
         border-radius: 4px;
       }
       .dark ::-webkit-scrollbar-track {
-        background: #09090b;
+        background: #0f172a;
       }
       .dark ::-webkit-scrollbar-thumb {
-        background: #27272a;
-        border: 1px solid #09090b;
+        background: #334155;
+        border: 1px solid #0f172a;
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
       }
       .dark ::-webkit-scrollbar-thumb:hover {
-        background: #3f3f46;
+        background: #475569;
       }
     </style>
   <script type="importmap">

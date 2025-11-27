@@ -12,7 +12,7 @@ interface RecentClosedTicketsProps {
 
 export const RecentClosedTickets = ({ tickets, search, onSearchChange, onSelectTicket }: RecentClosedTicketsProps) => {
   return (
-    <Card className="md:col-span-4 dark:bg-[#000000] dark:border-white/20">
+    <Card className="md:col-span-4 dark:bg-card dark:border-slate-700/50">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div className="space-y-1">
            <CardTitle>Recently Closed Tickets</CardTitle>
@@ -36,7 +36,7 @@ export const RecentClosedTickets = ({ tickets, search, onSearchChange, onSelectT
             {tickets.map((ticket) => (
               <div 
                 key={ticket.id} 
-                className="flex items-center justify-between rounded-lg border border-slate-100 p-3 hover:bg-slate-50 transition-colors cursor-pointer dark:border-white/10 dark:hover:bg-white/5"
+                className="flex items-center justify-between rounded-lg border border-slate-100 p-3 hover:bg-slate-50 transition-colors cursor-pointer dark:border-slate-700/50 dark:hover:bg-slate-700/30"
                 onClick={() => onSelectTicket(ticket)}
               >
                  <div className="flex items-start gap-3">

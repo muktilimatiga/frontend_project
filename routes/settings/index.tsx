@@ -41,7 +41,7 @@ const AccountSettings = () => {
   
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-       <Card className="dark:bg-black dark:border-white/20">
+       <Card className="dark:bg-card dark:border-slate-700/50">
           <CardHeader>
              <CardTitle>Profile Information</CardTitle>
           </CardHeader>
@@ -50,7 +50,7 @@ const AccountSettings = () => {
                 <Avatar 
                    src={user?.avatarUrl} 
                    fallback={user?.name?.charAt(0) || 'U'} 
-                   className="h-20 w-20 text-xl border-4 border-slate-50 dark:border-white/10" 
+                   className="h-20 w-20 text-xl border-4 border-slate-50 dark:border-slate-800" 
                 />
                 <div className="space-y-2">
                    <div className="flex gap-2">
@@ -72,7 +72,7 @@ const AccountSettings = () => {
                 </div>
                 <div className="space-y-2">
                    <Label htmlFor="role">Role</Label>
-                   <Input id="role" defaultValue={user?.role || ''} disabled className="bg-slate-50 dark:bg-white/5 opacity-70" />
+                   <Input id="role" defaultValue={user?.role || ''} disabled className="bg-slate-50 dark:bg-slate-900/50 opacity-70" />
                 </div>
                 <div className="space-y-2">
                    <Label htmlFor="phone">Phone Number</Label>
@@ -86,7 +86,7 @@ const AccountSettings = () => {
                 <p className="text-xs text-slate-500">Brief description for your profile. URLs are hyperlinked.</p>
              </div>
           </CardContent>
-          <CardFooter className="flex justify-end border-t border-slate-100 dark:border-white/10 pt-6">
+          <CardFooter className="flex justify-end border-t border-slate-100 dark:border-slate-800 pt-6">
              <Button>Save Changes</Button>
           </CardFooter>
        </Card>
@@ -111,7 +111,7 @@ const AppearanceSettings = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-       <Card className="dark:bg-black dark:border-white/20">
+       <Card className="dark:bg-card dark:border-slate-700/50">
           <CardHeader>
              <CardTitle>Theme Preferences</CardTitle>
           </CardHeader>
@@ -121,8 +121,8 @@ const AppearanceSettings = () => {
                 <div className="grid grid-cols-3 gap-4 pt-2">
                    <div 
                       className={cn(
-                        "cursor-pointer rounded-lg border-2 p-1 hover:bg-slate-50 dark:hover:bg-white/5 transition-all",
-                        theme === 'light' ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20" : "border-slate-200 dark:border-white/10"
+                        "cursor-pointer rounded-lg border-2 p-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all",
+                        theme === 'light' ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20" : "border-slate-200 dark:border-slate-700"
                       )}
                       onClick={() => theme !== 'light' && toggleTheme()}
                    >
@@ -144,8 +144,8 @@ const AppearanceSettings = () => {
 
                    <div 
                       className={cn(
-                        "cursor-pointer rounded-lg border-2 p-1 hover:bg-slate-50 dark:hover:bg-white/5 transition-all",
-                        theme === 'dark' ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20" : "border-slate-200 dark:border-white/10"
+                        "cursor-pointer rounded-lg border-2 p-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all",
+                        theme === 'dark' ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20" : "border-slate-200 dark:border-slate-700"
                       )}
                       onClick={() => theme !== 'dark' && toggleTheme()}
                    >
@@ -165,9 +165,9 @@ const AppearanceSettings = () => {
                       </div>
                    </div>
 
-                   <div className="cursor-not-allowed opacity-50 rounded-lg border-2 border-slate-200 dark:border-white/10 p-1">
-                      <div className="space-y-2 rounded-md bg-slate-200 dark:bg-white/10 p-2">
-                         <div className="h-20 rounded-md border-2 border-dashed border-slate-300 dark:border-white/20" />
+                   <div className="cursor-not-allowed opacity-50 rounded-lg border-2 border-slate-200 dark:border-slate-700 p-1">
+                      <div className="space-y-2 rounded-md bg-slate-200 dark:bg-slate-800 p-2">
+                         <div className="h-20 rounded-md border-2 border-dashed border-slate-300 dark:border-slate-600" />
                       </div>
                       <div className="flex items-center gap-2 p-2">
                          <Monitor className="h-4 w-4 text-slate-900 dark:text-white" />
@@ -177,7 +177,7 @@ const AppearanceSettings = () => {
                 </div>
              </div>
 
-             <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-white/10">
+             <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between">
                    <div className="space-y-0.5">
                       <Label className="text-base">Reduced Motion</Label>
@@ -202,7 +202,7 @@ const AppearanceSettings = () => {
 const NotificationSettings = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-       <Card className="dark:bg-black dark:border-white/20">
+       <Card className="dark:bg-card dark:border-slate-700/50">
           <CardHeader>
              <CardTitle>Notification Preferences</CardTitle>
           </CardHeader>
@@ -227,7 +227,7 @@ const NotificationSettings = () => {
                 </div>
              </div>
 
-             <div className="h-px bg-slate-100 dark:bg-white/10" />
+             <div className="h-px bg-slate-100 dark:bg-slate-800" />
 
              <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
@@ -253,7 +253,7 @@ const NotificationSettings = () => {
 const SecuritySettings = () => {
    return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-         <Card className="dark:bg-black dark:border-white/20">
+         <Card className="dark:bg-card dark:border-slate-700/50">
             <CardHeader>
                <CardTitle>Password & Authentication</CardTitle>
             </CardHeader>
@@ -266,7 +266,7 @@ const SecuritySettings = () => {
                   <Button className="mt-2" variant="outline">Update Password</Button>
                </div>
 
-               <div className="h-px bg-slate-100 dark:bg-white/10" />
+               <div className="h-px bg-slate-100 dark:bg-slate-800" />
 
                <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -278,13 +278,13 @@ const SecuritySettings = () => {
             </CardContent>
          </Card>
 
-         <Card className="dark:bg-black dark:border-white/20">
+         <Card className="dark:bg-card dark:border-slate-700/50">
             <CardHeader>
                <CardTitle>Active Sessions</CardTitle>
             </CardHeader>
             <CardContent>
                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border border-slate-100 dark:border-white/10 rounded-lg">
+                  <div className="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-800 rounded-lg">
                      <div className="flex items-center gap-3">
                         <Laptop className="h-8 w-8 text-slate-400" />
                         <div>
@@ -294,7 +294,7 @@ const SecuritySettings = () => {
                      </div>
                      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">Current</Badge>
                   </div>
-                  <div className="flex items-center justify-between p-3 border border-slate-100 dark:border-white/10 rounded-lg opacity-60">
+                  <div className="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-800 rounded-lg opacity-60">
                      <div className="flex items-center gap-3">
                         <Smartphone className="h-8 w-8 text-slate-400" />
                         <div>
@@ -323,7 +323,7 @@ export const SettingsPage = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+    <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-20">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Settings</h1>
         <p className="text-slate-500 dark:text-slate-400">Manage your account settings and preferences.</p>
@@ -340,8 +340,8 @@ export const SettingsPage = () => {
                     className={cn(
                        "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all",
                        activeTab === item.id 
-                          ? "bg-indigo-50 text-indigo-700 dark:bg-white/10 dark:text-white" 
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200"
+                          ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-white" 
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                     )}
                  >
                     <item.icon className="h-4 w-4" />

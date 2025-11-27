@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
@@ -40,7 +39,7 @@ export const GlobalSearch = () => {
   return (
     <>
       <div className="fixed inset-0 z-[90] bg-black/20 backdrop-blur-sm" onClick={() => setSearchOpen(false)} />
-      <div className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[100] rounded-xl shadow-2xl border border-slate-200 bg-white dark:border-white/20 dark:bg-black overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[100] rounded-xl shadow-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-card overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <Command className="h-full">
             <CommandInput 
             placeholder="Search tickets, users, pages..." 
@@ -49,7 +48,7 @@ export const GlobalSearch = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="border-none focus:ring-0"
             />
-            <CommandList className="max-h-[400px] border-t border-slate-100 dark:border-white/10">
+            <CommandList className="max-h-[400px] border-t border-slate-100 dark:border-slate-800">
             {!searchQuery && <div className="p-8 text-sm text-slate-500 text-center">Type to search across the platform...</div>}
             
             {searchResults?.pages?.length ? (
@@ -58,7 +57,7 @@ export const GlobalSearch = () => {
                     {searchResults.pages.map((page: any) => (
                         <CommandItem key={page.to} onClick={() => handleSelect('page', page.to)} className="rounded-lg">
                         <div className="flex items-center gap-3">
-                            <div className="p-1 bg-slate-100 dark:bg-white/10 rounded-md">
+                            <div className="p-1 bg-slate-100 dark:bg-slate-800 rounded-md">
                                 <LayoutDashboard className="h-4 w-4 text-slate-500 dark:text-slate-300" />
                             </div>
                             <span>{page.title}</span>
@@ -69,7 +68,7 @@ export const GlobalSearch = () => {
             ) : null}
 
             {searchResults?.users?.length ? (
-                <div className="p-2 border-t border-slate-100 dark:border-white/10">
+                <div className="p-2 border-t border-slate-100 dark:border-slate-800">
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 mb-2 uppercase tracking-wider">Users</p>
                     {searchResults.users.map((user: any) => (
                         <CommandItem key={user.id} onClick={() => handleSelect('user', user.id)} className="rounded-lg">
@@ -88,13 +87,13 @@ export const GlobalSearch = () => {
             ) : null}
 
             {searchResults?.tickets?.length ? (
-                <div className="p-2 border-t border-slate-100 dark:border-white/10">
+                <div className="p-2 border-t border-slate-100 dark:border-slate-800">
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 mb-2 uppercase tracking-wider">Tickets</p>
                     {searchResults.tickets.map((t: any) => (
                         <CommandItem key={t.id} onClick={() => handleSelect('ticket', t.id)} className="rounded-lg">
                         <div className="flex items-center gap-3">
                             <TicketIcon className="h-4 w-4 text-slate-400" />
-                            <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded dark:bg-white/20 dark:text-white">{t.id}</span>
+                            <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded dark:bg-slate-800 dark:text-white">{t.id}</span>
                             <span className="truncate text-sm">{t.title}</span>
                         </div>
                         </CommandItem>

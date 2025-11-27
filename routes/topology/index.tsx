@@ -17,7 +17,8 @@ import {
   ConnectionMode,
   MarkerType
 } from '@xyflow/react';
-import { Card, Button, DataTable, ColumnDef, Badge } from '../../components/ui';
+import { Card, Button, Badge } from '../../components/ui';
+import { EnhancedTable, ColumnDef } from '../../components/ui/EnhancedTable';
 import { Plus, ChevronLeft } from 'lucide-react';
 import { useAppStore } from '../../store';
 import { toast } from 'sonner';
@@ -70,10 +71,10 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
              <Plus className="h-4 w-4 mr-2" /> New Topology
           </Button>
        </div>
-       <Card className="dark:bg-black dark:border-white/20">
+       <Card className="dark:bg-card dark:border-slate-700/50">
           <div className="p-6">
              {isLoading ? <div className="text-center py-8 text-slate-500">Loading topologies...</div> : (
-                <DataTable 
+                <EnhancedTable 
                    data={topologies} 
                    columns={columns} 
                    searchKey="name" 
@@ -420,9 +421,9 @@ const EditorContent = ({ topology, onBack }: { topology: any, onBack: () => void
             className={theme === 'dark' ? 'dark' : ''}
          >
             <Background color={theme === 'dark' ? '#333' : '#ddd'} gap={20} />
-            <Controls className="bg-white dark:bg-black border-slate-200 dark:border-white/20 fill-slate-900 dark:fill-white" />
+            <Controls className="bg-white dark:bg-card border-slate-200 dark:border-white/20 fill-slate-900 dark:fill-white" />
             <MiniMap 
-               className="bg-white dark:bg-black border-slate-200 dark:border-white/20" 
+               className="bg-white dark:bg-card border-slate-200 dark:border-white/20" 
                maskColor={theme === 'dark' ? 'rgba(0,0,0, 0.7)' : 'rgba(255,255,255, 0.7)'}
             />
             {selectedElement && (

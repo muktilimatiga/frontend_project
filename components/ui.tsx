@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 // --- Card Components ---
 export const Card = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50", className)} {...props} />
+  <div ref={ref} className={cn("rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm dark:border-slate-700/50 dark:bg-card dark:text-slate-50 shadow-card-dark", className)} {...props} />
 ));
 Card.displayName = "Card";
 
@@ -40,7 +40,7 @@ export const Separator = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
     <div
       ref={ref}
       className={cn(
-        "shrink-0 bg-slate-200 dark:bg-zinc-800",
+        "shrink-0 bg-slate-200 dark:bg-slate-700",
         orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
         className
       )}
@@ -53,12 +53,12 @@ Separator.displayName = "Separator"
 // --- Badge ---
 export const Badge = ({ children, variant = 'default', className, ...props }: React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'success' | 'warning' }) => {
   const variants = {
-    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/80 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/90",
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-800/80",
-    outline: "text-slate-950 border border-slate-200 dark:text-zinc-50 dark:border-zinc-800",
-    destructive: "bg-red-500 text-slate-50 hover:bg-red-500/80 dark:bg-red-900 dark:text-red-50 dark:border dark:border-red-900/50",
-    success: "bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-950 dark:text-emerald-200 dark:border dark:border-emerald-900/50",
-    warning: "bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-950 dark:text-amber-200 dark:border dark:border-amber-900/50",
+    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/80 dark:bg-primary dark:text-white dark:hover:bg-primary/90",
+    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-700/80",
+    outline: "text-slate-950 border border-slate-200 dark:text-slate-200 dark:border-slate-700",
+    destructive: "bg-red-500 text-slate-50 hover:bg-red-500/80 dark:bg-red-900/50 dark:text-red-100 dark:border dark:border-red-800",
+    success: "bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-100 dark:border dark:border-emerald-800",
+    warning: "bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-900/50 dark:text-amber-100 dark:border dark:border-amber-800",
   };
   return (
     <div className={cn("inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 border-transparent", variants[variant], className)} {...props}>
@@ -70,10 +70,10 @@ export const Badge = ({ children, variant = 'default', className, ...props }: Re
 // --- Button ---
 export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'ghost' | 'outline' | 'secondary' | 'destructive', size?: 'sm' | 'default' | 'icon' }>(({ className, variant = 'default', size = 'default', ...props }, ref) => {
   const variants = {
-    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/90 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200",
-    ghost: "hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50",
-    outline: "border border-slate-200 bg-white hover:bg-slate-100 hover:text-slate-900 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800 dark:hover:text-zinc-50",
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-800/80",
+    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 shadow-sm",
+    ghost: "hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50",
+    outline: "border border-slate-200 bg-white hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-transparent dark:hover:bg-slate-800 dark:hover:text-slate-50",
+    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-800/80",
     destructive: "bg-red-500 text-slate-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-red-50 dark:hover:bg-red-900/90",
   };
   const sizes = {
@@ -100,8 +100,8 @@ export const Switch = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
       aria-checked={checked}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "peer inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-slate-300 dark:focus-visible:ring-offset-black",
-        checked ? "bg-slate-900 dark:bg-zinc-50" : "bg-slate-200 dark:bg-zinc-800",
+        "peer inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-slate-300 dark:focus-visible:ring-offset-slate-950",
+        checked ? "bg-slate-900 dark:bg-primary" : "bg-slate-200 dark:bg-slate-700",
         className
       )}
       ref={ref}
@@ -109,7 +109,7 @@ export const Switch = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
     >
       <span
         className={cn(
-          "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform dark:bg-zinc-950",
+          "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform dark:bg-white",
           checked ? "translate-x-5" : "translate-x-0"
         )}
       />
@@ -122,7 +122,7 @@ Switch.displayName = "Switch";
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => {
   return (
     <input
-      className={cn("flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm text-slate-900 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:placeholder:text-zinc-400 dark:text-zinc-50 dark:focus-visible:ring-zinc-300", className)}
+      className={cn("flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm text-slate-900 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/50 dark:placeholder:text-slate-400 dark:text-slate-50 dark:focus-visible:ring-slate-300", className)}
       ref={ref}
       {...props}
     />
@@ -133,7 +133,7 @@ Input.displayName = "Input";
 export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(({ className, ...props }, ref) => {
   return (
     <textarea
-      className={cn("flex min-h-[60px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:placeholder:text-zinc-400 dark:text-zinc-50 dark:focus-visible:ring-zinc-300", className)}
+      className={cn("flex min-h-[60px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/50 dark:placeholder:text-slate-400 dark:text-slate-50 dark:focus-visible:ring-slate-300", className)}
       ref={ref}
       {...props}
     />
@@ -143,7 +143,7 @@ Textarea.displayName = "Textarea";
 
 // --- Label ---
 export const Label = forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(({ className, ...props }, ref) => (
-  <label ref={ref} className={cn("text-sm font-medium leading-none text-slate-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-50", className)} {...props} />
+  <label ref={ref} className={cn("text-sm font-medium leading-none text-slate-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-slate-200", className)} {...props} />
 ));
 Label.displayName = "Label";
 
@@ -151,7 +151,7 @@ Label.displayName = "Label";
 export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(({ className, ...props }, ref) => (
   <div className="relative">
     <select
-      className={cn("flex h-9 w-full items-center justify-between rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:ring-offset-black dark:placeholder:text-zinc-400 dark:focus:ring-zinc-300", className)}
+      className={cn("flex h-9 w-full items-center justify-between rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-50 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300", className)}
       ref={ref}
       {...props}
     />
@@ -164,7 +164,7 @@ export const Tooltip = ({ text, children }: { text: string, children?: React.Rea
   return (
     <div className="group relative flex items-center">
       {children}
-      <div className="absolute left-full ml-2 hidden whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:block group-hover:opacity-100 z-50 dark:bg-zinc-50 dark:text-zinc-900">
+      <div className="absolute left-full ml-2 hidden whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:block group-hover:opacity-100 z-50 dark:bg-card dark:text-slate-100 border border-slate-700">
         {text}
       </div>
     </div>
@@ -177,7 +177,7 @@ export const Avatar = ({ src, fallback, className }: { src?: string, fallback: s
     {src ? (
       <img className="aspect-square h-full w-full object-cover" src={src} alt="Avatar" />
     ) : (
-      <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 font-semibold">
+      <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold border border-slate-200 dark:border-slate-700">
         {fallback}
       </div>
     )}
@@ -188,13 +188,13 @@ export const Avatar = ({ src, fallback, className }: { src?: string, fallback: s
 export const ModalOverlay = ({ children, isOpen, onClose, className }: { children?: React.ReactNode, isOpen: boolean, onClose: () => void, className?: string }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-in fade-in duration-200 p-4">
       <div className="absolute inset-0" onClick={onClose} />
-      <div className={cn("relative z-50 w-full max-w-lg rounded-lg bg-white text-slate-900 p-6 shadow-lg animate-in zoom-in-95 duration-200 dark:bg-zinc-900 dark:text-zinc-50 dark:border dark:border-zinc-800", className)} onClick={e => e.stopPropagation()}>
+      <div className={cn("relative z-50 w-full max-w-lg rounded-xl bg-white text-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 dark:bg-card dark:text-slate-50 dark:border dark:border-slate-700", className)} onClick={e => e.stopPropagation()}>
         {children}
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-slate-100 data-[state=open]:text-slate-500 dark:ring-offset-black dark:focus:ring-zinc-50 dark:data-[state=open]:bg-zinc-800 dark:data-[state=open]:text-zinc-400"
+          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-slate-100 data-[state=open]:text-slate-500 dark:ring-offset-slate-950 dark:focus:ring-slate-300 dark:data-[state=open]:bg-slate-800 dark:data-[state=open]:text-slate-400"
         >
           <span className="sr-only">Close</span>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
@@ -206,16 +206,16 @@ export const ModalOverlay = ({ children, isOpen, onClose, className }: { childre
 
 // --- Command Palette Primitives (Simplified) ---
 export const Command = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex h-full w-full flex-col overflow-hidden rounded-md bg-white text-slate-950 dark:bg-zinc-900 dark:text-zinc-50", className)} {...props} />
+  <div ref={ref} className={cn("flex h-full w-full flex-col overflow-hidden rounded-md bg-white text-slate-950 dark:bg-card dark:text-slate-50", className)} {...props} />
 ));
 Command.displayName = "Command";
 
 export const CommandInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b border-slate-200 px-3 dark:border-zinc-800" cmdk-input-wrapper="">
+  <div className="flex items-center border-b border-slate-200 px-3 dark:border-slate-700" cmdk-input-wrapper="">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4 shrink-0 opacity-50"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
     <input
       ref={ref}
-      className={cn("flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-zinc-400", className)}
+      className={cn("flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-slate-400", className)}
       {...props}
     />
   </div>
@@ -230,7 +230,7 @@ CommandList.displayName = "CommandList";
 export const CommandItem = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-slate-100 aria-selected:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:aria-selected:bg-zinc-800 dark:aria-selected:text-zinc-50 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer", className)}
+    className={cn("relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-slate-100 aria-selected:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:aria-selected:bg-slate-800 dark:aria-selected:text-slate-50 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer", className)}
     {...props}
   />
 ));
@@ -265,8 +265,21 @@ export const DropdownMenu = ({ children, className }: { children?: React.ReactNo
   );
 };
 
-export const DropdownMenuTrigger = ({ children, className }: { children?: React.ReactNode, className?: string }) => {
+export const DropdownMenuTrigger = ({ children, className, asChild }: { children?: React.ReactNode, className?: string, asChild?: boolean }) => {
   const { isOpen, setIsOpen } = useContext(DropdownMenuContext);
+  
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(children as React.ReactElement<any>, {
+      onClick: (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const childProps = (children as React.ReactElement<any>).props;
+        if (childProps.onClick) childProps.onClick(e);
+        setIsOpen(!isOpen);
+      },
+      className: cn(className, (children as React.ReactElement<any>).props.className)
+    });
+  }
+
   return (
     <div onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }} className={cn("cursor-pointer inline-flex", className)}>
       {children}
@@ -313,7 +326,7 @@ export const DropdownMenuContent = ({
   return (
     <div 
       className={cn(
-        "absolute z-50 w-48 rounded-md border border-slate-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-zinc-800 dark:bg-zinc-900", 
+        "absolute z-50 w-48 rounded-md border border-slate-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-slate-700 dark:bg-card", 
         positionClasses, 
         className
       )}
@@ -328,7 +341,7 @@ export const DropdownMenuItem = ({ children, onClick, className }: { children?: 
     const { setIsOpen } = useContext(DropdownMenuContext);
   return (
     <div
-      className={cn("block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 flex items-center gap-2", className)}
+      className={cn("block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 flex items-center gap-2", className)}
       onClick={(e) => {
         e.stopPropagation();
         if(onClick) onClick(e);
@@ -341,13 +354,13 @@ export const DropdownMenuItem = ({ children, onClick, className }: { children?: 
 };
 
 export const DropdownMenuLabel = ({ children, className }: { children?: React.ReactNode, className?: string }) => (
-    <div className={cn("px-4 py-2 text-xs font-semibold text-slate-500 dark:text-zinc-400", className)}>
+    <div className={cn("px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400", className)}>
         {children}
     </div>
 );
 
 export const DropdownMenuSeparator = ({ className }: { className?: string }) => (
-    <div className={cn("h-px my-1 bg-slate-100 dark:bg-zinc-800", className)} />
+    <div className={cn("h-px my-1 bg-slate-100 dark:bg-slate-800", className)} />
 );
 
 
@@ -361,7 +374,7 @@ export const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTable
 Table.displayName = "Table"
 
 export const TableHeader = forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b dark:border-zinc-800", className)} {...props} />
+  <thead ref={ref} className={cn("[&_tr]:border-b dark:border-slate-800", className)} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -371,17 +384,17 @@ export const TableBody = forwardRef<HTMLTableSectionElement, React.HTMLAttribute
 TableBody.displayName = "TableBody"
 
 export const TableFooter = forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
-  <tfoot ref={ref} className={cn("bg-slate-900 font-medium text-slate-50 dark:bg-zinc-50 dark:text-zinc-900", className)} {...props} />
+  <tfoot ref={ref} className={cn("bg-slate-900 font-medium text-slate-50 dark:bg-slate-50 dark:text-slate-900", className)} {...props} />
 ))
 TableFooter.displayName = "TableFooter"
 
 export const TableRow = forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(({ className, ...props }, ref) => (
-  <tr ref={ref} className={cn("border-b transition-colors hover:bg-slate-100/50 data-[state=selected]:bg-slate-100 dark:hover:bg-zinc-800/50 dark:data-[state=selected]:bg-zinc-800 dark:border-zinc-800", className)} {...props} />
+  <tr ref={ref} className={cn("border-b transition-colors hover:bg-slate-100/50 data-[state=selected]:bg-slate-100 dark:hover:bg-slate-800/50 dark:data-[state=selected]:bg-slate-800 dark:border-slate-800", className)} {...props} />
 ))
 TableRow.displayName = "TableRow"
 
 export const TableHead = forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
-  <th ref={ref} className={cn("h-12 px-4 text-left align-middle font-medium text-slate-500 [&:has([role=checkbox])]:pr-0 dark:text-zinc-400", className)} {...props} />
+  <th ref={ref} className={cn("h-12 px-4 text-left align-middle font-medium text-slate-500 [&:has([role=checkbox])]:pr-0 dark:text-slate-400", className)} {...props} />
 ))
 TableHead.displayName = "TableHead"
 
@@ -391,163 +404,6 @@ export const TableCell = forwardRef<HTMLTableCellElement, React.TdHTMLAttributes
 TableCell.displayName = "TableCell"
 
 export const TableCaption = forwardRef<HTMLTableCaptionElement, React.HTMLAttributes<HTMLTableCaptionElement>>(({ className, ...props }, ref) => (
-  <caption ref={ref} className={cn("mt-4 text-sm text-slate-500 dark:text-zinc-400", className)} {...props} />
+  <caption ref={ref} className={cn("mt-4 text-sm text-slate-500 dark:text-slate-400", className)} {...props} />
 ))
 TableCaption.displayName = "TableCaption"
-
-
-// --- DataTable Component ---
-
-export type ColumnDef<T> = {
-  header: string;
-  accessorKey: keyof T;
-  cell?: (item: T) => React.ReactNode;
-  className?: string;
-};
-
-interface DataTableProps<T> {
-  data: T[];
-  columns: ColumnDef<T>[];
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  searchKey?: keyof T;
-}
-
-export function DataTable<T extends { id: string | number }>({ data, columns, onEdit, onDelete, searchKey }: DataTableProps<T>) {
-  const [sortKey, setSortKey] = useState<keyof T | null>(null);
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  
-  const pageSize = 10;
-
-  // Filter
-  const filteredData = useMemo(() => {
-    if (!search || !searchKey) return data;
-    return data.filter(item => String(item[searchKey]).toLowerCase().includes(search.toLowerCase()));
-  }, [data, search, searchKey]);
-
-  // Sort
-  const sortedData = useMemo(() => {
-    if (!sortKey) return filteredData;
-    return [...filteredData].sort((a, b) => {
-      const aVal = a[sortKey];
-      const bVal = b[sortKey];
-      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [filteredData, sortKey, sortDir]);
-
-  // Paginate
-  const paginatedData = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return sortedData.slice(start, start + pageSize);
-  }, [sortedData, page]);
-
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-
-  const handleSort = (key: keyof T) => {
-    if (sortKey === key) {
-      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
-      setSortDir('asc');
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-         {searchKey && (
-            <div className="relative max-w-sm w-full">
-              <input 
-                 className="flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus-visible:ring-zinc-300" 
-                 placeholder="Search..."
-                 value={search}
-                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              />
-            </div>
-         )}
-      </div>
-      <div className="rounded-md border border-slate-200 dark:border-zinc-800">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((col, i) => (
-                <TableHead 
-                   key={i} 
-                   className={cn("cursor-pointer hover:text-slate-700 dark:hover:text-zinc-200", col.className)}
-                   onClick={() => handleSort(col.accessorKey)}
-                >
-                   <div className="flex items-center gap-1">
-                      {col.header}
-                      <ArrowUpDown className="h-3 w-3" />
-                   </div>
-                </TableHead>
-              ))}
-              {(onEdit || onDelete) && <TableHead className="text-right">Actions</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.length === 0 ? (
-               <TableRow>
-                  <TableCell colSpan={columns.length + (onEdit || onDelete ? 1 : 0)} className="h-24 text-center">
-                     No results.
-                  </TableCell>
-               </TableRow>
-            ) : (
-               paginatedData.map((item) => (
-                 <TableRow key={item.id}>
-                   {columns.map((col, i) => (
-                     <TableCell key={i} className={col.className}>
-                       {col.cell ? col.cell(item) : String(item[col.accessorKey])}
-                     </TableCell>
-                   ))}
-                   {(onEdit || onDelete) && (
-                     <TableCell className="text-right">
-                       <DropdownMenu>
-                           <DropdownMenuTrigger>
-                               <Button variant="ghost" className="h-8 w-8 p-0">
-                                   <span className="sr-only">Open menu</span>
-                                   <MoreHorizontal className="h-4 w-4" />
-                               </Button>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent align="end">
-                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                               <DropdownMenuItem onClick={() => navigator.clipboard.writeText(String(item.id))}>Copy ID</DropdownMenuItem>
-                               <DropdownMenuSeparator />
-                               {onEdit && <DropdownMenuItem onClick={() => onEdit(item)}>Edit Details</DropdownMenuItem>}
-                               {onDelete && <DropdownMenuItem onClick={() => onDelete(item)} className="text-red-600 dark:text-red-400">Delete</DropdownMenuItem>}
-                           </DropdownMenuContent>
-                       </DropdownMenu>
-                     </TableCell>
-                   )}
-                 </TableRow>
-               ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPage(p => Math.max(1, p - 1))}
-          disabled={page === 1}
-        >
-          <ChevronLeft className="h-4 w-4" /> Previous
-        </Button>
-        <span className="text-sm text-slate-600 dark:text-zinc-400">Page {page} of {totalPages || 1}</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages || totalPages === 0}
-        >
-          Next <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-}
