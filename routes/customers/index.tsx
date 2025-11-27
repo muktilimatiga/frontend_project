@@ -1,13 +1,16 @@
 
 import * as React from 'react';
+import { useState } from 'react';
 import { EnhancedTable, ColumnDef } from '../../components/ui/EnhancedTable';
-import { Button, Badge, Avatar } from '../../components/ui';
+import { Button, Badge, Avatar, Tooltip } from '../../components/ui';
 import { User } from '../../types';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, Receipt, Wallet } from 'lucide-react';
 import { useCustomers } from '../../hooks/useQueries';
+import { InvoicePaymentModal } from './components/InvoicePaymentModal';
 
 export const CustomersPage = () => {
   const { data: customers = [] } = useCustomers();
+  const [selectedInvoiceUser, setSelectedInvoiceUser] = useState<User | null>(null);
 
   const columns: ColumnDef<User>[] = [
     { 
@@ -47,10 +50,34 @@ export const CustomersPage = () => {
        accessorKey: 'id', // Mock status
        cell: () => <Badge variant="success" className="bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900/50 font-normal">Active</Badge>
     },
+    {
+       header: 'Actions',
+       accessorKey: 'id',
+       cell: (u) => (
+         <div className="flex items-center gap-2">
+            <Tooltip text="Create Invoice">
+               <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-8 w-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20"
+                  onClick={(e) => { e.stopPropagation(); setSelectedInvoiceUser(u); }}
+               >
+                  <Receipt className="h-4 w-4" />
+               </Button>
+            </Tooltip>
+         </div>
+       )
+    }
   ];
 
   return (
     <div className="animate-in fade-in duration-500">
+      <InvoicePaymentModal 
+         isOpen={!!selectedInvoiceUser} 
+         user={selectedInvoiceUser} 
+         onClose={() => setSelectedInvoiceUser(null)} 
+      />
+
       <EnhancedTable 
          title="Customers"
          data={customers} 

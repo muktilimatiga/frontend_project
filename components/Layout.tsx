@@ -268,7 +268,7 @@ export const Sidebar = () => {
 };
 
 export const Navbar = () => {
-  const { theme, toggleTheme, toggleCli, isSidebarCollapsed, toggleAIChat } = useAppStore();
+  const { theme, toggleTheme, toggleCli, isSidebarCollapsed, toggleAIChat, isCliOpen } = useAppStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const logsQuery = useQuery({ queryKey: ['logs'], queryFn: () => MockService.getTicketLogs() });
 
@@ -302,7 +302,16 @@ export const Navbar = () => {
            <Sparkles className="h-5 w-5" />
         </Button>
 
-        <Button variant="ghost" size="icon" onClick={toggleCli} title="Open PowerShell CLI" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleCli} 
+          title="Open PowerShell CLI" 
+          className={cn(
+            "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
+            isCliOpen && "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white"
+          )}
+        >
            <Terminal className="h-5 w-5" />
         </Button>
 
@@ -372,7 +381,7 @@ export const Navbar = () => {
 
 // --- Resizable & Draggable CLI Modal (macOS Style) ---
 const CLIModal = () => {
-  const { isCliOpen, toggleCli } = useAppStore();
+  const { isCliOpen, toggleCli, isCliMinimized, setIsCliMinimized } = useAppStore();
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<string[]>(['Last login: ' + new Date().toDateString() + ' on ttys000', 'Nexus System v2.1.0', '']);
   
@@ -384,17 +393,24 @@ const CLIModal = () => {
   const dragStart = useRef({ x: 0, y: 0 });
   const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
-  // Center the window on mount
+  // Center the window on mount or when reopened
   useEffect(() => {
     if (isCliOpen) {
+       // Only reset position if it's currently at 0,0 (first open) or explicitly requested (via green button logic later)
        if (position.x === 0 && position.y === 0) {
-           setPosition({ 
-             x: Math.max(0, (window.innerWidth - 700) / 2), 
-             y: Math.max(0, (window.innerHeight - 450) / 2) 
-           });
+           resetWindow();
        }
     }
   }, [isCliOpen]);
+
+  const resetWindow = () => {
+     setPosition({ 
+       x: Math.max(0, (window.innerWidth - 700) / 2), 
+       y: Math.max(0, (window.innerHeight - 450) / 2) 
+     });
+     setSize({ width: 700, height: 450 });
+     setIsCliMinimized(false);
+  };
 
   // Handle Dragging
   const handleMouseDownDrag = (e: React.MouseEvent) => {
@@ -426,7 +442,7 @@ const CLIModal = () => {
           y: e.clientY - dragStart.current.y
         });
       }
-      if (isResizing) {
+      if (isResizing && !isCliMinimized) {
         setSize({
           width: Math.max(400, resizeStart.current.w + (e.clientX - resizeStart.current.x)),
           height: Math.max(300, resizeStart.current.h + (e.clientY - resizeStart.current.y))
@@ -447,7 +463,7 @@ const CLIModal = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, isResizing]);
+  }, [isDragging, isResizing, isCliMinimized]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -476,12 +492,15 @@ const CLIModal = () => {
 
   return (
     <div 
-      className="fixed z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl rounded-xl shadow-2xl flex flex-col font-mono text-[13px] leading-relaxed overflow-hidden ring-1 ring-white/10"
+      className={cn(
+        "fixed z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl rounded-xl shadow-2xl flex flex-col font-mono text-[13px] leading-relaxed overflow-hidden ring-1 ring-white/10 transition-[height] duration-200 ease-in-out",
+        isCliMinimized && "h-[28px] !important"
+      )}
       style={{ 
         left: position.x, 
         top: position.y, 
         width: size.width, 
-        height: size.height,
+        height: isCliMinimized ? '28px' : size.height,
         cursor: isDragging ? 'grabbing' : 'auto',
         boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 20px 50px rgba(0,0,0,0.5)'
       }}
@@ -491,17 +510,31 @@ const CLIModal = () => {
       <div 
         className="h-7 bg-gradient-to-b from-[#3a3a3a] to-[#2b2b2b] flex items-center px-2.5 border-b border-black/40 select-none cursor-grab active:cursor-grabbing relative"
         onMouseDown={handleMouseDownDrag}
-        onDoubleClick={() => {
-            setSize({ width: 800, height: 500 });
-        }}
+        onDoubleClick={() => setIsCliMinimized(!isCliMinimized)}
       >
          {/* Window Controls */}
          <div className="flex items-center gap-2 z-10 group">
-            <button onClick={toggleCli} className="w-3 h-3 rounded-full bg-[#ff5f56] border-[0.5px] border-[#e0443e] flex items-center justify-center">
+            <button 
+                onClick={toggleCli} 
+                className="w-3 h-3 rounded-full bg-[#ff5f56] border-[0.5px] border-[#e0443e] flex items-center justify-center hover:bg-[#ff5f56]/80"
+                title="Close"
+            >
                <X className="h-2 w-2 text-black/60 opacity-0 group-hover:opacity-100" />
             </button>
-            <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border-[0.5px] border-[#dea123]"></div>
-            <div className="w-3 h-3 rounded-full bg-[#27c93f] border-[0.5px] border-[#1aab29]"></div>
+            <button 
+                onClick={() => setIsCliMinimized(!isCliMinimized)} 
+                className="w-3 h-3 rounded-full bg-[#ffbd2e] border-[0.5px] border-[#dea123] flex items-center justify-center hover:bg-[#ffbd2e]/80"
+                title="Minimize (Window Shade)"
+            >
+               <Minus className="h-2 w-2 text-black/60 opacity-0 group-hover:opacity-100" />
+            </button>
+            <button 
+                onClick={resetWindow}
+                className="w-3 h-3 rounded-full bg-[#27c93f] border-[0.5px] border-[#1aab29] flex items-center justify-center hover:bg-[#27c93f]/80"
+                title="Reset / Maximize"
+            >
+               <Maximize2 className="h-2 w-2 text-black/60 opacity-0 group-hover:opacity-100" />
+            </button>
          </div>
 
          {/* Title */}
@@ -513,38 +546,42 @@ const CLIModal = () => {
          </div>
       </div>
 
-      {/* Content */}
-      <div 
-        className="flex-1 p-3 overflow-y-auto text-[#e5e5e5] cursor-text selection:bg-white/20" 
-        onClick={() => document.getElementById('cli-input')?.focus()}
-        style={{ fontFamily: "Menlo, Monaco, 'Courier New', monospace" }}
-      >
-         {history.map((line, i) => (
-           <div key={i} className="whitespace-pre-wrap min-h-[1.2em]">{line}</div>
-         ))}
-         <div className="flex items-center gap-2 mt-0.5">
-           <span className="text-emerald-400 font-bold shrink-0">➜</span>
-           <span className="text-cyan-400 font-bold shrink-0">~</span>
-           <div className="flex-1 relative">
-             <input 
-               id="cli-input"
-               className="bg-transparent border-none outline-none w-full text-[#e5e5e5] focus:ring-0 p-0 m-0 h-5"
-               value={input}
-               onChange={(e) => setInput(e.target.value)}
-               onKeyDown={handleKeyDown}
-               autoFocus
-               spellCheck={false}
-               autoComplete="off"
-             />
-           </div>
-         </div>
-      </div>
+      {/* Content (Hidden when minimized) */}
+      {!isCliMinimized && (
+          <div 
+            className="flex-1 p-3 overflow-y-auto text-[#e5e5e5] cursor-text selection:bg-white/20" 
+            onClick={() => document.getElementById('cli-input')?.focus()}
+            style={{ fontFamily: "Menlo, Monaco, 'Courier New', monospace" }}
+          >
+             {history.map((line, i) => (
+               <div key={i} className="whitespace-pre-wrap min-h-[1.2em]">{line}</div>
+             ))}
+             <div className="flex items-center gap-2 mt-0.5">
+               <span className="text-emerald-400 font-bold shrink-0">➜</span>
+               <span className="text-cyan-400 font-bold shrink-0">~</span>
+               <div className="flex-1 relative">
+                 <input 
+                   id="cli-input"
+                   className="bg-transparent border-none outline-none w-full text-[#e5e5e5] focus:ring-0 p-0 m-0 h-5"
+                   value={input}
+                   onChange={(e) => setInput(e.target.value)}
+                   onKeyDown={handleKeyDown}
+                   autoFocus
+                   spellCheck={false}
+                   autoComplete="off"
+                 />
+               </div>
+             </div>
+          </div>
+      )}
       
-      {/* Invisible Resize Handle Area */}
-      <div 
-        className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize z-20"
-        onMouseDown={handleMouseDownResize}
-      />
+      {/* Invisible Resize Handle Area (Hidden when minimized) */}
+      {!isCliMinimized && (
+          <div 
+            className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize z-20"
+            onMouseDown={handleMouseDownResize}
+          />
+      )}
     </div>
   );
 };

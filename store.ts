@@ -18,7 +18,9 @@ interface AppState {
 
   // CLI Modal State
   isCliOpen: boolean;
+  isCliMinimized: boolean;
   toggleCli: () => void;
+  setIsCliMinimized: (minimized: boolean) => void;
 
   // Monitor Drawer State
   isMonitorOpen: boolean;
@@ -52,7 +54,13 @@ export const useAppStore = create<AppState>((set) => ({
   toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
 
   isCliOpen: false,
-  toggleCli: () => set((state) => ({ isCliOpen: !state.isCliOpen })),
+  isCliMinimized: false,
+  // When toggling, if we are opening, ensure we aren't minimized
+  toggleCli: () => set((state) => ({ 
+    isCliOpen: !state.isCliOpen,
+    isCliMinimized: !state.isCliOpen ? false : state.isCliMinimized 
+  })),
+  setIsCliMinimized: (minimized) => set({ isCliMinimized: minimized }),
 
   isMonitorOpen: false,
   toggleMonitor: () => set((state) => ({ isMonitorOpen: !state.isMonitorOpen })),

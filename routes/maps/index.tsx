@@ -263,9 +263,10 @@ export const MapsPage = () => {
         }
      });
 
+     // Use 'light_all' for better reliability in light mode
      const tileUrl = theme === 'dark' 
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png';
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
      
      L.tileLayer(tileUrl, {
         maxZoom: 19,
