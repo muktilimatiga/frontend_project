@@ -75,6 +75,7 @@ export function useDataTable<T extends { id: string | number }>({ data, searchKe
     setPage,
     totalPages,
     selectedRows,
+    setSelectedRows,
     toggleSelectAll,
     toggleSelectRow,
     totalCount: filteredData.length

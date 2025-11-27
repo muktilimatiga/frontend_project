@@ -64,7 +64,7 @@ Silahkan melakukan pembayaran sebelum tanggal ${deadlineDate}. Agar internet And
   const mockAddress = "DSN. KRAJAN, 02/03, NGENTRONG, CAMPURDARAT"; 
 
   return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-lg p-0 overflow-hidden flex flex-col max-h-[90vh]">
+    <ModalOverlay isOpen={isOpen} onClose={onClose} hideCloseButton={true} className="max-w-lg p-0 overflow-hidden flex flex-col max-h-[90vh]">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
          <div className="flex items-center gap-2">

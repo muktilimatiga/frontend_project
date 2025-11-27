@@ -2,6 +2,28 @@
 import { create } from 'zustand';
 import { User } from './types';
 
+interface UserSettings {
+  reducedMotion: boolean;
+  compactMode: boolean;
+  emailSecurity: boolean;
+  emailTickets: boolean;
+  emailMarketing: boolean;
+  pushMentions: boolean;
+  pushReminders: boolean;
+  twoFactor: boolean;
+}
+
+const DEFAULT_SETTINGS: UserSettings = {
+  reducedMotion: false,
+  compactMode: false,
+  emailSecurity: true,
+  emailTickets: true,
+  emailMarketing: false,
+  pushMentions: true,
+  pushReminders: true,
+  twoFactor: false,
+};
+
 interface AppState {
   // Sidebar State (Kept for compatibility, but UI will be fixed narrow)
   isSidebarCollapsed: boolean;
@@ -11,6 +33,11 @@ interface AppState {
   user: User | null;
   login: (user: User) => void;
   logout: () => void;
+  updateUser: (updates: Partial<User>) => void;
+
+  // Settings State
+  settings: UserSettings;
+  updateSettings: (updates: Partial<UserSettings>) => void;
 
   // Theme State
   theme: 'light' | 'dark';
@@ -49,6 +76,14 @@ export const useAppStore = create<AppState>((set) => ({
   },
   login: (user) => set({ user }),
   logout: () => set({ user: null }),
+  updateUser: (updates) => set((state) => ({ 
+    user: state.user ? { ...state.user, ...updates } : null 
+  })),
+
+  settings: DEFAULT_SETTINGS,
+  updateSettings: (updates) => set((state) => ({
+    settings: { ...state.settings, ...updates }
+  })),
 
   theme: 'light',
   toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),

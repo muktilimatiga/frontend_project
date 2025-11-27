@@ -287,7 +287,7 @@ export const ProcessActionModal = ({
   if (!ticket) return null;
 
   return (
-    <ModalOverlay isOpen={isOpen} onClose={handleClose} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+    <ModalOverlay isOpen={isOpen} onClose={handleClose} hideCloseButton={true} className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
         <div className="flex-1 overflow-y-auto">
              <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
                  <div className="flex items-center gap-2">
@@ -354,7 +354,7 @@ export const CloseTicketModal = ({
     if (!ticket) return null;
 
     return (
-        <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+        <ModalOverlay isOpen={isOpen} onClose={onClose} hideCloseButton={true} className="max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
              <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex justify-between items-center">
                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Close Ticket</h2>
                  <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
@@ -442,7 +442,7 @@ export const ForwardTicketModal = ({
     if (!ticket) return null;
 
     return (
-        <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <ModalOverlay isOpen={isOpen} onClose={onClose} hideCloseButton={true} className="max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
              <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex justify-between items-center">
                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Forward Ticket</h2>
                  <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8"><X className="h-4 w-4" /></Button>
