@@ -28,6 +28,10 @@ interface AppState {
   isSearchOpen: boolean;
   toggleSearch: () => void;
   setSearchOpen: (open: boolean) => void;
+
+  // AI Chat State
+  isAIChatOpen: boolean;
+  toggleAIChat: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -56,4 +60,7 @@ export const useAppStore = create<AppState>((set) => ({
   isSearchOpen: false,
   toggleSearch: () => set((state) => ({ isSearchOpen: !state.isSearchOpen })),
   setSearchOpen: (open) => set({ isSearchOpen: open }),
+
+  isAIChatOpen: false,
+  toggleAIChat: () => set((state) => ({ isAIChatOpen: !state.isAIChatOpen })),
 }));

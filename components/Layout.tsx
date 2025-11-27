@@ -1,5 +1,6 @@
+
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { 
   LayoutDashboard, 
@@ -20,7 +21,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   LogOut,
-  MoreHorizontal
+  MoreHorizontal,
+  Sparkles,
+  Minus,
+  Maximize2,
+  X,
+  GripHorizontal
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Toaster, toast } from 'sonner';
@@ -41,6 +47,7 @@ import {
 import { MockService, MockSocket } from '../mock';
 import { MonitorDrawer } from './MonitorDrawer';
 import { GlobalSearch } from './GlobalSearch';
+import { AIChatDrawer } from './AIChatDrawer';
 
 // --- Sidebar Icon / Item Component ---
 const SidebarIcon = ({ 
@@ -252,7 +259,7 @@ export const Sidebar = () => {
 };
 
 export const Navbar = () => {
-  const { theme, toggleTheme, toggleCli, isSidebarCollapsed } = useAppStore();
+  const { theme, toggleTheme, toggleCli, isSidebarCollapsed, toggleAIChat } = useAppStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const logsQuery = useQuery({ queryKey: ['logs'], queryFn: () => MockService.getTicketLogs() });
 
@@ -276,6 +283,16 @@ export const Navbar = () => {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleAIChat} 
+            title="Ask Nexus AI" 
+            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:text-indigo-300 dark:hover:bg-indigo-900/20"
+        >
+           <Sparkles className="h-5 w-5" />
+        </Button>
+
         <Button variant="ghost" size="icon" onClick={toggleCli} title="Open PowerShell CLI" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
            <Terminal className="h-5 w-5" />
         </Button>
@@ -344,65 +361,182 @@ export const Navbar = () => {
   );
 };
 
-// --- CLI Modal Component ---
+// --- Resizable & Draggable CLI Modal (macOS Style) ---
 const CLIModal = () => {
   const { isCliOpen, toggleCli } = useAppStore();
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<string[]>(['Nexus PowerShell v1.0.2', 'Copyright (c) Nexus Corp. All rights reserved.', '', 'Type "help" for commands.']);
+  const [history, setHistory] = useState<string[]>(['Last login: ' + new Date().toDateString() + ' on ttys000', 'Nexus System v2.1.0', '']);
+  
+  // Floating Window State
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [size, setSize] = useState({ width: 700, height: 450 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
+
+  // Center the window on mount
+  useEffect(() => {
+    if (isCliOpen) {
+       if (position.x === 0 && position.y === 0) {
+           setPosition({ 
+             x: Math.max(0, (window.innerWidth - 700) / 2), 
+             y: Math.max(0, (window.innerHeight - 450) / 2) 
+           });
+       }
+    }
+  }, [isCliOpen]);
+
+  // Handle Dragging
+  const handleMouseDownDrag = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragStart.current = { 
+      x: e.clientX - position.x, 
+      y: e.clientY - position.y 
+    };
+  };
+
+  // Handle Resizing
+  const handleMouseDownResize = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeStart.current = { 
+      x: e.clientX, 
+      y: e.clientY, 
+      w: size.width, 
+      h: size.height 
+    };
+  };
+
+  // Global Mouse Events
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setPosition({
+          x: e.clientX - dragStart.current.x,
+          y: e.clientY - dragStart.current.y
+        });
+      }
+      if (isResizing) {
+        setSize({
+          width: Math.max(400, resizeStart.current.w + (e.clientX - resizeStart.current.x)),
+          height: Math.max(300, resizeStart.current.h + (e.clientY - resizeStart.current.y))
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+    };
+
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, isResizing]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       const cmd = input.trim();
-      setHistory(prev => [...prev, `PS C:\\Nexus> ${cmd}`]);
+      setHistory(prev => [...prev, `➜  ~ ${cmd}`]);
       
       if (cmd === 'help') {
-        setHistory(prev => [...prev, 'Available commands:', '  status      Check system status', '  clear       Clear terminal', '  exit        Close terminal']);
+        setHistory(prev => [...prev, 'Available commands:', '  status      Check system status', '  clear       Clear terminal', '  exit        Close terminal', '  whoami      Current user']);
       } else if (cmd === 'status') {
          setHistory(prev => [...prev, 'System Status: ONLINE', 'Database: CONNECTED', 'Latency: 24ms']);
       } else if (cmd === 'clear') {
          setHistory([]);
       } else if (cmd === 'exit') {
          toggleCli();
+      } else if (cmd === 'whoami') {
+         setHistory(prev => [...prev, 'admin']);
       } else if (cmd) {
-         setHistory(prev => [...prev, `Command '${cmd}' not found.`]);
+         setHistory(prev => [...prev, `zsh: command not found: ${cmd}`]);
       }
       
       setInput('');
     }
   };
 
+  if (!isCliOpen) return null;
+
   return (
-    <ModalOverlay isOpen={isCliOpen} onClose={toggleCli}>
+    <div 
+      className="fixed z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl rounded-xl shadow-2xl flex flex-col font-mono text-[13px] leading-relaxed overflow-hidden ring-1 ring-white/10"
+      style={{ 
+        left: position.x, 
+        top: position.y, 
+        width: size.width, 
+        height: size.height,
+        cursor: isDragging ? 'grabbing' : 'auto',
+        boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 20px 50px rgba(0,0,0,0.5)'
+      }}
+      onClick={(e) => e.stopPropagation()} 
+    >
+      {/* macOS Style Header */}
       <div 
-        className="w-[800px] h-[500px] bg-[#0c0c0c] rounded-lg shadow-2xl border border-[#333] flex flex-col font-mono text-sm overflow-hidden"
-        onClick={(e) => e.stopPropagation()} 
+        className="h-7 bg-gradient-to-b from-[#3a3a3a] to-[#2b2b2b] flex items-center px-2.5 border-b border-black/40 select-none cursor-grab active:cursor-grabbing relative"
+        onMouseDown={handleMouseDownDrag}
+        onDoubleClick={() => {
+            setSize({ width: 800, height: 500 });
+        }}
       >
-        <div className="h-8 bg-[#1f1f1f] flex items-center justify-between px-3 border-b border-[#333]">
-           <div className="flex items-center gap-2">
-             <Terminal className="h-3 w-3 text-slate-400" />
-             <span className="text-slate-300 text-xs">Administrator: Nexus PowerShell</span>
-           </div>
-           <button onClick={toggleCli} className="text-slate-400 hover:text-white">✕</button>
-        </div>
-        <div className="flex-1 p-4 overflow-y-auto text-slate-200" onClick={() => document.getElementById('cli-input')?.focus()}>
-           {history.map((line, i) => (
-             <div key={i} className="whitespace-pre-wrap mb-1">{line}</div>
-           ))}
-           <div className="flex items-center gap-2 mt-2">
-             <span className="text-slate-400">PS C:\Nexus&gt;</span>
+         {/* Window Controls */}
+         <div className="flex items-center gap-2 z-10 group">
+            <button onClick={toggleCli} className="w-3 h-3 rounded-full bg-[#ff5f56] border-[0.5px] border-[#e0443e] flex items-center justify-center">
+               <X className="h-2 w-2 text-black/60 opacity-0 group-hover:opacity-100" />
+            </button>
+            <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border-[0.5px] border-[#dea123]"></div>
+            <div className="w-3 h-3 rounded-full bg-[#27c93f] border-[0.5px] border-[#1aab29]"></div>
+         </div>
+
+         {/* Title */}
+         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+             <div className="flex items-center gap-1.5 opacity-60">
+                <Terminal className="h-3 w-3" />
+                <span className="font-semibold text-xs text-shadow-sm text-[#e5e5e5]">admin — -zsh</span>
+            </div>
+         </div>
+      </div>
+
+      {/* Content */}
+      <div 
+        className="flex-1 p-3 overflow-y-auto text-[#e5e5e5] cursor-text selection:bg-white/20" 
+        onClick={() => document.getElementById('cli-input')?.focus()}
+        style={{ fontFamily: "Menlo, Monaco, 'Courier New', monospace" }}
+      >
+         {history.map((line, i) => (
+           <div key={i} className="whitespace-pre-wrap min-h-[1.2em]">{line}</div>
+         ))}
+         <div className="flex items-center gap-2 mt-0.5">
+           <span className="text-emerald-400 font-bold shrink-0">➜</span>
+           <span className="text-cyan-400 font-bold shrink-0">~</span>
+           <div className="flex-1 relative">
              <input 
                id="cli-input"
-               className="bg-transparent border-none outline-none flex-1 text-slate-200 focus:ring-0 p-0"
+               className="bg-transparent border-none outline-none w-full text-[#e5e5e5] focus:ring-0 p-0 m-0 h-5"
                value={input}
                onChange={(e) => setInput(e.target.value)}
                onKeyDown={handleKeyDown}
                autoFocus
                spellCheck={false}
+               autoComplete="off"
              />
            </div>
-        </div>
+         </div>
       </div>
-    </ModalOverlay>
+      
+      {/* Invisible Resize Handle Area */}
+      <div 
+        className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize z-20"
+        onMouseDown={handleMouseDownResize}
+      />
+    </div>
   );
 };
 
@@ -448,8 +582,8 @@ export const AppLayout = () => {
       <Sidebar />
       <Navbar />
       <CLIModal />
-      {/* MonitorDrawer removed as we now have a full page */}
       <GlobalSearch />
+      <AIChatDrawer />
       
       {/* Main Content Area - Padded for sidebar */}
       <main 

@@ -18,7 +18,7 @@ const DeviceIcon = ({ type, className }: { type: string, className?: string }) =
   }
 };
 
-const DeviceCard = ({ device }: { device: Device }) => {
+const DeviceCard: React.FC<{ device: Device }> = ({ device }) => {
   const statusColor = 
     device.status === 'online' ? 'bg-emerald-500' : 
     device.status === 'warning' ? 'bg-amber-500' : 
@@ -93,7 +93,7 @@ const DeviceCard = ({ device }: { device: Device }) => {
 };
 
 export const DeviceList = ({ devices, filter }: DeviceListProps) => {
-  const grouped = React.useMemo(() => {
+  const grouped: Record<string, Device[]> = React.useMemo(() => {
      const groups: Record<string, Device[]> = {};
      devices.forEach(d => {
         if (filter && !d.name.toLowerCase().includes(filter.toLowerCase()) && !d.ip.includes(filter)) return;
