@@ -46,7 +46,8 @@
             },
             boxShadow: {
               'glow': '0 0 20px -5px rgba(99, 102, 241, 0.5)',
-              'card-dark': '0 0 0 1px #27272a, 0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+              // Glossy Effect: Subtle border, very light ambient shadow, and top inner highlight
+              'card-dark': '0 0 0 1px rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0.5px rgba(255,255,255,0.06)',
             }
           }
         }
@@ -145,7 +146,8 @@
     "express": "https://aistudiocdn.com/express@^5.1.0",
     "http": "https://aistudiocdn.com/http@^0.0.1-security",
     "socket.io": "https://aistudiocdn.com/socket.io@^4.8.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7"
   }
 }
 </script>

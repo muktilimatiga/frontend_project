@@ -2,11 +2,13 @@
 import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Network, Settings as SettingsIcon, FileText, Plus } from 'lucide-react';
+import { Network, Settings as SettingsIcon, FileText, Plus, WifiOff, RefreshCw } from 'lucide-react';
 import { MockSocket } from '../../mock';
 import { Badge, Button, cn } from '../../components/ui';
-import { Ticket, TicketLog, DashboardStats } from '../../types';
-import { useDashboardStats, useTrafficData, useRecentTickets, useTicketDistribution, useUpdateTicketStatus, queryKeys } from '../../hooks/useQueries';
+import { Ticket, TicketLog } from '../../types';
+import { useUpdateTicketStatus, queryKeys } from '../../hooks/useQueries';
+import { useSupabaseStats } from '../../hooks/useSupabaseStats';
+import { toast } from 'sonner';
 
 // Import refactored components
 import { DashboardStatsGrid } from './components/StatCards';
@@ -30,30 +32,36 @@ export const Dashboard = () => {
   const [forwardTicket, setForwardTicket] = useState<Ticket | null>(null);
 
   // Queries using custom hooks
-  const statsQuery = useDashboardStats();
-  const trafficQuery = useTrafficData();
-  const ticketsQuery = useRecentTickets();
-  const distributionQuery = useTicketDistribution();
+  // extracting stats, recentTickets, trafficData, and closedTickets from Supabase hook
+  const { 
+    stats, 
+    recentTickets, 
+    closedTickets, 
+    trafficData, 
+    oltDistribution,
+    loading: statsLoading, 
+    error: statsError, 
+    isFallback 
+  } = useSupabaseStats();
+  
   const updateTicketStatus = useUpdateTicketStatus();
 
-  // Filter: Recent Tickets (Open & In Progress)
+  // Filter: Recent Tickets (Open & In Progress) - Using Supabase Data
+  // activeTickets for the queue list will populate from the recent tickets fetched from Supabase
   const activeTickets = useMemo(() => {
-    return ticketsQuery.data?.filter(t => t.status === 'open' || t.status === 'in_progress').slice(0, 5) || [];
-  }, [ticketsQuery.data]);
+    return recentTickets; 
+  }, [recentTickets]);
 
   // Filter: Recently Closed (Last 2 days) + Search
-  const closedTickets = useMemo(() => {
-    if (!ticketsQuery.data) return [];
-    const twoDaysAgo = Date.now() - (48 * 60 * 60 * 1000);
-    return ticketsQuery.data
-      .filter(t => {
-        const isClosed = t.status === 'closed';
-        const isRecent = new Date(t.createdAt).getTime() > twoDaysAgo;
-        const matchesSearch = t.title.toLowerCase().includes(closedSearch.toLowerCase()) || t.id.toLowerCase().includes(closedSearch.toLowerCase());
-        return isClosed && isRecent && matchesSearch;
-      })
-      .slice(0, 10);
-  }, [ticketsQuery.data, closedSearch]);
+  // Using real data from Supabase, applying local search filter
+  const filteredClosedTickets = useMemo(() => {
+     if (!closedSearch) return closedTickets;
+     const lower = closedSearch.toLowerCase();
+     return closedTickets.filter(t => 
+        t.title.toLowerCase().includes(lower) || 
+        t.id.toLowerCase().includes(lower)
+     );
+  }, [closedTickets, closedSearch]);
 
   // Handlers
   const handleUpdateStatus = (id: string, status: 'in_progress' | 'closed', note: string) => {
@@ -90,30 +98,15 @@ export const Dashboard = () => {
       setForwardTicket(ticket);
   };
 
-  // Real-time Subscription
+  // Real-time Subscription (Kept for compatibility with other parts of app if needed)
   useEffect(() => {
     const unsubscribe = MockSocket.subscribe((event) => {
       if (event.type === 'NEW_TICKET') {
-        queryClient.setQueryData(queryKeys.tickets.recent(), (oldData: Ticket[] | undefined) => {
-           if (!oldData) return [event.payload];
-           return [event.payload, ...oldData];
-        });
-        queryClient.setQueryData(queryKeys.dashboard.stats, (oldData: DashboardStats | undefined) => {
-           if (!oldData) return oldData;
-           return { ...oldData, totalTickets: oldData.totalTickets + 1, openTickets: oldData.openTickets + 1 };
-        });
-      }
-      if (event.type === 'NEW_LOG') {
-         queryClient.setQueryData(queryKeys.tickets.logs(), (oldData: TicketLog[] | undefined) => {
-          if (!oldData) return [event.payload];
-          return [event.payload, ...oldData].slice(0, 15);
-        });
+        // Optimistic UI updates could go here
       }
     });
     return unsubscribe;
   }, [queryClient]);
-
-  if (statsQuery.isLoading) return <div className="p-10 flex justify-center text-slate-400">Loading Dashboard...</div>;
 
   return (
     <div className="space-y-6 relative min-h-[calc(100vh-100px)] animate-in fade-in duration-500">
@@ -146,21 +139,33 @@ export const Dashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
-        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-emerald-400">
-           <span className="relative flex h-2 w-2 mr-2">
-             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-           </span>
-           Live Updates Active
-        </Badge>
+        {statsLoading ? (
+           <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+              <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+              Connecting...
+           </Badge>
+        ) : isFallback ? (
+           <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 shadow-sm dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-400">
+              <WifiOff className="h-3 w-3 mr-2" />
+              Offline Mode (Mock Data)
+           </Badge>
+        ) : (
+           <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-emerald-400">
+              <span className="relative flex h-2 w-2 mr-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Live Connection
+           </Badge>
+        )}
       </div>
 
       {/* Row 1: KPIs */}
-      <DashboardStatsGrid stats={statsQuery.data} />
+      <DashboardStatsGrid stats={stats} loading={statsLoading} />
 
       {/* Row 2: Chart & Active Tickets */}
       <div className="grid gap-4 md:grid-cols-7">
-        <TrafficChart data={trafficQuery.data} />
+        <TrafficChart data={trafficData} />
         <ActiveTickets 
             tickets={activeTickets} 
             onSelectTicket={setSelectedTicket}
@@ -172,12 +177,12 @@ export const Dashboard = () => {
       {/* Row 3: Recently Closed & Distribution */}
       <div className="grid gap-4 md:grid-cols-7 pb-20">
         <RecentClosedTickets 
-            tickets={closedTickets} 
+            tickets={filteredClosedTickets} 
             search={closedSearch} 
             onSearchChange={setClosedSearch} 
             onSelectTicket={setSelectedTicket}
         />
-        <DistributionChart data={distributionQuery.data} />
+        <DistributionChart data={oltDistribution} />
       </div>
 
       {/* --- Floating Action Button (FAB) --- */}

@@ -1,10 +1,13 @@
 
 import * as React from 'react';
+import { useState } from 'react';
 import { EnhancedTable, ColumnDef } from '../../components/ui/EnhancedTable';
-import { Button, Badge } from '../../components/ui';
+import { Button, Badge, cn } from '../../components/ui';
 import { Ticket } from '../../types';
-import { Plus, Filter } from 'lucide-react';
-import { useTickets } from '../../hooks/useQueries';
+import { Plus, Filter, RefreshCw, User as UserIcon, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useSupabaseTickets } from '../../hooks/useSupabaseTickets';
+import { ProcessActionModal, CloseTicketModal } from '../dashboard/components/Modals';
+import { useUpdateTicketStatus } from '../../hooks/useQueries';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: any = { 
@@ -13,41 +16,112 @@ const StatusBadge = ({ status }: { status: string }) => {
      resolved: "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-900/50", 
      closed: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/10 dark:text-slate-400 dark:border-white/20" 
   };
-  return <Badge variant="secondary" className={`capitalize font-normal ${styles[status]}`}>{status.replace('_', ' ')}</Badge>;
-};
-
-const PriorityDot = ({ priority }: { priority: string }) => {
-  const colors: any = { low: 'bg-slate-400', medium: 'bg-blue-500', high: 'bg-orange-500', critical: 'bg-red-500' };
-  return (
-     <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${colors[priority]}`} />
-        <span className="capitalize text-sm text-slate-600 dark:text-slate-300">{priority}</span>
-     </div>
-  );
+  const style = styles[status] || styles['open'];
+  return <Badge variant="secondary" className={`capitalize font-normal ${style}`}>{status.replace('_', ' ')}</Badge>;
 };
 
 export const TicketsPage = () => {
-  const { data: tickets = [] } = useTickets();
+  const { data: tickets, loading, refetch } = useSupabaseTickets();
+  const updateTicketStatus = useUpdateTicketStatus();
+
+  // Modal State
+  const [processTicket, setProcessTicket] = useState<Ticket | null>(null);
+  const [closeTicket, setCloseTicket] = useState<Ticket | null>(null);
+
+  // Handlers
+  const handleProcessConfirm = (id: string, status: 'in_progress' | 'closed', note: string) => {
+    updateTicketStatus.mutate({ id, status });
+    setProcessTicket(null);
+    setTimeout(refetch, 500); // Slight delay to ensure DB update propagates
+  };
+
+  const handleCloseConfirm = (id: string, note: string) => {
+    updateTicketStatus.mutate({ id, status: 'closed' });
+    setCloseTicket(null);
+    setTimeout(refetch, 500);
+  };
 
   const columns: ColumnDef<Ticket>[] = [
-    { header: 'Ticket ID', accessorKey: 'id', className: 'font-mono text-xs text-slate-500' },
-    { header: 'Subject', accessorKey: 'title', className: 'font-medium text-slate-900 dark:text-slate-100 max-w-[300px] truncate' },
+    { header: 'Ticket ID', accessorKey: 'id', className: 'font-mono text-xs text-slate-500 w-[120px]' },
+    { header: 'Subject (Kendala)', accessorKey: 'title', className: 'font-medium text-slate-900 dark:text-slate-100 max-w-[300px] truncate' },
     { header: 'Status', accessorKey: 'status', cell: (t) => <StatusBadge status={t.status} /> },
-    { header: 'Priority', accessorKey: 'priority', cell: (t) => <PriorityDot priority={t.priority} /> },
-    { header: 'Created', accessorKey: 'createdAt', cell: (t) => <span className="text-slate-500 dark:text-slate-400">{new Date(t.createdAt).toLocaleDateString()}</span> },
+    { 
+      header: 'Assignee (Nama)', 
+      accessorKey: 'assigneeId',
+      cell: (t) => t.assigneeId ? (
+        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+           <UserIcon className="h-3 w-3 text-slate-400" /> {t.assigneeId}
+        </div>
+      ) : <span className="text-xs text-slate-400 italic">Unassigned</span>
+    },
+    { header: 'Created', accessorKey: 'createdAt', cell: (t) => <span className="text-slate-500 dark:text-slate-400 text-xs">{new Date(t.createdAt).toLocaleDateString()}</span> },
+    {
+      header: 'Actions',
+      accessorKey: 'id',
+      className: 'text-right',
+      cell: (t) => (
+        <div className="flex items-center justify-end gap-2">
+           {t.status === 'open' && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-7 px-2 text-[10px] gap-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 dark:border-indigo-900 dark:text-indigo-400 dark:hover:bg-indigo-900/20"
+                onClick={(e) => { e.stopPropagation(); setProcessTicket(t); }}
+              >
+                 Process <ArrowRight className="h-3 w-3" />
+              </Button>
+           )}
+           
+           {(t.status === 'open' || t.status === 'in_progress') && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-7 px-2 text-[10px] gap-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                onClick={(e) => { e.stopPropagation(); setCloseTicket(t); }}
+              >
+                 Close
+              </Button>
+           )}
+
+           {(t.status === 'resolved' || t.status === 'closed') && (
+              <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                 <CheckCircle2 className="h-3 w-3" /> Done
+              </span>
+           )}
+        </div>
+      )
+    }
   ];
 
   return (
     <div className="animate-in fade-in duration-500">
+      <ProcessActionModal 
+        isOpen={!!processTicket} 
+        ticket={processTicket} 
+        onClose={() => setProcessTicket(null)} 
+        onConfirm={handleProcessConfirm}
+      />
+      <CloseTicketModal 
+        isOpen={!!closeTicket}
+        ticket={closeTicket}
+        onClose={() => setCloseTicket(null)}
+        onConfirm={handleCloseConfirm}
+      />
+
       <EnhancedTable 
-         title="Tickets"
+         title="All Tickets"
          data={tickets} 
          columns={columns} 
          searchKey="title"
-         onEdit={(t) => console.log('Edit', t)}
-         onDelete={(t) => console.log('Delete', t)}
+         // Removing default edit/delete actions to use custom column
+         onEdit={undefined}
+         onDelete={undefined}
          actionButtons={
             <>
+               <Button variant="ghost" onClick={refetch} disabled={loading} className="bg-white dark:bg-black dark:text-white">
+                  <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> 
+                  {loading ? 'Loading...' : 'Refresh'}
+               </Button>
                <Button variant="outline" className="bg-white dark:bg-black">
                   <Filter className="mr-2 h-4 w-4" /> Filter
                </Button>

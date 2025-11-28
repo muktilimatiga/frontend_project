@@ -10,7 +10,20 @@ export function cn(...inputs: ClassValue[]) {
 
 // --- Card Components ---
 export const Card = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm dark:border-slate-700/50 dark:bg-card dark:text-slate-50 shadow-card-dark", className)} {...props} />
+  <div 
+    ref={ref} 
+    className={cn(
+      "rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm transition-all duration-300", 
+      // Dark Mode: Deep Zinc with subtle gradient & Glass feel
+      "dark:border-white/5 dark:bg-zinc-900/80 dark:backdrop-blur-xl dark:text-zinc-50",
+      // Inner Highlight (simulated via shadow) for 3D effect
+      "dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]",
+      // Hover State: Lift + Glow
+      "hover:shadow-lg hover:-translate-y-0.5 dark:hover:border-indigo-500/20 dark:hover:shadow-[0_8px_30px_-12px_rgba(99,102,241,0.2)]",
+      className
+    )} 
+    {...props} 
+  />
 ));
 Card.displayName = "Card";
 
@@ -53,9 +66,9 @@ Separator.displayName = "Separator"
 // --- Badge ---
 export const Badge = ({ children, variant = 'default', className, ...props }: React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'success' | 'warning' }) => {
   const variants = {
-    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/80 dark:bg-primary dark:text-white dark:hover:bg-primary/90",
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-700/80",
-    outline: "text-slate-950 border border-slate-200 dark:text-slate-200 dark:border-slate-700",
+    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/80 dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-500",
+    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700",
+    outline: "text-slate-950 border border-slate-200 dark:text-slate-200 dark:border-zinc-700",
     destructive: "bg-red-500 text-slate-50 hover:bg-red-500/80 dark:bg-red-900/50 dark:text-red-100 dark:border dark:border-red-800",
     success: "bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-100 dark:border dark:border-emerald-800",
     warning: "bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-900/50 dark:text-amber-100 dark:border dark:border-amber-800",
@@ -70,10 +83,10 @@ export const Badge = ({ children, variant = 'default', className, ...props }: Re
 // --- Button ---
 export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'ghost' | 'outline' | 'secondary' | 'destructive', size?: 'sm' | 'default' | 'icon' }>(({ className, variant = 'default', size = 'default', ...props }, ref) => {
   const variants = {
-    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 shadow-sm",
-    ghost: "hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50",
-    outline: "border border-slate-200 bg-white hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-transparent dark:hover:bg-slate-800 dark:hover:text-slate-50",
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-800/80",
+    default: "bg-slate-900 text-slate-50 hover:bg-slate-900/90 dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-500 shadow-sm",
+    ghost: "hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-zinc-800 dark:hover:text-slate-50",
+    outline: "border border-slate-200 bg-white hover:bg-slate-100 hover:text-slate-900 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-slate-50",
+    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-zinc-800 dark:text-slate-50 dark:hover:bg-zinc-800/80",
     destructive: "bg-red-500 text-slate-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-red-50 dark:hover:bg-red-900/90",
   };
   const sizes = {
@@ -101,7 +114,7 @@ export const Switch = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "peer inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-slate-300 dark:focus-visible:ring-offset-slate-950",
-        checked ? "bg-slate-900 dark:bg-primary" : "bg-slate-200 dark:bg-slate-700",
+        checked ? "bg-slate-900 dark:bg-indigo-600" : "bg-slate-200 dark:bg-zinc-700",
         className
       )}
       ref={ref}
@@ -122,7 +135,7 @@ Switch.displayName = "Switch";
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => {
   return (
     <input
-      className={cn("flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm text-slate-900 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/50 dark:placeholder:text-slate-400 dark:text-slate-50 dark:focus-visible:ring-slate-300", className)}
+      className={cn("flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm text-slate-900 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900/50 dark:placeholder:text-zinc-500 dark:text-slate-50 dark:focus-visible:ring-indigo-500", className)}
       ref={ref}
       {...props}
     />
@@ -133,7 +146,7 @@ Input.displayName = "Input";
 export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(({ className, ...props }, ref) => {
   return (
     <textarea
-      className={cn("flex min-h-[60px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/50 dark:placeholder:text-slate-400 dark:text-slate-50 dark:focus-visible:ring-slate-300", className)}
+      className={cn("flex min-h-[60px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900/50 dark:placeholder:text-zinc-500 dark:text-slate-50 dark:focus-visible:ring-indigo-500", className)}
       ref={ref}
       {...props}
     />
@@ -151,7 +164,7 @@ Label.displayName = "Label";
 export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(({ className, ...props }, ref) => (
   <div className="relative">
     <select
-      className={cn("flex h-9 w-full items-center justify-between rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-50 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300", className)}
+      className={cn("flex h-9 w-full items-center justify-between rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 shadow-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-slate-50 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-500 dark:focus:ring-indigo-500", className)}
       ref={ref}
       {...props}
     />
@@ -164,7 +177,7 @@ export const Tooltip = ({ text, children }: { text: string, children?: React.Rea
   return (
     <div className="group relative flex items-center">
       {children}
-      <div className="absolute left-full ml-2 hidden whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:block group-hover:opacity-100 z-50 dark:bg-card dark:text-slate-100 border border-slate-700">
+      <div className="absolute left-full ml-2 hidden whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:block group-hover:opacity-100 z-50 dark:bg-zinc-800 dark:text-slate-100 border border-slate-700 shadow-sm">
         {text}
       </div>
     </div>
@@ -177,7 +190,7 @@ export const Avatar = ({ src, fallback, className }: { src?: string, fallback: s
     {src ? (
       <img className="aspect-square h-full w-full object-cover" src={src} alt="Avatar" />
     ) : (
-      <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold border border-slate-200 dark:border-slate-700">
+      <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-semibold border border-slate-200 dark:border-zinc-700">
         {fallback}
       </div>
     )}
@@ -188,9 +201,9 @@ export const Avatar = ({ src, fallback, className }: { src?: string, fallback: s
 export const ModalOverlay = ({ children, isOpen, onClose, className, hideCloseButton }: { children?: React.ReactNode, isOpen: boolean, onClose: () => void, className?: string, hideCloseButton?: boolean }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
       <div className="absolute inset-0" onClick={onClose} />
-      <div className={cn("relative z-50 w-full max-w-lg rounded-xl bg-white text-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 dark:bg-card dark:text-slate-50 dark:border dark:border-slate-700", className)} onClick={e => e.stopPropagation()}>
+      <div className={cn("relative z-50 w-full max-w-lg rounded-xl bg-white text-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 dark:bg-zinc-900 dark:text-slate-50 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_20px_60px_-10px_rgba(0,0,0,0.6)] dark:border-transparent", className)} onClick={e => e.stopPropagation()}>
         {children}
         {!hideCloseButton && (
           <button 
@@ -208,16 +221,16 @@ export const ModalOverlay = ({ children, isOpen, onClose, className, hideCloseBu
 
 // --- Command Palette Primitives (Simplified) ---
 export const Command = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex h-full w-full flex-col overflow-hidden rounded-md bg-white text-slate-950 dark:bg-card dark:text-slate-50", className)} {...props} />
+  <div ref={ref} className={cn("flex h-full w-full flex-col overflow-hidden rounded-md bg-white text-slate-950 dark:bg-zinc-900 dark:text-slate-50", className)} {...props} />
 ));
 Command.displayName = "Command";
 
 export const CommandInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b border-slate-200 px-3 dark:border-slate-700" cmdk-input-wrapper="">
+  <div className="flex items-center border-b border-slate-200 px-3 dark:border-zinc-800" cmdk-input-wrapper="">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4 shrink-0 opacity-50"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
     <input
       ref={ref}
-      className={cn("flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-slate-400", className)}
+      className={cn("flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-zinc-500", className)}
       {...props}
     />
   </div>
@@ -232,7 +245,7 @@ CommandList.displayName = "CommandList";
 export const CommandItem = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-slate-100 aria-selected:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:aria-selected:bg-slate-800 dark:aria-selected:text-slate-50 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer", className)}
+    className={cn("relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-slate-100 aria-selected:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:aria-selected:bg-zinc-800 dark:aria-selected:text-slate-50 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer", className)}
     {...props}
   />
 ));
@@ -328,7 +341,7 @@ export const DropdownMenuContent = ({
   return (
     <div 
       className={cn(
-        "absolute z-50 w-48 rounded-md border border-slate-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-slate-700 dark:bg-card", 
+        "absolute z-50 w-48 rounded-md border border-slate-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-white/5 dark:bg-zinc-900 dark:shadow-card-dark", 
         positionClasses, 
         className
       )}
@@ -343,7 +356,7 @@ export const DropdownMenuItem = ({ children, onClick, className }: { children?: 
     const { setIsOpen } = useContext(DropdownMenuContext);
   return (
     <div
-      className={cn("block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50 flex items-center gap-2", className)}
+      className={cn("block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer dark:text-slate-300 dark:hover:bg-zinc-800 dark:hover:text-slate-50 flex items-center gap-2", className)}
       onClick={(e) => {
         e.stopPropagation();
         if(onClick) onClick(e);
@@ -362,7 +375,7 @@ export const DropdownMenuLabel = ({ children, className }: { children?: React.Re
 );
 
 export const DropdownMenuSeparator = ({ className }: { className?: string }) => (
-    <div className={cn("h-px my-1 bg-slate-100 dark:bg-slate-800", className)} />
+    <div className={cn("h-px my-1 bg-slate-100 dark:bg-zinc-800", className)} />
 );
 
 
@@ -376,7 +389,7 @@ export const Table = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTable
 Table.displayName = "Table"
 
 export const TableHeader = forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b dark:border-slate-800", className)} {...props} />
+  <thead ref={ref} className={cn("[&_tr]:border-b dark:border-zinc-800", className)} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -391,7 +404,7 @@ export const TableFooter = forwardRef<HTMLTableSectionElement, React.HTMLAttribu
 TableFooter.displayName = "TableFooter"
 
 export const TableRow = forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(({ className, ...props }, ref) => (
-  <tr ref={ref} className={cn("border-b transition-colors hover:bg-slate-100/50 data-[state=selected]:bg-slate-100 dark:hover:bg-slate-800/50 dark:data-[state=selected]:bg-slate-800 dark:border-slate-800", className)} {...props} />
+  <tr ref={ref} className={cn("border-b transition-colors hover:bg-slate-100/50 data-[state=selected]:bg-slate-100 dark:hover:bg-zinc-800/50 dark:data-[state=selected]:bg-zinc-800 dark:border-zinc-800", className)} {...props} />
 ))
 TableRow.displayName = "TableRow"
 

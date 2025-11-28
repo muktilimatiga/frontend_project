@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { User, Ticket } from '../../../types';
-import { MockService } from '../../../mock';
+import { supabase } from '../../../lib/supabaseClient';
 
 interface TicketFormData {
   name: string;
@@ -60,7 +60,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   setSearchQuery: (query) => set({ searchQuery: query }),
 
-  searchCustomers: async (query) => {
+  searchCustomers: async (query: string) => {
     if (query.length <= 1) {
         set({ searchResults: [], isSearching: false });
         return;
@@ -68,16 +68,34 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     
     set({ isSearching: true });
     try {
-        // In a real app, this would be an API call
-        // We use the mock service directly here
-        const res = await MockService.searchUsers(query);
-        set({ searchResults: res, isSearching: false });
+        const { data, error } = await supabase
+            .from('data_fiber')
+            .select('*')
+            .or(`name.ilike.%${query}%,user_pppoe.ilike.%${query}%,alamat.ilike.%${query}%`)
+            .limit(10);
+
+        if (error) throw error;
+
+        const mappedResults: any[] = (data || []).map(row => ({
+            id: row.user_pppoe || `fiber-${Math.random()}`, // Use PPPoE as stable ID if possible
+            name: row.name || 'Unknown',
+            email: row.user_pppoe || '', // Use PPPoE as email/identifier
+            role: 'user',
+            avatarUrl: undefined,
+            // Extra fields for form population
+            _address: row.alamat,
+            _pppoe: row.user_pppoe,
+            _sn: row.onu_sn
+        }));
+
+        set({ searchResults: mappedResults, isSearching: false });
     } catch (error) {
+        console.error('Search failed:', error);
         set({ searchResults: [], isSearching: false });
     }
   },
 
-  selectUser: (user) => {
+  selectUser: (user: any) => {
     // Generate a random ticket ref for demo purposes
     const randomRef = `TN${Math.floor(Math.random() * 100000).toString().padStart(6, '0')}`;
     
@@ -87,9 +105,9 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
         formData: {
             ...INITIAL_FORM_DATA,
             name: user.name.toUpperCase(),
-            address: 'RT/RW.005/005, DSN. BENDILJET, DS. KARANGTALUN, KALID', // Mock Address logic
-            contact: '6282244311034', // Mock Contact
-            noInternet: '101037012073', // Mock ID
+            address: user._address || '', 
+            contact: '', // Data fiber usually doesn't have phone, leave blank for manual entry
+            noInternet: user._pppoe || user._sn || '', // Prefer PPPoE, fallback to SN
             ticketRef: randomRef,
         }
     });

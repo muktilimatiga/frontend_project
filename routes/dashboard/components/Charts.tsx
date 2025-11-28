@@ -98,7 +98,7 @@ export const DistributionChart = ({ data }: { data?: any[] }) => {
       <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b border-slate-100 dark:border-zinc-800/50 bg-slate-50/30 dark:bg-slate-900/20">
         <CardTitle className="text-base font-semibold text-slate-800 dark:text-white">Distribution</CardTitle>
         <Badge variant="outline" className="dark:border-zinc-700 dark:text-zinc-400 font-normal bg-white dark:bg-black">
-           By Category
+           By OLT
         </Badge>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-center items-center p-0 relative">
@@ -143,7 +143,7 @@ export const DistributionChart = ({ data }: { data?: any[] }) => {
                 <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     {data?.reduce((acc, curr) => acc + curr.value, 0)}
                 </span>
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Tickets</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Total</span>
            </div>
          </div>
          
@@ -152,7 +152,7 @@ export const DistributionChart = ({ data }: { data?: any[] }) => {
                 <div key={entry.name} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full ring-2 ring-opacity-20" style={{ backgroundColor: COLORS[index % COLORS.length], '--tw-ring-color': COLORS[index % COLORS.length] } as any} />
-                    <span className="text-slate-600 dark:text-zinc-400 font-medium">{entry.name}</span>
+                    <span className="text-slate-600 dark:text-zinc-400 font-medium truncate max-w-[80px]" title={entry.name}>{entry.name}</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[10px]">{entry.value}</span>
                 </div>

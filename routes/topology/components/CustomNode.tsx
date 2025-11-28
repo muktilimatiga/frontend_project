@@ -27,7 +27,9 @@ const CustomNode = ({ data, selected, isConnectable }: NodeProps) => {
       "relative flex flex-col items-center justify-center p-2 rounded-lg transition-all min-w-[80px] group",
       selected 
         ? "ring-2 ring-indigo-500 bg-indigo-50/80 dark:bg-indigo-900/40 shadow-lg backdrop-blur-sm" 
-        : "hover:bg-slate-50/80 dark:hover:bg-white/10"
+        : status === 'warning'
+          ? "ring-1 ring-amber-500/50 bg-amber-50/50 dark:bg-amber-900/20 shadow-sm"
+          : "hover:bg-slate-50/80 dark:hover:bg-white/10"
     )}>
       {/* Handles for connections */}
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-2 h-2 !bg-slate-400 dark:!bg-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />

@@ -1,6 +1,7 @@
+
 import * as React from 'react';
 import { useState } from 'react';
-import { Database, Download, FileJson, FileText, HardDrive, Archive } from 'lucide-react';
+import { Database, Download, FileJson, FileText, HardDrive, Archive, Plus, Trash2, Table } from 'lucide-react';
 import { ModalOverlay, Button, Label, Input, Select, Switch, cn } from '../../../components/ui';
 
 // --- Backup Modal ---
@@ -155,6 +156,118 @@ export const ExportModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             </Button>
         </div>
       </div>
+    </ModalOverlay>
+  );
+};
+
+// --- Create Table Modal ---
+export const CreateTableModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const [tableName, setTableName] = useState('');
+  const [columns, setColumns] = useState([
+    { name: 'id', type: 'int8', isPrimary: true },
+    { name: 'created_at', type: 'timestamptz', isPrimary: false }
+  ]);
+
+  const addColumn = () => {
+    setColumns([...columns, { name: '', type: 'text', isPrimary: false }]);
+  };
+
+  const updateColumn = (index: number, field: string, value: any) => {
+    const newCols = [...columns];
+    newCols[index] = { ...newCols[index], [field]: value };
+    setColumns(newCols);
+  };
+
+  const removeColumn = (index: number) => {
+    setColumns(columns.filter((_, i) => i !== index));
+  };
+
+  const handleCreate = () => {
+    console.log('Creating table:', tableName, columns);
+    // In a real app, this would make a request to Supabase Management API or execute raw SQL via RPC
+    alert(`Request to create table "${tableName}" with ${columns.length} columns sent.`);
+    onClose();
+  };
+
+  return (
+    <ModalOverlay isOpen={isOpen} onClose={onClose} className="max-w-2xl">
+        <div className="space-y-4">
+            <div className="flex items-center gap-3 border-b border-slate-100 dark:border-white/10 pb-4 mb-4">
+               <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <Table className="h-5 w-5" />
+               </div>
+               <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Create New Table</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Define your schema structure.</p>
+               </div>
+            </div>
+
+            <div className="space-y-4">
+                <div className="space-y-2">
+                   <Label>Table Name</Label>
+                   <Input 
+                      value={tableName} 
+                      onChange={e => setTableName(e.target.value)} 
+                      placeholder="e.g. products" 
+                      autoFocus
+                   />
+                </div>
+
+                <div className="space-y-2">
+                   <div className="flex items-center justify-between">
+                      <Label>Columns</Label>
+                      <Button size="sm" variant="ghost" onClick={addColumn} className="h-7 text-xs">
+                         <Plus className="h-3 w-3 mr-1"/> Add Column
+                      </Button>
+                   </div>
+                   <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 max-h-[300px] overflow-y-auto space-y-2">
+                      {columns.map((col, i) => (
+                          <div key={i} className="flex gap-2 items-center animate-in slide-in-from-left-2 duration-200">
+                              <Input 
+                                 value={col.name} 
+                                 onChange={e => updateColumn(i, 'name', e.target.value)} 
+                                 placeholder="Column Name" 
+                                 className="flex-1 h-9"
+                                 disabled={i === 0} // Lock ID
+                              />
+                              <Select 
+                                 value={col.type} 
+                                 onChange={e => updateColumn(i, 'type', e.target.value)} 
+                                 className="w-32 h-9"
+                                 disabled={i === 0}
+                              >
+                                  <option value="int8">int8</option>
+                                  <option value="text">text</option>
+                                  <option value="boolean">boolean</option>
+                                  <option value="timestamptz">timestamp</option>
+                                  <option value="jsonb">jsonb</option>
+                                  <option value="uuid">uuid</option>
+                              </Select>
+                              <div className="w-8 flex justify-center">
+                                 {i > 1 ? (
+                                    <Button 
+                                       size="icon" 
+                                       variant="ghost" 
+                                       className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20" 
+                                       onClick={() => removeColumn(i)}
+                                    >
+                                       <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                 ) : (
+                                    <span className="text-[10px] text-slate-400 font-mono">REQ</span>
+                                 )}
+                              </div>
+                          </div>
+                      ))}
+                   </div>
+                </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-white/10 mt-4">
+                <Button variant="outline" onClick={onClose}>Cancel</Button>
+                <Button onClick={handleCreate} disabled={!tableName}>Create Table</Button>
+            </div>
+        </div>
     </ModalOverlay>
   );
 };

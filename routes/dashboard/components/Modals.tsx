@@ -1,13 +1,14 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { ChevronLeft, Search, Lock, Unlock, X } from 'lucide-react';
+import { ChevronLeft, Search, Lock, Unlock, X, RefreshCw, Cloud } from 'lucide-react';
 import { ModalOverlay, Label, Input, Select, Textarea, Button, Badge, Avatar, Switch, cn } from '../../../components/ui';
 import { MockService } from '../../../mock';
 import { Ticket, User } from '../../../types';
 import { useTicketStore } from '../stores/ticketStore';
 import { useTicketLogs } from '../../../hooks/useQueries';
 import { CustomerCard } from './CustomerCard';
+import { supabase } from '../../../lib/supabaseClient';
 
 // --- Types ---
 interface TicketFormData {
@@ -160,7 +161,8 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
       selectedUser, 
       formData,
       updateFormData,
-      reset 
+      reset,
+      isSearching 
   } = useTicketStore();
 
   useEffect(() => {
@@ -172,7 +174,7 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
   useEffect(() => {
     const timer = setTimeout(() => {
        searchCustomers(searchQuery);
-    }, 300);
+    }, 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -200,7 +202,7 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
                       <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                       <Input 
                           id="customer-search" 
-                          placeholder="Search by name or email..." 
+                          placeholder="Search by name, PPPoE or address..." 
                           className="pl-9"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
@@ -209,10 +211,13 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
                     </div>
                 </div>
                 <div className="min-h-[200px] border border-slate-100 rounded-md p-2 dark:border-white/10">
-                    {searchResults.length === 0 && searchQuery.length > 1 && (
+                    {isSearching && (
+                        <div className="text-center py-8 text-xs text-slate-500">Searching...</div>
+                    )}
+                    {!isSearching && searchResults.length === 0 && searchQuery.length > 1 && (
                       <p className="text-xs text-slate-500 text-center py-8">No customers found.</p>
                     )}
-                    {searchResults.length === 0 && searchQuery.length <= 1 && (
+                    {!isSearching && searchResults.length === 0 && searchQuery.length <= 1 && (
                       <p className="text-xs text-slate-500 text-center py-8">Start typing to search...</p>
                     )}
                     <div className="space-y-1">
@@ -223,11 +228,11 @@ export const CreateTicketModal = ({ isOpen, onClose }: { isOpen: boolean, onClos
                             className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-white/5 rounded cursor-pointer transition-colors"
                           >
                             <Avatar fallback={user.name.charAt(0)} className="h-8 w-8 text-xs" />
-                            <div>
-                                <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{user.name}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                            <div className="overflow-hidden">
+                                <p className="text-sm font-medium text-slate-900 dark:text-slate-200 truncate">{user.name}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email} {(user as any)._address ? `• ${(user as any)._address}` : ''}</p>
                             </div>
-                            <Badge variant="outline" className="ml-auto text-[10px]">{user.role}</Badge>
+                            <Badge variant="outline" className="ml-auto text-[10px] whitespace-nowrap">{user.role}</Badge>
                           </div>
                       ))}
                     </div>
@@ -536,8 +541,12 @@ export const ForwardTicketModal = ({
 
 // --- Config Modal ---
 export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClose: () => void, type: 'basic' | 'bridge' }) => {
+  const [mode, setMode] = useState<'manual' | 'auto'>('manual');
+  const [isAutoLoading, setIsAutoLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
   const [formData, setFormData] = useState({
      olt: 'OLT-01',
      name: '',
@@ -552,6 +561,7 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
   // Reset on open
   useEffect(() => {
      if(isOpen) {
+        setMode('manual');
         setSearchTerm('');
         setSearchResults([]);
         setFormData({
@@ -567,30 +577,65 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
      }
   }, [isOpen]);
 
-  // Search Mock
+  // Search Logic (Supabase)
   useEffect(() => {
      const timer = setTimeout(async () => {
-        if (searchTerm.length > 1) {
-           const res = await MockService.searchUsers(searchTerm);
-           setSearchResults(res);
+        if (mode === 'manual' && searchTerm.length > 1) {
+           setIsSearching(true);
+           try {
+               const { data } = await supabase
+                   .from('data_fiber')
+                   .select('*')
+                   .or(`name.ilike.%${searchTerm}%,user_pppoe.ilike.%${searchTerm}%`)
+                   .limit(5);
+               
+               if (data) {
+                   setSearchResults(data);
+               } else {
+                   setSearchResults([]);
+               }
+           } catch (e) {
+               console.error(e);
+               setSearchResults([]);
+           } finally {
+               setIsSearching(false);
+           }
         } else {
            setSearchResults([]);
         }
-     }, 300);
+     }, 400);
      return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, mode]);
 
-  const handleSelectUser = (user: User) => {
+  const handleSelectUser = (user: any) => {
      setFormData(prev => ({
         ...prev,
-        name: user.name,
-        address: '123 Fiber Street, Suite 400, New York, NY 10001', // Mock address
-        pppoeUser: user.email.split('@')[0],
-        pppoePass: 'password123',
+        name: user.name || '',
+        address: user.alamat || '',
+        pppoeUser: user.user_pppoe || '',
+        pppoePass: user.pppoe_password || '', // If available in schema
         ethLock: false
      }));
      setSearchTerm('');
      setSearchResults([]);
+  };
+
+  const handleAutoFetch = () => {
+      setIsAutoLoading(true);
+      // Simulate API Fetch
+      setTimeout(() => {
+          setFormData({
+              olt: 'OLT-01',
+              name: 'AUTO SUBSCRIBER ' + Math.floor(Math.random() * 1000),
+              address: 'FETCHED FROM CRM API\nREGION WEST-JAVA',
+              pppoeUser: `user_${Date.now().toString().substr(-6)}`,
+              pppoePass: '123456',
+              package: '100mbps',
+              ethLock: false,
+              interface: 'eth1'
+          });
+          setIsAutoLoading(false);
+      }, 1500);
   };
 
   return (
@@ -600,40 +645,63 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                {type === 'basic' ? 'New Service Configuration' : 'New Bridge Configuration'}
             </h2>
+            <div className="flex items-center gap-2">
+                <Label className="text-xs cursor-pointer text-slate-500" onClick={() => setMode(m => m === 'manual' ? 'auto' : 'manual')}>
+                    {mode === 'manual' ? 'Manual Entry' : 'Auto Provision'}
+                </Label>
+                <Switch checked={mode === 'auto'} onCheckedChange={(c) => { setMode(c ? 'auto' : 'manual'); if(c) handleAutoFetch(); }} />
+            </div>
          </div>
 
-         {/* Search Section */}
-         <div className="space-y-2 relative">
-            <Label>Import from CRM</Label>
-            <div className="relative">
-               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-               <Input 
-                  placeholder="Search subscriber by name or ID..." 
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  autoFocus
-               />
+         {/* Conditional Search or Fetch Section */}
+         {mode === 'manual' ? (
+             <div className="space-y-2 relative">
+                <Label>Import from CRM (Manual)</Label>
+                <div className="relative">
+                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                   <Input 
+                      placeholder="Search subscriber by name or ID..." 
+                      className="pl-9"
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      autoFocus
+                   />
+                </div>
+                {/* Dropdown Results */}
+                {searchResults.length > 0 && (
+                   <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                      {searchResults.map(u => (
+                         <div 
+                            key={u.id || u.user_pppoe}
+                            className="p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer flex items-center gap-2 border-b border-slate-50 dark:border-white/5 last:border-0"
+                            onClick={() => handleSelectUser(u)}
+                         >
+                            <Avatar fallback={u.name?.charAt(0) || 'U'} className="h-8 w-8 text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" />
+                            <div className="overflow-hidden">
+                               <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{u.name}</p>
+                               <p className="text-xs text-slate-500 truncate">{u.user_pppoe}</p>
+                            </div>
+                         </div>
+                      ))}
+                   </div>
+                )}
+             </div>
+         ) : (
+             <div className="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-indigo-200 dark:bg-indigo-800 flex items-center justify-center text-indigo-700 dark:text-indigo-300">
+                        <Cloud className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">External CRM</p>
+                        <p className="text-xs text-indigo-700 dark:text-indigo-400">Fetching pending configurations...</p>
+                    </div>
+                </div>
+                <Button size="sm" variant="ghost" onClick={handleAutoFetch} disabled={isAutoLoading} className="hover:bg-indigo-200 dark:hover:bg-indigo-800">
+                    <RefreshCw className={cn("h-4 w-4", isAutoLoading && "animate-spin")} />
+                </Button>
             </div>
-            {/* Dropdown Results */}
-            {searchResults.length > 0 && (
-               <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-                  {searchResults.map(u => (
-                     <div 
-                        key={u.id}
-                        className="p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer flex items-center gap-2 border-b border-slate-50 dark:border-white/5 last:border-0"
-                        onClick={() => handleSelectUser(u)}
-                     >
-                        <Avatar fallback={u.name.charAt(0)} className="h-8 w-8 text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" />
-                        <div>
-                           <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{u.name}</p>
-                           <p className="text-xs text-slate-500">{u.email}</p>
-                        </div>
-                     </div>
-                  ))}
-               </div>
-            )}
-         </div>
+         )}
 
          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
