@@ -29,8 +29,8 @@ export const TableDataView = ({ tableName, onBack }: TableDataViewProps) => {
     
     // 1. Collect all unique keys from the first 5 rows to ensure we catch columns that might be null in the first row
     const allKeys = Array.from(new Set(
-        data.slice(0, 5).flatMap(row => Object.keys(row))
-    ));
+        data.slice(0, 5).flatMap((row: any) => Object.keys(row))
+    )) as string[];
     
     // 2. Filter out sensitive columns completely from the UI
     const safeKeys = allKeys.filter(key => 
@@ -135,7 +135,7 @@ export const TableDataView = ({ tableName, onBack }: TableDataViewProps) => {
 
       <div className="grid grid-cols-3 gap-4">
          {stats.map((stat, i) => (
-            <Card key={i} className="dark:bg-card dark:border-slate-800">
+            <Card key={i} className="dark:bg-[#121214] dark:border-white/5">
                <CardContent className="p-4 flex items-center justify-between">
                   <div>
                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
@@ -157,7 +157,7 @@ export const TableDataView = ({ tableName, onBack }: TableDataViewProps) => {
           </div>
       )}
 
-      <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm">
          {loading ? (
             <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-2">
                <RefreshCw className="h-6 w-6 animate-spin" />

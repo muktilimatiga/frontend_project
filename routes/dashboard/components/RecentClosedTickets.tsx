@@ -45,24 +45,28 @@ export const RecentClosedTickets = ({ tickets, search, onSearchChange, onSelectT
                   className="flex items-center justify-between rounded-lg border border-slate-100 p-3 hover:bg-slate-50 transition-colors cursor-pointer dark:border-slate-700/50 dark:hover:bg-slate-700/30"
                   onClick={() => onSelectTicket(ticket)}
                 >
-                   <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-3 overflow-hidden">
                       {isFwd ? (
-                         <div className="h-8 w-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                         <div className="h-8 w-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
                             <Forward className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                          </div>
                       ) : (
-                         <div className="h-8 w-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+                         <div className="h-8 w-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
                             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                          </div>
                       )}
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-200 truncate max-w-[200px]">{ticket.title}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                           {new Date(ticket.createdAt).toLocaleDateString()}
+                      <div className="min-w-0 flex-1">
+                        {/* Primary: Customer Name (mapped to assigneeId from DB 'nama') */}
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-200 truncate">
+                            {ticket.assigneeId || 'Unknown Customer'}
+                        </p>
+                        {/* Secondary: Issue (title) + Date */}
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                           {ticket.title} • {new Date(ticket.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                    </div>
-                   <div className="flex flex-col items-end gap-1">
+                   <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
                       <Badge variant="outline" className="text-[10px] h-5 dark:text-slate-400">{ticket.id}</Badge>
                       <span className={cn(
                           "text-[10px] font-medium capitalize",

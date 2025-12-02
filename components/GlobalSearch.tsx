@@ -128,16 +128,16 @@ export const GlobalSearch = () => {
   return (
     <>
       <div className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setSearchOpen(false)} />
-      <div className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] rounded-xl shadow-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#09090b] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-xl z-[100] rounded-3xl shadow-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#121214] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <Command className="h-full bg-transparent">
-            <div className="flex items-center border-b border-slate-100 dark:border-slate-800 px-3">
-                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+            <div className="flex items-center border-b border-slate-100 dark:border-white/10 px-4">
+                <Search className="mr-3 h-5 w-5 shrink-0 opacity-50" />
                 <input 
                     placeholder="Search database (tickets, customers, users)..." 
                     autoFocus
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-50 dark:placeholder:text-slate-500"
+                    className="flex h-14 w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-50 dark:placeholder:text-slate-500"
                 />
                 {loading && <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />}
             </div>
@@ -147,9 +147,9 @@ export const GlobalSearch = () => {
                 <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
                     <p>Type to search across entire Nexus database.</p>
                     <div className="mt-4 flex justify-center gap-2">
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">Tickets</span>
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">Customers</span>
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">System</span>
+                        <span className="px-2 py-1 bg-slate-100 dark:bg-white/10 rounded text-xs">Tickets</span>
+                        <span className="px-2 py-1 bg-slate-100 dark:bg-white/10 rounded text-xs">Customers</span>
+                        <span className="px-2 py-1 bg-slate-100 dark:bg-white/10 rounded text-xs">System</span>
                     </div>
                 </div>
             )}
@@ -161,7 +161,7 @@ export const GlobalSearch = () => {
                         <div className="mb-2">
                             <p className="px-2 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">Navigation</p>
                             {searchResults.pages.map((item) => (
-                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-md">
+                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-xl">
                                     <div className="flex items-center gap-3">
                                         <LayoutDashboard className="h-4 w-4 text-slate-400" />
                                         <span>{item.title}</span>
@@ -176,7 +176,7 @@ export const GlobalSearch = () => {
                         <div className="mb-2">
                             <p className="px-2 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">Tickets</p>
                             {searchResults.tickets.map((item) => (
-                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-md">
+                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-xl">
                                     <div className="flex items-center gap-3 w-full">
                                         <TicketIcon className="h-4 w-4 text-indigo-500" />
                                         <div className="flex flex-col overflow-hidden">
@@ -184,7 +184,7 @@ export const GlobalSearch = () => {
                                             <span className="text-xs text-slate-400 truncate">{item.subtitle}</span>
                                         </div>
                                         {item.meta?.status && (
-                                            <span className="ml-auto text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded capitalize text-slate-500">
+                                            <span className="ml-auto text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded capitalize text-slate-500">
                                                 {item.meta.status}
                                             </span>
                                         )}
@@ -199,7 +199,7 @@ export const GlobalSearch = () => {
                         <div className="mb-2">
                             <p className="px-2 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">Customers (Fiber)</p>
                             {searchResults.customers.map((item) => (
-                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-md">
+                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-xl">
                                     <div className="flex items-center gap-3 w-full">
                                         <Globe className="h-4 w-4 text-emerald-500" />
                                         <div className="flex flex-col overflow-hidden">
@@ -217,7 +217,7 @@ export const GlobalSearch = () => {
                         <div className="mb-2">
                             <p className="px-2 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">System Users</p>
                             {searchResults.users.map((item) => (
-                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-md">
+                                <CommandItem key={item.id} onClick={() => handleSelect(item)} className="rounded-xl">
                                     <div className="flex items-center gap-3 w-full">
                                         <Shield className="h-4 w-4 text-amber-500" />
                                         <div className="flex flex-col">
@@ -231,7 +231,7 @@ export const GlobalSearch = () => {
                     )}
 
                     {/* Empty State */}
-                    {Object.values(searchResults).every(arr => arr.length === 0) && (
+                    {Object.values(searchResults).every((arr: any) => arr.length === 0) && (
                         <div className="py-6 text-center text-sm text-slate-500">
                             No results found for "{searchQuery}".
                         </div>

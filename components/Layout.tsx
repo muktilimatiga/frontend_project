@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, Outlet, useRouterState } from '@tanstack/react-router';
@@ -47,6 +48,7 @@ import { MockService, MockSocket } from '../mock';
 import { MonitorDrawer } from './MonitorDrawer';
 import { GlobalSearch } from './GlobalSearch';
 import { AIChatDrawer } from './AIChatDrawer';
+import { supabase } from '../lib/supabaseClient';
 
 // --- Sidebar Icon / Item Component ---
 const SidebarIcon = ({ 
@@ -67,29 +69,26 @@ const SidebarIcon = ({
   const content = (
     <div 
       className={cn(
-        "relative flex items-center transition-all duration-200 group rounded-lg mx-2 mb-1",
+        "relative flex items-center transition-all duration-200 group rounded-2xl mx-3 mb-1",
         isCollapsed 
-          ? "justify-center p-2.5" 
-          : "px-3 py-2 gap-3",
+          ? "justify-center p-3" 
+          : "px-4 py-3 gap-3",
         isActive 
-          ? "text-primary dark:text-primary font-medium bg-indigo-50 dark:bg-slate-800/50 nav-item-active-bg" 
-          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
+          ? "bg-slate-900 text-white shadow-md dark:bg-white dark:text-black dark:shadow-glow" 
+          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
       )}
     >
-      <Icon className={cn("shrink-0 transition-all", isCollapsed ? "h-5 w-5" : "h-4.5 w-4.5", isActive && "stroke-[2.5px] drop-shadow-sm")} />
+      <Icon className={cn("shrink-0 transition-all", isCollapsed ? "h-5 w-5" : "h-5 w-5")} />
       
       {!isCollapsed && (
-        <span className="text-sm whitespace-nowrap overflow-hidden transition-all duration-300">
+        <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300">
           {label}
         </span>
       )}
     </div>
   );
 
-  const wrapperClass = cn(
-      "block w-full focus:outline-none relative", 
-      isActive && "nav-item-glow" // Apply Glow Effect on Container
-  );
+  const wrapperClass = "block w-full focus:outline-none relative";
 
   if (isCollapsed) {
     const wrapped = (
@@ -132,28 +131,29 @@ export const Sidebar = () => {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 z-50 h-screen flex flex-col border-r border-slate-200 bg-white dark:bg-main dark:border-slate-800 transition-all duration-300 ease-in-out shadow-sm",
-        isSidebarCollapsed ? "w-[72px]" : "w-64"
+        "fixed left-0 top-0 z-50 h-screen flex flex-col bg-white dark:bg-[#09090b] transition-all duration-300 ease-in-out",
+        // No border, just padding/floating feel
+        isSidebarCollapsed ? "w-[90px]" : "w-72"
       )}
     >
       {/* Top: Brand */}
-      <div className={cn("h-16 flex items-center shrink-0 border-b border-transparent", isSidebarCollapsed ? "justify-center" : "px-6")}>
+      <div className={cn("h-28 flex items-center shrink-0", isSidebarCollapsed ? "justify-center" : "px-8")}>
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 cursor-pointer shrink-0 transition-transform hover:scale-105">
-             <span className="text-white font-bold text-lg">N</span>
+          <div className="w-10 h-10 bg-slate-900 dark:bg-white rounded-xl flex items-center justify-center cursor-pointer shrink-0 transition-transform hover:scale-105 shadow-md">
+             <span className="text-white dark:text-black font-bold text-lg">N</span>
           </div>
           {!isSidebarCollapsed && (
-            <span className="font-bold text-lg text-slate-900 dark:text-white whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">Nexus</span>
+            <span className="font-bold text-xl text-slate-900 dark:text-white whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">Nexus</span>
           )}
         </div>
       </div>
 
       {/* Navigation Groups */}
-      <div className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+      <div className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 px-2">
         
         {/* Group 1 */}
-        <div className="flex flex-col gap-0.5">
-           {!isSidebarCollapsed && <div className="px-6 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400/80 dark:text-slate-500">Workspace</div>}
+        <div className="flex flex-col gap-1">
+           {!isSidebarCollapsed && <div className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Overview</div>}
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Search} label="Search" onClick={toggleSearch} />
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LayoutDashboard} label="Dashboard" to="/" isActive={isActive('/')} />
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={TicketIcon} label="Tickets" to="/tickets" isActive={isActive('/tickets')} />
@@ -161,16 +161,16 @@ export const Sidebar = () => {
         </div>
 
         {/* Group 2 */}
-        <div className="mt-4 flex flex-col gap-0.5">
-           {!isSidebarCollapsed && <div className="px-6 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400/80 dark:text-slate-500">Resources</div>}
+        <div className="mt-6 flex flex-col gap-1">
+           {!isSidebarCollapsed && <div className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Resources</div>}
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Network} label="Topology" to="/topology" isActive={isActive('/topology')} />
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Database} label="Database" to="/database" isActive={isActive('/database')} />
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Map} label="Maps" to="/maps" isActive={isActive('/maps')} />
         </div>
 
         {/* Group 3 */}
-        <div className="mt-4 flex flex-col gap-0.5">
-           {!isSidebarCollapsed && <div className="px-6 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400/80 dark:text-slate-500">Support</div>}
+        <div className="mt-6 flex flex-col gap-1">
+           {!isSidebarCollapsed && <div className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Support</div>}
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Users} label="Customers" to="/customers" isActive={isActive('/customers')} />
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} />
         </div>
@@ -178,20 +178,20 @@ export const Sidebar = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className={cn("mt-auto border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30")}>
+      <div className={cn("mt-auto pb-6 px-2")}>
          
          <div className={cn("p-2", isSidebarCollapsed ? "flex flex-col items-center gap-2" : "space-y-1")}>
              {/* Settings Link */}
              <Link 
                 to="/settings" 
                 className={cn(
-                   "flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors",
-                   isSidebarCollapsed ? "justify-center p-2" : "w-full px-3 py-2 gap-3",
-                   isActive('/settings') && "nav-item-active"
+                   "flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-colors",
+                   isSidebarCollapsed ? "justify-center p-3" : "w-full px-4 py-3 gap-3",
+                   isActive('/settings') && "bg-slate-100 text-slate-900 font-semibold dark:bg-white/10 dark:text-white"
                 )}
                 title="Settings"
              >
-                <Settings className={cn("shrink-0", isSidebarCollapsed ? "h-5 w-5" : "h-4.5 w-4.5")} />
+                <Settings className={cn("shrink-0", isSidebarCollapsed ? "h-5 w-5" : "h-5 w-5")} />
                 {!isSidebarCollapsed && <span className="text-sm font-medium">Settings</span>}
              </Link>
 
@@ -199,31 +199,30 @@ export const Sidebar = () => {
              <button 
                onClick={toggleSidebar}
                className={cn(
-                 "flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors",
-                 isSidebarCollapsed ? "justify-center p-2" : "w-full px-3 py-2 gap-3"
+                 "flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-colors",
+                 isSidebarCollapsed ? "justify-center p-3" : "w-full px-4 py-3 gap-3"
                )}
                title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
              >
-                {isSidebarCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-4.5 w-4.5" />}
+                {isSidebarCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
                 {!isSidebarCollapsed && <span className="text-sm font-medium">Collapse</span>}
              </button>
          </div>
 
-         {/* User Profile - Full Width Footer */}
-         <div className="border-t border-slate-100 dark:border-slate-800">
+         {/* User Profile - Clean & Minimal */}
+         <div className="pt-2 mx-4 mt-2">
             {isSidebarCollapsed ? (
-                <div className="p-3 flex justify-center">
+                <div className="flex justify-center pt-2 pb-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <Tooltip text={user?.name || 'Profile'}>
                                 <div className="relative">
-                                    <Avatar src={user?.avatarUrl} fallback="U" className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-indigo-500 transition-colors cursor-pointer" />
-                                    <span className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                                    <Avatar src={user?.avatarUrl} fallback="U" className="w-10 h-10 border border-slate-200 dark:border-white/10 cursor-pointer" />
                                 </div>
                             </Tooltip>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="left-full bottom-0 ml-2 w-56">
-                            <div className="flex items-center gap-3 p-2 pb-3 border-b border-slate-100 dark:border-slate-800 mb-1">
+                            <div className="flex items-center gap-3 p-2 pb-3 border-b border-slate-100 dark:border-white/10 mb-1">
                                <Avatar src={user?.avatarUrl} fallback="U" className="w-8 h-8 rounded-full" />
                                <div className="overflow-hidden">
                                   <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.name}</p>
@@ -237,20 +236,16 @@ export const Sidebar = () => {
                     </DropdownMenu>
                 </div>
             ) : (
-                <div className="p-3">
+                <div className="pt-2 pb-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-full focus:outline-none">
-                        {/* Refactored Full Width Card */}
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-100 dark:bg-card border border-transparent dark:border-slate-700 hover:border-indigo-300 dark:hover:border-primary/50 transition-all cursor-pointer group shadow-sm w-full">
-                          <div className="relative shrink-0">
-                              <Avatar src={user?.avatarUrl} fallback="U" className="w-10 h-10 rounded-lg shadow-sm" />
-                              <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-slate-100 dark:border-slate-800 rounded-full"></span>
-                          </div>
+                        <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group w-full">
+                          <Avatar src={user?.avatarUrl} fallback="U" className="w-10 h-10 border border-slate-200 dark:border-white/10" />
                           <div className="flex flex-col overflow-hidden text-left flex-1 min-w-0">
-                              <span className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-primary dark:group-hover:text-primary transition-colors">{user?.name}</span>
-                              <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</span>
+                              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name}</span>
+                              <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.role}</span>
                           </div>
-                          <MoreHorizontal className="h-4 w-4 text-slate-400 group-hover:text-primary shrink-0" />
+                          <MoreHorizontal className="h-4 w-4 text-slate-400 group-hover:text-slate-600 shrink-0" />
                         </div>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-[230px] mb-2" align="center" side="top">
@@ -268,9 +263,11 @@ export const Sidebar = () => {
 };
 
 export const Navbar = () => {
-  const { theme, toggleTheme, toggleCli, isSidebarCollapsed, toggleAIChat, isCliOpen } = useAppStore();
+  const { theme, toggleTheme, toggleCli, isSidebarCollapsed, toggleAIChat, isCliOpen, user } = useAppStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const logsQuery = useQuery({ queryKey: ['logs'], queryFn: () => MockService.getTicketLogs() });
+  const routerState = useRouterState();
+  const currentPath = routerState.location.pathname;
 
   useEffect(() => {
      const handler = () => useAppStore.getState().toggleMonitor();
@@ -278,26 +275,54 @@ export const Navbar = () => {
      return () => document.removeEventListener('toggle-monitor', handler);
   }, []);
 
+  const getPageTitle = (path: string) => {
+    if (path === '/') return 'Dashboard';
+    const segment = path.split('/').filter(Boolean)[0];
+    if (!segment) return 'Dashboard';
+    
+    // Map common routes to nice titles
+    switch(segment) {
+        case 'tickets': return 'Tickets';
+        case 'topology': return 'Network Topology';
+        case 'database': return 'Database Manager';
+        case 'monitor': return 'System Monitor';
+        case 'maps': return 'Geographic Map';
+        case 'customers': return 'Customers';
+        case 'settings': return 'Settings';
+        case 'help': return 'Help Center';
+        default: return segment.charAt(0).toUpperCase() + segment.slice(1);
+    }
+  };
+
   return (
     <header 
       className={cn(
-        "fixed top-0 right-0 z-30 flex h-16 items-center justify-between gap-4 px-8 transition-all duration-300 ease-in-out bg-white/80 dark:bg-main/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50",
-        isSidebarCollapsed ? "left-[72px]" : "left-64"
+        "fixed top-0 right-0 z-30 flex h-28 items-center justify-between gap-4 px-10 transition-all duration-300 ease-in-out bg-transparent pointer-events-none",
+        isSidebarCollapsed ? "left-[90px]" : "left-72"
       )}
     >
-      {/* Left: Breadcrumb Placeholder */}
-      <div className="flex items-center text-sm font-medium text-slate-500 dark:text-slate-400">
-          {/* Breadcrumbs are managed in AppLayout */}
+      {/* Left: Dynamic Page Title */}
+      <div className="pointer-events-auto">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+             {getPageTitle(currentPath)}
+          </h2>
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pointer-events-auto bg-white/80 dark:bg-black/80 backdrop-blur-xl p-2 rounded-full border border-white/20 shadow-sm dark:border-white/10">
+        <div className="relative mx-1 hidden md:block">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input 
+               className="h-10 w-64 rounded-full bg-slate-100 dark:bg-white/10 pl-10 pr-4 text-sm outline-none placeholder:text-slate-400 dark:text-white transition-all focus:w-80"
+               placeholder="Search..."
+            />
+        </div>
+
         <Button 
             variant="ghost" 
             size="icon" 
             onClick={toggleAIChat} 
-            title="Ask Nexus AI" 
-            className="text-primary hover:text-indigo-700 hover:bg-indigo-50 dark:text-primary dark:hover:text-indigo-300 dark:hover:bg-indigo-900/20"
+            className="rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10"
         >
            <Sparkles className="h-5 w-5" />
         </Button>
@@ -306,20 +331,19 @@ export const Navbar = () => {
           variant="ghost" 
           size="icon" 
           onClick={toggleCli} 
-          title="Open PowerShell CLI" 
           className={cn(
-            "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
+            "rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10",
             isCliOpen && "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white"
           )}
         >
            <Terminal className="h-5 w-5" />
         </Button>
 
-        <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10">
           {theme === 'light' ? (
-             <Sun className="h-5 w-5 text-orange-500" />
+             <Sun className="h-5 w-5" />
           ) : (
-             <Moon className="h-5 w-5 text-indigo-400" />
+             <Moon className="h-5 w-5" />
           )}
         </Button>
 
@@ -327,30 +351,30 @@ export const Navbar = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="relative text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            className="relative rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10"
             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
+            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
           </Button>
 
           {/* Notification Dropdown */}
           {isNotificationsOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsNotificationsOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-80 md:w-96 rounded-xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 z-20 overflow-hidden dark:border-slate-800 dark:bg-card dark:ring-white/10 animate-in fade-in zoom-in-95 duration-200">
-                 <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div className="absolute right-0 top-full mt-4 w-96 rounded-3xl border border-slate-100 bg-white shadow-xl ring-1 ring-black/5 z-20 overflow-hidden dark:border-white/10 dark:bg-[#121214] dark:ring-white/10 animate-in fade-in zoom-in-95 duration-200">
+                 <div className="p-4 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
                     <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
                     <span className="text-xs text-indigo-600 cursor-pointer hover:underline">Mark all read</span>
                  </div>
-                 <div className="max-h-[300px] overflow-y-auto">
+                 <div className="max-h-[350px] overflow-y-auto">
                     {logsQuery.data?.length === 0 ? (
                         <div className="p-8 text-center text-slate-500 text-sm">No new notifications</div>
                     ) : (
                         logsQuery.data?.map((log) => (
-                        <div key={log.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+                        <div key={log.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
                             <div className="flex gap-3">
-                            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700 shrink-0 dark:bg-indigo-900/50 dark:text-indigo-300">
+                            <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-sm font-bold text-indigo-600 shrink-0 dark:bg-indigo-900/30 dark:text-indigo-400">
                                 {log.userName.charAt(0)}
                             </div>
                             <div className="space-y-1">
@@ -366,9 +390,6 @@ export const Navbar = () => {
                         </div>
                         ))
                     )}
-                 </div>
-                 <div className="p-2 border-t border-slate-100 bg-slate-50 text-center dark:border-slate-800 dark:bg-slate-900">
-                    <button className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">View All Activity</button>
                  </div>
               </div>
             </>
@@ -396,7 +417,6 @@ const CLIModal = () => {
   // Center the window on mount or when reopened
   useEffect(() => {
     if (isCliOpen) {
-       // Only reset position if it's currently at 0,0 (first open) or explicitly requested (via green button logic later)
        if (position.x === 0 && position.y === 0) {
            resetWindow();
        }
@@ -588,7 +608,7 @@ const CLIModal = () => {
 
 // --- Main App Layout ---
 export const AppLayout = () => {
-  const { theme, isSidebarCollapsed } = useAppStore();
+  const { theme, isSidebarCollapsed, login } = useAppStore();
   const routerState = useRouterState();
 
   useEffect(() => {
@@ -599,30 +619,41 @@ export const AppLayout = () => {
     }
   }, [theme]);
 
+  // Fetch Current User from Supabase 'users' table
   useEffect(() => {
-    const unsubscribe = MockSocket.subscribe((event) => {
-      if (event.type === 'NEW_TICKET') {
-         toast.info('New Ticket Created', {
-           description: `${event.payload.title}`,
-           action: {
-             label: 'View',
-             onClick: () => console.log('Navigate to ticket', event.payload.id)
-           }
-         });
-      } else if (event.type === 'NEW_LOG') {
-         toast(`New Activity on ${event.payload.ticketId}`, {
-           description: event.payload.message,
-         });
-      }
-    });
-    return unsubscribe;
-  }, []);
+    const fetchSessionUser = async () => {
+        if (!supabase || (supabase['supabaseUrl'] && supabase['supabaseUrl'].includes('placeholder'))) return;
+
+        try {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .limit(1)
+                .single();
+            
+            if (data && !error) {
+                const mappedUser = {
+                    id: String(data.id),
+                    name: data.full_name || data.username || 'Admin',
+                    email: (data.username && data.username.includes('@')) ? data.username : `${data.username || 'admin'}@nexus.com`,
+                    role: (data.role as any) || 'admin',
+                    avatarUrl: undefined 
+                };
+                login(mappedUser);
+            }
+        } catch (e) {
+            console.error("Failed to load user profile from Supabase", e);
+        }
+    };
+    
+    fetchSessionUser();
+  }, [login]);
 
   const pathSegments = routerState.location.pathname.split('/').filter(Boolean);
   
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-main transition-colors duration-300 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-primary/30 dark:selection:text-white">
-      <Toaster position="top-right" theme={theme === 'dark' ? 'dark' : 'light'} richColors closeButton />
+    <div className="min-h-screen bg-slate-50 dark:bg-main transition-colors duration-300 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-500/30 dark:selection:text-white">
+      <Toaster position="top-center" theme={theme === 'dark' ? 'dark' : 'light'} richColors closeButton />
       
       {/* Components */}
       <Sidebar />
@@ -634,11 +665,11 @@ export const AppLayout = () => {
       {/* Main Content Area - Padded for sidebar */}
       <main 
         className={cn(
-          "pt-16 min-h-screen transition-all duration-300 ease-in-out",
-          isSidebarCollapsed ? "pl-[72px]" : "pl-64"
+          "pt-28 min-h-screen transition-all duration-300 ease-in-out pb-8",
+          isSidebarCollapsed ? "pl-[90px]" : "pl-72"
         )}
       >
-        <div className="container max-w-7xl mx-auto p-6 md:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="container max-w-7xl mx-auto px-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
            <Outlet />
         </div>
       </main>

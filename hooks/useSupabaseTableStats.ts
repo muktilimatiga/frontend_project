@@ -20,7 +20,7 @@ export const useSupabaseTableStats = () => {
       setLoading(true);
       
       // Defined tables based on the provided schema
-      const knownTables = ['log_komplain', 'snmp', 'data_fiber', 'snmp_devices', 'users'];
+      const knownTables = ['log_komplain', 'snmp', 'data_fiber', 'snmp_devices', 'users', 'log_metro'];
       const stats: TableStat[] = [];
 
       for (const tableName of knownTables) {

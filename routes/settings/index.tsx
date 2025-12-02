@@ -36,6 +36,7 @@ import {
   ModalOverlay
 } from '../../components/ui';
 import { toast } from 'sonner';
+import { supabase } from '../../lib/supabaseClient';
 
 type SettingsTab = 'account' | 'appearance' | 'notifications' | 'security';
 
@@ -54,17 +55,47 @@ const AccountSettings = () => {
     bio: 'Senior Network Administrator at Nexus Corp.'
   });
 
-  const handleSave = () => {
+  // Sync with store if user loads late
+  useEffect(() => {
+      if (user) {
+          setFormData(prev => ({
+              ...prev,
+              name: user.name,
+              email: user.email
+          }));
+      }
+  }, [user]);
+
+  const handleSave = async () => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      updateUser({ 
-        name: formData.name, 
-        email: formData.email 
-      });
-      setIsLoading(false);
-      toast.success("Profile updated successfully");
-    }, 800);
+    
+    try {
+        if (user?.id && !isNaN(Number(user.id))) {
+            // Update Supabase if we have a valid numeric ID (from our hydration logic)
+            // Note: DB schema expects 'full_name' and 'username'
+            const { error } = await supabase
+                .from('users')
+                .update({
+                    full_name: formData.name,
+                    username: formData.email // We map email input to username as per previous schema discussions
+                })
+                .eq('id', parseInt(user.id));
+
+            if (error) throw error;
+        }
+
+        // Update Store
+        updateUser({ 
+            name: formData.name, 
+            email: formData.email 
+        });
+        toast.success("Profile updated successfully");
+    } catch (e: any) {
+        console.error("Profile Update Error:", e);
+        toast.error("Failed to update profile", { description: e.message });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -128,7 +159,7 @@ const AccountSettings = () => {
                    />
                 </div>
                 <div className="space-y-2">
-                   <Label htmlFor="email">Email Address</Label>
+                   <Label htmlFor="email">Email / Username</Label>
                    <Input 
                       id="email" 
                       value={formData.email} 

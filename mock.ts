@@ -1,4 +1,3 @@
-
 import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User, BackendService, Device } from './types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -205,64 +204,10 @@ export const MockSocket = {
   }
 };
 
-// Simulation Loop
-const SIM_TITLES = [
-  "Payment gateway timeout",
-  "User profile 404 error",
-  "Dashboard charts not loading",
-  "Export to PDF failed",
-  "Mobile view navigation broken",
-  "Slow API response on /users",
-  "Password reset email delayed",
-  "Integration key invalid",
-];
-const SIM_NAMES = ["Alex Carter", "Sarah Jones", "Mike Chen", "Emma Wilson", "System"];
-const SIM_MESSAGES = [
-  "Customer replied via email.",
-  "Internal note added.",
-  "Escalated to engineering.",
-  "Pending customer response.",
-  "Patch verification passed.",
-  "Ticket priority updated.",
-];
-
-let logIdCounter = 100;
-let ticketIdCounter = 2000;
-
-// Cleanup previous interval if exists (Hot Reload Fix)
+// Simulation Loop Removed to prevent "Triggering Sonner" spam
 if (typeof window !== 'undefined') {
   if ((window as any).__mockInterval) {
     clearInterval((window as any).__mockInterval);
   }
-
-  const intervalId = setInterval(() => {
-    // 1. Randomly add a new log (30% chance every 3s)
-    if (Math.random() < 0.3) {
-      const newLog: TicketLog = {
-        id: `L-${logIdCounter++}`,
-        ticketId: `T-${Math.floor(Math.random() * 5) + 1020}`, 
-        userId: Math.random() > 0.8 ? 'sys' : 'u2',
-        userName: SIM_NAMES[Math.floor(Math.random() * SIM_NAMES.length)],
-        message: SIM_MESSAGES[Math.floor(Math.random() * SIM_MESSAGES.length)],
-        createdAt: new Date().toISOString()
-      };
-      MockSocket.emit({ type: 'NEW_LOG', payload: newLog });
-    }
-
-    // 2. Randomly add a new ticket (20% chance every 3s)
-    if (Math.random() < 0.2) {
-       const newTicket: Ticket = {
-           id: `T-${ticketIdCounter++}`,
-           title: SIM_TITLES[Math.floor(Math.random() * SIM_TITLES.length)],
-           status: 'open',
-           priority: Math.random() > 0.6 ? 'high' : 'medium',
-           assigneeId: null,
-           createdAt: new Date().toISOString()
-       };
-       MockSocket.emit({ type: 'NEW_TICKET', payload: newTicket });
-    }
-  }, 3000);
-
-  // Store interval on window to prevent duplicate loops
-  (window as any).__mockInterval = intervalId;
+  // No new interval is set
 }

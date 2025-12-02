@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { ChevronLeft, Search, Lock, Unlock, X, RefreshCw, Cloud } from 'lucide-react';
+import { ChevronLeft, Search, Lock, Unlock, X, RefreshCw, Cloud, Server, ChevronDown, List, User as UserIcon } from 'lucide-react';
 import { ModalOverlay, Label, Input, Select, Textarea, Button, Badge, Avatar, Switch, cn } from '../../../components/ui';
 import { MockService } from '../../../mock';
 import { Ticket, User } from '../../../types';
@@ -9,6 +9,8 @@ import { useTicketStore } from '../stores/ticketStore';
 import { useTicketLogs } from '../../../hooks/useQueries';
 import { CustomerCard } from './CustomerCard';
 import { supabase } from '../../../lib/supabaseClient';
+import { ConfigService, UnconfiguredOnt } from '../../../services/external';
+import { toast } from 'sonner';
 
 // --- Types ---
 interface TicketFormData {
@@ -546,17 +548,48 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isOptionsLoading, setIsOptionsLoading] = useState(false);
   
+  // Real config state
+  const [oltOptions, setOltOptions] = useState<string[]>([]);
+  const [packageOptions, setPackageOptions] = useState<string[]>([]);
+  const [detectedOnts, setDetectedOnts] = useState<UnconfiguredOnt[]>([]);
+
   const [formData, setFormData] = useState({
-     olt: 'OLT-01',
+     olt: '',
      name: '',
      address: '',
      pppoeUser: '',
      pppoePass: '',
-     package: '100mbps',
+     package: '',
      ethLock: false,
-     interface: 'eth1'
+     interface: 'eth1',
+     sn: '',
+     port: '',
+     slot: ''
   });
+
+  // Fetch OLT Options on Demand
+  const fetchOltOptions = async () => {
+      setIsOptionsLoading(true);
+      const { data } = await ConfigService.getOptions();
+      if (data) {
+          if (data.olt_options) setOltOptions(data.olt_options);
+          if (data.package_options) {
+              setPackageOptions(data.package_options);
+              if (!formData.package && data.package_options.length > 0) {
+                  setFormData(prev => ({ ...prev, package: data.package_options[0] }));
+              }
+          }
+          if (data.olt_options.length > 0 && !formData.olt) {
+              setFormData(prev => ({ ...prev, olt: data.olt_options[0] }));
+          }
+          toast.success("Options loaded");
+      } else {
+          toast.error("Failed to fetch options");
+      }
+      setIsOptionsLoading(false);
+  };
 
   // Reset on open
   useEffect(() => {
@@ -564,20 +597,26 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
         setMode('manual');
         setSearchTerm('');
         setSearchResults([]);
+        setDetectedOnts([]);
+        setOltOptions([]); 
+        setPackageOptions([]);
         setFormData({
-            olt: 'OLT-01',
+            olt: '',
             name: '',
             address: '',
             pppoeUser: '',
             pppoePass: '',
-            package: '100mbps',
+            package: '',
             ethLock: false,
-            interface: 'eth1'
+            interface: 'eth1',
+            sn: '',
+            port: '',
+            slot: ''
         });
      }
   }, [isOpen]);
 
-  // Search Logic (Supabase)
+  // Search Logic (Supabase) for Manual Mode
   useEffect(() => {
      const timer = setTimeout(async () => {
         if (mode === 'manual' && searchTerm.length > 1) {
@@ -613,29 +652,41 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
         name: user.name || '',
         address: user.alamat || '',
         pppoeUser: user.user_pppoe || '',
-        pppoePass: user.pppoe_password || '', // If available in schema
+        pppoePass: user.pppoe_password || '',
         ethLock: false
      }));
      setSearchTerm('');
      setSearchResults([]);
   };
 
-  const handleAutoFetch = () => {
+  const handleScanOnts = async () => {
+      if (!formData.olt) {
+          toast.error("Please select an OLT first");
+          return;
+      }
       setIsAutoLoading(true);
-      // Simulate API Fetch
-      setTimeout(() => {
-          setFormData({
-              olt: 'OLT-01',
-              name: 'AUTO SUBSCRIBER ' + Math.floor(Math.random() * 1000),
-              address: 'FETCHED FROM CRM API\nREGION WEST-JAVA',
-              pppoeUser: `user_${Date.now().toString().substr(-6)}`,
-              pppoePass: '123456',
-              package: '100mbps',
-              ethLock: false,
-              interface: 'eth1'
-          });
-          setIsAutoLoading(false);
-      }, 1500);
+      setDetectedOnts([]);
+      
+      const { data, error } = await ConfigService.detectUnconfiguredOnts(formData.olt);
+      
+      if (data) {
+          setDetectedOnts(data);
+          if (data.length === 0) toast.info("No unconfigured ONTs found on this OLT.");
+      } else {
+          toast.error(error || "Failed to scan OLT");
+      }
+      setIsAutoLoading(false);
+  };
+
+  const handleSelectOnt = (ont: UnconfiguredOnt) => {
+      setFormData(prev => ({
+          ...prev,
+          sn: ont.sn,
+          port: ont.pon_port,
+          slot: ont.pon_slot,
+          interface: `gpon-onu_${ont.pon_slot}/${ont.pon_port}:1` 
+      }));
+      toast.success(`Selected ONT: ${ont.sn}`);
   };
 
   return (
@@ -647,26 +698,85 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
             </h2>
             <div className="flex items-center gap-2">
                 <Label className="text-xs cursor-pointer text-slate-500" onClick={() => setMode(m => m === 'manual' ? 'auto' : 'manual')}>
-                    {mode === 'manual' ? 'Manual Entry' : 'Auto Provision'}
+                    {mode === 'manual' ? 'Manual Entry' : 'Scan Network'}
                 </Label>
-                <Switch checked={mode === 'auto'} onCheckedChange={(c) => { setMode(c ? 'auto' : 'manual'); if(c) handleAutoFetch(); }} />
+                <Switch checked={mode === 'auto'} onCheckedChange={(c) => { setMode(c ? 'auto' : 'manual'); }} />
             </div>
          </div>
 
-         {/* Conditional Search or Fetch Section */}
+         {/* 1. OLT & Package Selection - Always at top */}
+         <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+               <div className="flex items-center justify-between">
+                   <Label>OLT Device</Label>
+                   <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-6 text-[10px] px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-indigo-400"
+                       onClick={fetchOltOptions}
+                       disabled={isOptionsLoading}
+                   >
+                       <RefreshCw className={cn("mr-1 h-3 w-3", isOptionsLoading && "animate-spin")} />
+                       {isOptionsLoading ? 'Loading...' : 'Reload List'}
+                   </Button>
+               </div>
+               <Select 
+                  value={formData.olt} 
+                  onChange={e => setFormData({...formData, olt: e.target.value})}
+                  disabled={isOptionsLoading}
+               >
+                  {oltOptions.length === 0 && <option value="">-- Click Reload to fetch OLTs --</option>}
+                  {oltOptions.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                  ))}
+               </Select>
+            </div>
+            <div className="space-y-2">
+               {/* Spacer to align with OLT Device label + button height */}
+               <div className="h-6 mb-2 flex items-center"><Label>Service Package</Label></div>
+               <Select 
+                  value={formData.package} 
+                  onChange={e => setFormData({...formData, package: e.target.value})}
+               >
+                  {packageOptions.length === 0 ? (
+                      <>
+                        <option value="50mbps">Home Basic (50 Mbps)</option>
+                        <option value="100mbps">Home Stream (100 Mbps)</option>
+                        <option value="300mbps">Gamer Pro (300 Mbps)</option>
+                      </>
+                  ) : (
+                      packageOptions.map(pkg => (
+                          <option key={pkg} value={pkg}>{pkg}</option>
+                      ))
+                  )}
+               </Select>
+            </div>
+         </div>
+
+         {/* 2. Conditional Scan/Search Area - Below OLT */}
          {mode === 'manual' ? (
-             <div className="space-y-2 relative">
-                <Label>Import from CRM (Manual)</Label>
+             <div className="space-y-3 p-4 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 animate-in fade-in slide-in-from-top-2 duration-300 relative">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        <UserIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-200">Import from CRM</p>
+                        <p className="text-xs text-slate-500">Search customer database</p>
+                    </div>
+                </div>
+                
                 <div className="relative">
                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                    <Input 
                       placeholder="Search subscriber by name or ID..." 
-                      className="pl-9"
+                      className="pl-9 bg-white dark:bg-black/20"
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       autoFocus
                    />
                 </div>
+                
                 {/* Dropdown Results */}
                 {searchResults.length > 0 && (
                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
@@ -687,48 +797,77 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
                 )}
              </div>
          ) : (
-             <div className="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-indigo-200 dark:bg-indigo-800 flex items-center justify-center text-indigo-700 dark:text-indigo-300">
-                        <Cloud className="h-4 w-4" />
+             <div className="space-y-3 p-4 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                            <Server className="h-4 w-4" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-200">Unconfigured ONTs</p>
+                            <p className="text-xs text-slate-500">Scan selected OLT for new devices</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">External CRM</p>
-                        <p className="text-xs text-indigo-700 dark:text-indigo-400">Fetching pending configurations...</p>
-                    </div>
+                    <Button size="sm" variant="default" onClick={handleScanOnts} disabled={isAutoLoading} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs px-3">
+                        <RefreshCw className={cn("h-3 w-3 mr-2", isAutoLoading && "animate-spin")} />
+                        {isAutoLoading ? 'Scanning...' : 'Scan OLT'}
+                    </Button>
                 </div>
-                <Button size="sm" variant="ghost" onClick={handleAutoFetch} disabled={isAutoLoading} className="hover:bg-indigo-200 dark:hover:bg-indigo-800">
-                    <RefreshCw className={cn("h-4 w-4", isAutoLoading && "animate-spin")} />
-                </Button>
+                
+                {/* Dedicated Select Area Container - REFINED BORDER */}
+                <div className="mt-3 min-h-[100px] border border-dashed border-slate-200 dark:border-white/10 rounded-lg flex flex-col items-center justify-center text-slate-400 bg-white/50 dark:bg-black/20 overflow-hidden relative">
+                    {/* Label for area */}
+                    <div className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider text-slate-300 dark:text-slate-600 pointer-events-none">
+                        Select Device
+                    </div>
+
+                    {detectedOnts.length > 0 ? (
+                        <div className="w-full h-full p-2 space-y-2 max-h-[150px] overflow-y-auto mt-4">
+                            {detectedOnts.map((ont, idx) => (
+                                <div 
+                                    key={idx} 
+                                    className="flex items-center justify-between p-3 rounded-md bg-white dark:bg-black/40 border border-slate-200 dark:border-white/5 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-sm transition-all group"
+                                    onClick={() => handleSelectOnt(ont)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                            <Server className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-mono font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                {ont.sn}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400">New Device</div>
+                                        </div>
+                                    </div>
+                                    <Badge variant="outline" className="font-mono text-[10px] bg-slate-50 dark:bg-white/5">
+                                        {ont.pon_port}/{ont.pon_slot}
+                                    </Badge>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-xs text-center p-8 flex flex-col items-center gap-3">
+                           {isAutoLoading ? (
+                               <>
+                                 <RefreshCw className="animate-spin h-6 w-6 text-indigo-500"/>
+                                 <span className="text-indigo-500 font-medium">Scanning network...</span>
+                               </>
+                           ) : (
+                               <>
+                                   <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
+                                      <List className="h-5 w-5 opacity-40" />
+                                   </div>
+                                   <span className="text-slate-400">Scan results will appear here.</span>
+                               </>
+                           )}
+                        </div>
+                    )}
+                </div>
             </div>
          )}
 
-         <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-               <Label>OLT Device</Label>
-               <Select 
-                  value={formData.olt} 
-                  onChange={e => setFormData({...formData, olt: e.target.value})}
-               >
-                  <option value="OLT-01">Huawei MA5608T - HQ</option>
-                  <option value="OLT-02">ZTE C320 - Branch A</option>
-                  <option value="OLT-03">Nokia 7360 - North</option>
-               </Select>
-            </div>
-            <div className="space-y-2">
-               <Label>Service Package</Label>
-               <Select 
-                  value={formData.package} 
-                  onChange={e => setFormData({...formData, package: e.target.value})}
-               >
-                  <option value="50mbps">Home Basic (50 Mbps)</option>
-                  <option value="100mbps">Home Stream (100 Mbps)</option>
-                  <option value="300mbps">Gamer Pro (300 Mbps)</option>
-                  <option value="1gbps">Gigabit Business</option>
-               </Select>
-            </div>
-         </div>
-
+         {/* 3. Common Form Fields */}
          <div className="space-y-2">
             <Label>Subscriber Name</Label>
             <Input 
@@ -737,6 +876,14 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
                placeholder="Full Name"
             />
          </div>
+
+         {formData.sn && (
+             <div className="p-2 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+                 <Badge variant="success" className="h-4 px-1 text-[10px]">Ready</Badge>
+                 Configuring device: <span className="font-mono font-bold">{formData.sn}</span>
+                 <span className="text-slate-400 ml-auto text-[10px]">Port: {formData.port}/{formData.slot}</span>
+             </div>
+         )}
 
          <div className="space-y-2">
             <Label>Installation Address</Label>
