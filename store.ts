@@ -25,9 +25,10 @@ const DEFAULT_SETTINGS: UserSettings = {
 };
 
 interface AppState {
-  // Sidebar State (Kept for compatibility, but UI will be fixed narrow)
+  // Sidebar State
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   
   // Session State
   user: User | null;
@@ -66,6 +67,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   isSidebarCollapsed: true, // Default to collapsed/narrow view
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+  setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
   
   user: {
     id: 'u1',

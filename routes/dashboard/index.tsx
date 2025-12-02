@@ -136,9 +136,8 @@ export const Dashboard = () => {
         onConfirm={handleForwardConfirm}
       />
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
+      {/* Header Area */}
+      <div className="flex justify-end mb-2">
         {statsLoading ? (
            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
               <RefreshCw className="h-3 w-3 mr-2 animate-spin" />

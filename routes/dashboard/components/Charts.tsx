@@ -12,7 +12,7 @@ const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-slate-200 dark:border-white/10 p-3 rounded-2xl shadow-xl ring-1 ring-slate-900/5 dark:ring-white/10 text-xs">
+      <div className="bg-white/95 dark:bg-navy-dark/95 backdrop-blur-md border border-slate-200 dark:border-white/10 p-3 rounded-2xl shadow-xl ring-1 ring-slate-900/5 dark:ring-white/10 text-xs">
         <p className="font-bold text-slate-500 dark:text-zinc-400 mb-1">{label}</p>
         <div className="flex items-center gap-2">
            <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>
@@ -28,7 +28,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export const TrafficChart = ({ data }: { data?: TrafficData }) => {
   
   return (
-    <Card className="md:col-span-4 dark:bg-[#121214] dark:border-white/5 shadow-soft flex flex-col h-[420px] rounded-3xl overflow-hidden border-transparent">
+    <Card className="md:col-span-4 shadow-soft flex flex-col h-[420px] rounded-3xl overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between py-6 px-8 border-b border-slate-50 dark:border-white/5">
         <div className="flex flex-col">
             <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Ticket Traffic</CardTitle>
@@ -90,7 +90,7 @@ export const TrafficChart = ({ data }: { data?: TrafficData }) => {
 
 export const DistributionChart = ({ data }: { data?: any[] }) => {
   return (
-    <Card className="md:col-span-3 dark:bg-[#121214] dark:border-white/5 shadow-soft flex flex-col h-[420px] rounded-3xl overflow-hidden border-transparent">
+    <Card className="md:col-span-3 shadow-soft flex flex-col h-[420px] rounded-3xl overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between py-6 px-8 border-b border-slate-50 dark:border-white/5">
         <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Distribution</CardTitle>
         <div className="flex items-center gap-2">

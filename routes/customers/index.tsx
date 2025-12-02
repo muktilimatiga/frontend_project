@@ -89,10 +89,8 @@ export const CustomersPage = () => {
 
       <div className="space-y-4">
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Fiber Subscribers</h1>
-            
             {/* Server-side Search Input */}
-            <div className="relative w-full md:w-72">
+            <div className="relative w-full md:w-72 ml-auto">
                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                <Input 
                   placeholder="Search name, PPPoE, or address..." 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Copy, Send, DollarSign } from 'lucide-react';
 import { ModalOverlay, Label, Input, Textarea, Button, Separator } from '../../../components/ui';
 import { User } from '../../../types';
+import { useLogActivity } from '../../../hooks/useQueries';
 
 interface InvoicePaymentModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export const InvoicePaymentModal = ({ isOpen, onClose, user }: InvoicePaymentMod
   const [amount, setAmount] = useState('170000');
   const [phone, setPhone] = useState('6282231311855'); // Default/Mock phone
   const [message, setMessage] = useState('');
+  
+  const logActivity = useLogActivity();
   
   // Mock Data generation based on selected user
   const internetId = React.useMemo(() => Math.floor(100000000000 + Math.random() * 900000000000).toString(), [user]);
@@ -54,6 +57,16 @@ Silahkan melakukan pembayaran sebelum tanggal ${deadlineDate}. Agar internet And
 
   const handleSend = () => {
     const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    
+    // Log the activity
+    logActivity.mutate({
+        level: 'info',
+        source: 'Invoice',
+        message: `Invoice sent to ${user?.name}`,
+        user: 'Admin', // Assuming current user is admin
+        metadata: { amount, phone, internetId }
+    });
+
     window.open(whatsappUrl, '_blank');
     onClose();
   };

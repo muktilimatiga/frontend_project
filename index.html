@@ -19,53 +19,63 @@
             colors: {
               border: "var(--border)",
               background: "var(--background)",
-              main: '#09090b',    
-              card: '#121214',    
+              
+              // Prime Pay Inspired Palette
+              navy: {
+                DEFAULT: '#343C6A', // Deep Blue-Grey Text (Light Mode)
+                light: '#5F6D96',
+                dark: '#000000',    // Pure Black (Dark Mode Background)
+              },
+              slateBlue: {
+                DEFAULT: '#718EBF', // Cool Grey Text
+                light: '#8BA3C7',
+                dark: '#A1A1AA'     // Zinc-400 for text in Dark Mode
+              },
+              beige: {
+                DEFAULT: '#DFEAF2', // Subtle Border (Light Mode)
+                light: '#EDF3F7',
+                dark: '#27272A'     // Zinc-800 for Borders in Dark Mode
+              },
+              cream: {
+                DEFAULT: '#F5F7FA', // Main Background (Light Mode)
+                dark: '#000000'     // Pure Black
+              },
+
+              // Brand Colors
               primary: {
-                DEFAULT: '#18181b', // Black for primary actions like the image
-                foreground: '#ffffff',
-                glow: 'rgba(24, 24, 27, 0.5)'
+                DEFAULT: '#2D60FF', // Vibrant Blue
+                foreground: '#FFFFFF',
+                glow: 'rgba(45, 96, 255, 0.5)'
               },
-              muted: {
-                DEFAULT: '#f4f4f5', 
-                foreground: '#71717a'
-              },
-              // Pastel Palette for Dashboard Cards (Light Mode)
-              pastel: {
-                green: '#ECFDF5', // Emerald 50
-                greenText: '#059669', // Emerald 600
-                orange: '#FFF7ED', // Orange 50
-                orangeText: '#EA580C', // Orange 600
-                blue: '#EFF6FF', // Blue 50
-                blueText: '#2563EB', // Blue 600
-                purple: '#F5F3FF', // Violet 50
-                purpleText: '#7C3AED', // Violet 600
-              },
+              
+              // System Mapping
+              main: '#F5F7FA',    
+              card: '#FFFFFF',
+              
+              // Remapping Slate to match the theme
               slate: {
-                50: '#f9fafb', // Lighter background
-                100: '#f3f4f6',
-                200: '#e5e7eb',
-                300: '#d1d5db',
-                400: '#9ca3af',
-                500: '#6b7280',
-                600: '#4b5563',
-                700: '#374151',
-                800: '#27272a', // Softer darks
-                900: '#18181b', 
-                950: '#09090b', 
+                50: '#F8F9FD',
+                100: '#F1F3F7',
+                200: '#DFEAF2',
+                300: '#CAD7E2',
+                400: '#B1C1D2',
+                500: '#718EBF',
+                600: '#5A75A0',
+                700: '#343C6A', 
+                800: '#27272A', // Dark borders
+                900: '#18181B', // Almost black
+                950: '#000000', // Pure black
               }
             },
             borderRadius: {
               'xl': '1rem',
               '2xl': '1.5rem',
-              '3xl': '2rem',
+              '3xl': '2rem', // Highly rounded for Prime Pay look
             },
             boxShadow: {
-              'soft': '0 10px 40px -10px rgba(0,0,0,0.05)',
-              'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
-              'glow': '0 0 20px -5px rgba(99, 102, 241, 0.5)',
-              'glow-green': '0 0 20px -5px rgba(16, 185, 129, 0.3)',
-              'glow-orange': '0 0 20px -5px rgba(249, 115, 22, 0.3)',
+              'soft': '0 4px 25px 0px rgba(0, 0, 0, 0.03)',
+              'card': '0 2px 10px rgba(0,0,0,0.02)',
+              'glow': '0 0 20px -5px rgba(45, 96, 255, 0.4)',
             }
           }
         }
@@ -78,32 +88,21 @@
     <style>
       :root {
         --tooltip-bg: #fff;
-        --border: #e5e7eb;
-        --background: #f8fafc; /* Very light gray/white background */
+        --border: #DFEAF2;
+        --background: #F5F7FA; 
       }
       .dark {
-        --tooltip-bg: #18181b; 
-        --border: #27272a; 
-        --background: #09090b; 
+        --tooltip-bg: #000000; 
+        --border: #27272A; 
+        --background: #000000; 
       }
       body {
         font-family: 'Inter', sans-serif;
         background-color: var(--background);
-        color: #1f2937;
+        color: #343C6A;
       }
       .dark body {
-        color: #f4f4f5;
-      }
-      
-      /* Active Menu Glow Effect - Subtler now */
-      .nav-item-active {
-        background-color: #f3f4f6;
-        color: #111827;
-        font-weight: 600;
-      }
-      .dark .nav-item-active {
-        background-color: #27272a;
-        color: #fff;
+        color: #F5F7FA;
       }
       
       /* Custom scrollbar */
@@ -115,18 +114,18 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #e5e7eb;
+        background: #B1C1D2;
         border-radius: 10px;
       }
       .dark ::-webkit-scrollbar-track {
-        background: #09090b;
+        background: #000000;
       }
       .dark ::-webkit-scrollbar-thumb {
-        background: #27272a;
-        border: 1px solid #09090b;
+        background: #333333;
+        border: 1px solid #000000;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #d1d5db;
+        background: #718EBF;
       }
     </style>
   <script type="importmap">
@@ -152,7 +151,8 @@
     "http": "https://aistudiocdn.com/http@^0.0.1-security",
     "socket.io": "https://aistudiocdn.com/socket.io@^4.8.1",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7"
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
+    "xlsx": "https://esm.sh/xlsx@0.18.5"
   }
 }
 </script>

@@ -1,4 +1,5 @@
-import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User, BackendService, Device } from './types';
+
+import { Ticket, TicketLog, DashboardStats, TrafficData, RealtimeEvent, User, BackendService, Device, SystemLog } from './types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -20,6 +21,14 @@ const MOCK_DEVICES: Device[] = [
   { id: 'd6', name: 'Access Point Lobby', ip: '192.168.2.10', status: 'online', folder: 'Access Points', type: 'ap', ping: 8 },
   { id: 'd7', name: 'Access Point Cafe', ip: '192.168.2.11', status: 'online', folder: 'Access Points', type: 'ap', ping: 12 },
   { id: 'd8', name: 'Firewall Main', ip: '192.168.0.1', status: 'online', folder: 'Security', type: 'firewall', ping: 3 },
+];
+
+// In-memory logs for mock session
+let MOCK_SYSTEM_LOGS: SystemLog[] = [
+  { id: 'log-1', timestamp: new Date().toISOString(), level: 'info', source: 'System', message: 'Dashboard initialized', user: 'System' },
+  { id: 'log-2', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), level: 'warning', source: 'Monitor', message: 'High latency detected on Switch Floor 2', user: 'System', metadata: { latency: 150 } },
+  { id: 'log-3', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), level: 'success', source: 'Database', message: 'Backup completed successfully', user: 'Admin' },
+  { id: 'log-4', timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(), level: 'info', source: 'Auth', message: 'User Alex Carter logged in', user: 'Alex Carter' },
 ];
 
 export const MockService: BackendService = {
@@ -182,6 +191,22 @@ export const MockService: BackendService = {
   getDevices: async (): Promise<Device[]> => {
     await delay(400);
     return MOCK_DEVICES;
+  },
+
+  getSystemLogs: async (): Promise<SystemLog[]> => {
+    await delay(400);
+    return [...MOCK_SYSTEM_LOGS].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  },
+
+  createSystemLog: async (log: Omit<SystemLog, 'id' | 'timestamp'>): Promise<void> => {
+    await delay(200);
+    const newLog: SystemLog = {
+      ...log,
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    };
+    MOCK_SYSTEM_LOGS.unshift(newLog);
+    console.log('[Mock Log Created]', newLog);
   }
 };
 

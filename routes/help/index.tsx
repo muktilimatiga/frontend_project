@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useMemo, useEffect, Fragment } from 'react';
 import { 
@@ -523,7 +524,6 @@ export const HelpCenterPage = () => {
          {/* Header */}
          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-               <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Help Center Manager</h1>
                <p className="text-slate-500 dark:text-slate-400">Manage support templates and canned responses.</p>
             </div>
             <div className="flex gap-2">

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, Outlet, useRouterState } from '@tanstack/react-router';
@@ -9,46 +8,42 @@ import {
   Users, 
   Bell, 
   Search, 
-  ChevronRight,
-  Sun,
-  Moon,
-  Terminal,
-  Network,
-  Map,
-  Database,
-  LifeBuoy,
-  Monitor,
-  PanelLeftClose,
-  PanelLeftOpen,
-  LogOut,
-  MoreHorizontal,
-  Sparkles,
-  Minus,
-  Maximize2,
-  X,
-  GripHorizontal
+  Sun, 
+  Moon, 
+  Terminal, 
+  Network, 
+  Map, 
+  Database, 
+  LifeBuoy, 
+  Monitor, 
+  PanelLeftClose, 
+  PanelLeftOpen, 
+  LogOut, 
+  MoreHorizontal, 
+  Sparkles, 
+  Minus, 
+  Maximize2, 
+  X, 
+  ScrollText
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 import { useAppStore } from '../store';
 import { 
     cn, 
     Button, 
     Tooltip, 
-    ModalOverlay, 
     Avatar,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator 
 } from './ui';
-import { MockService, MockSocket } from '../mock';
-import { MonitorDrawer } from './MonitorDrawer';
+import { MockService } from '../mock';
 import { GlobalSearch } from './GlobalSearch';
 import { AIChatDrawer } from './AIChatDrawer';
 import { supabase } from '../lib/supabaseClient';
+import { useSupabaseStats } from '../hooks/useSupabaseStats';
 
 // --- Sidebar Icon / Item Component ---
 const SidebarIcon = ({ 
@@ -57,33 +52,53 @@ const SidebarIcon = ({
   to, 
   isActive, 
   onClick, 
-  isCollapsed 
+  isCollapsed,
+  badgeCount
 }: { 
   icon: any, 
   label: string, 
   to?: string, 
   isActive?: boolean, 
   onClick?: () => void,
-  isCollapsed: boolean
+  isCollapsed: boolean,
+  badgeCount?: number
 }) => {
   const content = (
     <div 
       className={cn(
-        "relative flex items-center transition-all duration-200 group rounded-2xl mx-3 mb-1",
+        "relative flex items-center transition-all duration-200 group rounded-xl mx-4 mb-1",
         isCollapsed 
-          ? "justify-center p-3" 
-          : "px-4 py-3 gap-3",
+          ? "justify-center p-3 mx-2" 
+          : "px-4 py-3.5 gap-3",
+        // Active: Vibrant Blue background, White text, Pill shape
         isActive 
-          ? "bg-slate-900 text-white shadow-md dark:bg-white dark:text-black dark:shadow-glow" 
-          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
+          ? "bg-primary text-white shadow-md shadow-blue-500/30 dark:shadow-none" 
+          : "text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-white/10 dark:text-slate-400"
       )}
     >
-      <Icon className={cn("shrink-0 transition-all", isCollapsed ? "h-5 w-5" : "h-5 w-5")} />
+      <Icon className={cn("shrink-0 transition-all", isCollapsed ? "h-6 w-6" : "h-5 w-5")} />
       
       {!isCollapsed && (
-        <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300">
+        <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300 flex-1">
           {label}
         </span>
+      )}
+
+      {/* Badge Logic - Expanded */}
+      {!isCollapsed && badgeCount !== undefined && badgeCount > 0 && (
+         <span className={cn(
+             "text-[10px] font-bold px-2 py-0.5 rounded-full ml-auto min-w-[20px] text-center transition-colors",
+             isActive 
+               ? "bg-white text-primary" 
+               : "bg-red-500 text-white"
+         )}>
+            {badgeCount}
+         </span>
+      )}
+
+      {/* Badge Logic - Collapsed (Dot) */}
+      {isCollapsed && badgeCount !== undefined && badgeCount > 0 && (
+          <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white dark:border-black" />
       )}
     </div>
   );
@@ -92,7 +107,7 @@ const SidebarIcon = ({
 
   if (isCollapsed) {
     const wrapped = (
-      <Tooltip text={label}>
+      <Tooltip text={label + (badgeCount ? ` (${badgeCount})` : '')}>
          {content}
       </Tooltip>
     );
@@ -120,6 +135,7 @@ const SidebarIcon = ({
 
 export const Sidebar = () => {
   const { user, toggleSearch, isSidebarCollapsed, toggleSidebar, logout } = useAppStore();
+  const { stats } = useSupabaseStats();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
@@ -131,132 +147,81 @@ export const Sidebar = () => {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 z-50 h-screen flex flex-col bg-white dark:bg-[#09090b] transition-all duration-300 ease-in-out",
-        // No border, just padding/floating feel
-        isSidebarCollapsed ? "w-[90px]" : "w-72"
+        "fixed left-0 top-0 z-50 h-screen flex flex-col bg-white dark:bg-black transition-all duration-300 ease-in-out border-r border-slate-100 dark:border-white/10",
+        isSidebarCollapsed ? "w-[90px]" : "w-64"
       )}
     >
       {/* Top: Brand */}
-      <div className={cn("h-28 flex items-center shrink-0", isSidebarCollapsed ? "justify-center" : "px-8")}>
+      <div className={cn("h-24 flex items-center shrink-0", isSidebarCollapsed ? "justify-center" : "px-8")}>
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-10 h-10 bg-slate-900 dark:bg-white rounded-xl flex items-center justify-center cursor-pointer shrink-0 transition-transform hover:scale-105 shadow-md">
-             <span className="text-white dark:text-black font-bold text-lg">N</span>
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center cursor-pointer shrink-0 transition-transform hover:scale-105 shadow-lg shadow-blue-500/30 dark:shadow-none">
+             <span className="text-white font-bold text-xl italic">P</span>
           </div>
           {!isSidebarCollapsed && (
-            <span className="font-bold text-xl text-slate-900 dark:text-white whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">Nexus</span>
+            <div className="flex flex-col animate-in fade-in slide-in-from-left-2 duration-300">
+                <span className="font-extrabold text-xl text-navy dark:text-white leading-none">Prime Pay</span>
+                <span className="text-[10px] text-slate-400 font-medium">Finance App</span>
+            </div>
           )}
         </div>
       </div>
 
       {/* Navigation Groups */}
-      <div className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 px-2">
+      <div className="flex-1 overflow-y-auto py-2 scrollbar-none px-0">
         
-        {/* Group 1 */}
+        {/* Main Menu */}
         <div className="flex flex-col gap-1">
-           {!isSidebarCollapsed && <div className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Overview</div>}
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Search} label="Search" onClick={toggleSearch} />
+           {!isSidebarCollapsed && <div className="px-8 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Menu</div>}
+           
            <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LayoutDashboard} label="Dashboard" to="/" isActive={isActive('/')} />
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={TicketIcon} label="Tickets" to="/tickets" isActive={isActive('/tickets')} />
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Monitor} label="Monitor" to="/monitor" isActive={isActive('/monitor')} />
+           <SidebarIcon 
+              isCollapsed={isSidebarCollapsed} 
+              icon={TicketIcon} 
+              label="Transaction" 
+              to="/tickets" 
+              isActive={isActive('/tickets')} 
+              badgeCount={stats?.open}
+           />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Monitor} label="Auto Pay" to="/monitor" isActive={isActive('/monitor')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Users} label="Goals" to="/customers" isActive={isActive('/customers')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Settings} label="Settings" to="/settings" isActive={isActive('/settings')} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Bell} label="Message" to="/logs" isActive={isActive('/logs')} badgeCount={2} />
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Network} label="Investment" to="/topology" isActive={isActive('/topology')} />
         </div>
 
-        {/* Group 2 */}
-        <div className="mt-6 flex flex-col gap-1">
-           {!isSidebarCollapsed && <div className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Resources</div>}
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Network} label="Topology" to="/topology" isActive={isActive('/topology')} />
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Database} label="Database" to="/database" isActive={isActive('/database')} />
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Map} label="Maps" to="/maps" isActive={isActive('/maps')} />
-        </div>
+        {/* Separator */}
+        <div className="my-4 border-t border-slate-100 dark:border-white/10 mx-6"></div>
 
-        {/* Group 3 */}
-        <div className="mt-6 flex flex-col gap-1">
-           {!isSidebarCollapsed && <div className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Support</div>}
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={Users} label="Customers" to="/customers" isActive={isActive('/customers')} />
-           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} />
+        {/* Support */}
+        <div className="flex flex-col gap-1">
+           <SidebarIcon isCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Support" to="/help" isActive={isActive('/help')} />
+           <button 
+             onClick={logout}
+             className={cn(
+                "relative flex items-center transition-all duration-200 group rounded-xl mx-4 mb-1",
+                isSidebarCollapsed ? "justify-center p-3 mx-2" : "px-4 py-3.5 gap-3",
+                "text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+             )}
+           >
+              <LogOut className={cn("shrink-0 transition-all", isSidebarCollapsed ? "h-6 w-6" : "h-5 w-5")} />
+              {!isSidebarCollapsed && (
+                <span className="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300 flex-1 text-left">
+                  Log out
+                </span>
+              )}
+           </button>
         </div>
 
       </div>
 
-      {/* Bottom Actions */}
-      <div className={cn("mt-auto pb-6 px-2")}>
-         
-         <div className={cn("p-2", isSidebarCollapsed ? "flex flex-col items-center gap-2" : "space-y-1")}>
-             {/* Settings Link */}
-             <Link 
-                to="/settings" 
-                className={cn(
-                   "flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-colors",
-                   isSidebarCollapsed ? "justify-center p-3" : "w-full px-4 py-3 gap-3",
-                   isActive('/settings') && "bg-slate-100 text-slate-900 font-semibold dark:bg-white/10 dark:text-white"
-                )}
-                title="Settings"
-             >
-                <Settings className={cn("shrink-0", isSidebarCollapsed ? "h-5 w-5" : "h-5 w-5")} />
-                {!isSidebarCollapsed && <span className="text-sm font-medium">Settings</span>}
-             </Link>
-
-             {/* Collapse Toggle */}
-             <button 
-               onClick={toggleSidebar}
-               className={cn(
-                 "flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-colors",
-                 isSidebarCollapsed ? "justify-center p-3" : "w-full px-4 py-3 gap-3"
-               )}
-               title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-             >
-                {isSidebarCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-                {!isSidebarCollapsed && <span className="text-sm font-medium">Collapse</span>}
-             </button>
-         </div>
-
-         {/* User Profile - Clean & Minimal */}
-         <div className="pt-2 mx-4 mt-2">
-            {isSidebarCollapsed ? (
-                <div className="flex justify-center pt-2 pb-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <Tooltip text={user?.name || 'Profile'}>
-                                <div className="relative">
-                                    <Avatar src={user?.avatarUrl} fallback="U" className="w-10 h-10 border border-slate-200 dark:border-white/10 cursor-pointer" />
-                                </div>
-                            </Tooltip>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="left-full bottom-0 ml-2 w-56">
-                            <div className="flex items-center gap-3 p-2 pb-3 border-b border-slate-100 dark:border-white/10 mb-1">
-                               <Avatar src={user?.avatarUrl} fallback="U" className="w-8 h-8 rounded-full" />
-                               <div className="overflow-hidden">
-                                  <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.name}</p>
-                                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
-                               </div>
-                            </div>
-                            <DropdownMenuItem onClick={logout} className="text-red-600 dark:text-red-400">
-                                <LogOut className="mr-2 h-4 w-4" /> Log out
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            ) : (
-                <div className="pt-2 pb-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="w-full focus:outline-none">
-                        <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group w-full">
-                          <Avatar src={user?.avatarUrl} fallback="U" className="w-10 h-10 border border-slate-200 dark:border-white/10" />
-                          <div className="flex flex-col overflow-hidden text-left flex-1 min-w-0">
-                              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name}</span>
-                              <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.role}</span>
-                          </div>
-                          <MoreHorizontal className="h-4 w-4 text-slate-400 group-hover:text-slate-600 shrink-0" />
-                        </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[230px] mb-2" align="center" side="top">
-                        <DropdownMenuItem onClick={logout} className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/10">
-                          <LogOut className="mr-2 h-4 w-4" /> Log out
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-            )}
-         </div>
+      {/* Collapse Toggle at Bottom */}
+      <div className={cn("mt-auto pb-6 px-2 flex justify-center")}>
+         <button 
+           onClick={toggleSidebar}
+           className="p-2 text-slate-300 hover:text-primary transition-colors"
+         >
+            {isSidebarCollapsed ? <PanelLeftOpen className="h-6 w-6" /> : <PanelLeftClose className="h-6 w-6" />}
+         </button>
       </div>
     </aside>
   );
@@ -266,8 +231,6 @@ export const Navbar = () => {
   const { theme, toggleTheme, toggleCli, isSidebarCollapsed, toggleAIChat, isCliOpen, user } = useAppStore();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const logsQuery = useQuery({ queryKey: ['logs'], queryFn: () => MockService.getTicketLogs() });
-  const routerState = useRouterState();
-  const currentPath = routerState.location.pathname;
 
   useEffect(() => {
      const handler = () => useAppStore.getState().toggleMonitor();
@@ -275,46 +238,20 @@ export const Navbar = () => {
      return () => document.removeEventListener('toggle-monitor', handler);
   }, []);
 
-  const getPageTitle = (path: string) => {
-    if (path === '/') return 'Dashboard';
-    const segment = path.split('/').filter(Boolean)[0];
-    if (!segment) return 'Dashboard';
-    
-    // Map common routes to nice titles
-    switch(segment) {
-        case 'tickets': return 'Tickets';
-        case 'topology': return 'Network Topology';
-        case 'database': return 'Database Manager';
-        case 'monitor': return 'System Monitor';
-        case 'maps': return 'Geographic Map';
-        case 'customers': return 'Customers';
-        case 'settings': return 'Settings';
-        case 'help': return 'Help Center';
-        default: return segment.charAt(0).toUpperCase() + segment.slice(1);
-    }
-  };
-
   return (
     <header 
       className={cn(
-        "fixed top-0 right-0 z-30 flex h-28 items-center justify-between gap-4 px-10 transition-all duration-300 ease-in-out bg-transparent pointer-events-none",
-        isSidebarCollapsed ? "left-[90px]" : "left-72"
+        "fixed top-0 right-0 z-30 flex h-24 items-center justify-end gap-4 px-10 transition-all duration-300 ease-in-out bg-background/80 dark:bg-background/80 backdrop-blur-md",
+        isSidebarCollapsed ? "left-[90px]" : "left-64"
       )}
     >
-      {/* Left: Dynamic Page Title */}
-      <div className="pointer-events-auto">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-             {getPageTitle(currentPath)}
-          </h2>
-      </div>
-
       {/* Right: Actions */}
-      <div className="flex items-center gap-2 pointer-events-auto bg-white/80 dark:bg-black/80 backdrop-blur-xl p-2 rounded-full border border-white/20 shadow-sm dark:border-white/10">
-        <div className="relative mx-1 hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+      <div className="flex items-center gap-4 pointer-events-auto">
+        <div className="relative hidden md:block">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input 
-               className="h-10 w-64 rounded-full bg-slate-100 dark:bg-white/10 pl-10 pr-4 text-sm outline-none placeholder:text-slate-400 dark:text-white transition-all focus:w-80"
-               placeholder="Search..."
+               className="h-12 w-72 rounded-full bg-white dark:bg-white/10 pl-11 pr-4 text-sm outline-none placeholder:text-slate-400 dark:text-white transition-all focus:w-80 shadow-soft focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:border"
+               placeholder="Search anything here..."
             />
         </div>
 
@@ -322,7 +259,7 @@ export const Navbar = () => {
             variant="ghost" 
             size="icon" 
             onClick={toggleAIChat} 
-            className="rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10"
+            className="rounded-full h-12 w-12 bg-white dark:bg-white/10 shadow-soft text-slate-400 hover:text-primary dark:text-slate-300 dark:hover:text-white"
         >
            <Sparkles className="h-5 w-5" />
         </Button>
@@ -332,14 +269,14 @@ export const Navbar = () => {
           size="icon" 
           onClick={toggleCli} 
           className={cn(
-            "rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10",
-            isCliOpen && "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white"
+            "rounded-full h-12 w-12 bg-white dark:bg-white/10 shadow-soft text-slate-400 hover:text-primary dark:text-slate-300 dark:hover:text-white",
+            isCliOpen && "text-primary ring-2 ring-primary/20"
           )}
         >
            <Terminal className="h-5 w-5" />
         </Button>
 
-        <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full h-12 w-12 bg-white dark:bg-white/10 shadow-soft text-slate-400 hover:text-primary dark:text-slate-300 dark:hover:text-white">
           {theme === 'light' ? (
              <Sun className="h-5 w-5" />
           ) : (
@@ -351,35 +288,35 @@ export const Navbar = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="relative rounded-full h-10 w-10 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10"
+            className="relative rounded-full h-12 w-12 bg-white dark:bg-white/10 shadow-soft text-slate-400 hover:text-primary dark:text-slate-300 dark:hover:text-white"
             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
+            <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
           </Button>
 
           {/* Notification Dropdown */}
           {isNotificationsOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsNotificationsOpen(false)} />
-              <div className="absolute right-0 top-full mt-4 w-96 rounded-3xl border border-slate-100 bg-white shadow-xl ring-1 ring-black/5 z-20 overflow-hidden dark:border-white/10 dark:bg-[#121214] dark:ring-white/10 animate-in fade-in zoom-in-95 duration-200">
-                 <div className="p-4 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
-                    <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
-                    <span className="text-xs text-indigo-600 cursor-pointer hover:underline">Mark all read</span>
+              <div className="absolute right-0 top-full mt-4 w-96 rounded-3xl border border-border bg-white shadow-xl ring-1 ring-black/5 z-20 overflow-hidden dark:border-white/10 dark:bg-black dark:ring-white/10 animate-in fade-in zoom-in-95 duration-200">
+                 <div className="p-4 border-b border-border dark:border-white/10 flex justify-between items-center">
+                    <h3 className="font-semibold text-navy dark:text-white">Notifications</h3>
+                    <span className="text-xs text-primary cursor-pointer hover:underline">Mark all read</span>
                  </div>
                  <div className="max-h-[350px] overflow-y-auto">
                     {logsQuery.data?.length === 0 ? (
                         <div className="p-8 text-center text-slate-500 text-sm">No new notifications</div>
                     ) : (
                         logsQuery.data?.map((log) => (
-                        <div key={log.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                        <div key={log.id} className="p-4 border-b border-border hover:bg-slate-50 dark:border-white/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
                             <div className="flex gap-3">
-                            <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-sm font-bold text-indigo-600 shrink-0 dark:bg-indigo-900/30 dark:text-indigo-400">
+                            <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-sm font-bold text-primary shrink-0 dark:bg-indigo-900/30">
                                 {log.userName.charAt(0)}
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm text-slate-900 dark:text-slate-200">
-                                    <span className="font-medium">{log.userName}</span> commented on <span className="font-medium text-indigo-600 dark:text-indigo-400">{log.ticketId}</span>
+                                <p className="text-sm text-navy dark:text-slate-200">
+                                    <span className="font-medium">{log.userName}</span> commented on <span className="font-medium text-slateBlue">{log.ticketId}</span>
                                 </p>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">"{log.message}"</p>
                                 <p className="text-[10px] text-slate-400">
@@ -395,12 +332,15 @@ export const Navbar = () => {
             </>
           )}
         </div>
+        
+        {/* Profile */}
+        <Avatar src={user?.avatarUrl} fallback="U" className="h-12 w-12 border-2 border-white shadow-soft cursor-pointer dark:border-white/10" />
       </div>
     </header>
   );
 };
 
-// --- Resizable & Draggable CLI Modal (macOS Style) ---
+// ... (CLI Modal remains unchanged)
 const CLIModal = () => {
   const { isCliOpen, toggleCli, isCliMinimized, setIsCliMinimized } = useAppStore();
   const [input, setInput] = useState('');
@@ -610,6 +550,7 @@ const CLIModal = () => {
 export const AppLayout = () => {
   const { theme, isSidebarCollapsed, login } = useAppStore();
   const routerState = useRouterState();
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -618,6 +559,29 @@ export const AppLayout = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Scroll listener for auto-collapsing sidebar
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const state = useAppStore.getState();
+      
+      // Collapse on scroll down
+      if (currentScrollY > 50 && currentScrollY > lastScrollY.current && !state.isSidebarCollapsed) {
+         state.setSidebarCollapsed(true);
+      }
+      
+      // Auto-expand when back at the top
+      if (currentScrollY < 20 && state.isSidebarCollapsed) {
+         state.setSidebarCollapsed(false);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Fetch Current User from Supabase 'users' table
   useEffect(() => {
@@ -652,7 +616,7 @@ export const AppLayout = () => {
   const pathSegments = routerState.location.pathname.split('/').filter(Boolean);
   
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-main transition-colors duration-300 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-500/30 dark:selection:text-white">
+    <div className="min-h-screen bg-background text-navy transition-colors duration-300 font-sans selection:bg-primary/20 selection:text-primary dark:selection:bg-primary/40 dark:selection:text-white">
       <Toaster position="top-center" theme={theme === 'dark' ? 'dark' : 'light'} richColors closeButton />
       
       {/* Components */}
@@ -666,7 +630,7 @@ export const AppLayout = () => {
       <main 
         className={cn(
           "pt-28 min-h-screen transition-all duration-300 ease-in-out pb-8",
-          isSidebarCollapsed ? "pl-[90px]" : "pl-72"
+          isSidebarCollapsed ? "pl-[110px]" : "pl-72"
         )}
       >
         <div className="container max-w-7xl mx-auto px-8 animate-in fade-in slide-in-from-bottom-2 duration-500">

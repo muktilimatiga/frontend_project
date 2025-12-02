@@ -520,7 +520,6 @@ export const SettingsPage = () => {
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-20">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Settings</h1>
         <p className="text-slate-500 dark:text-slate-400">Manage your account settings and preferences.</p>
       </div>
 

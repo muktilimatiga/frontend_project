@@ -17,7 +17,7 @@ export const MonitorStats = ({ devices }: MonitorStatsProps) => {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="dark:bg-card dark:border-slate-700/50">
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Network Uptime</p>
@@ -33,7 +33,7 @@ export const MonitorStats = ({ devices }: MonitorStatsProps) => {
         </CardContent>
       </Card>
 
-      <Card className="dark:bg-card dark:border-slate-700/50">
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Devices</p>
@@ -48,7 +48,7 @@ export const MonitorStats = ({ devices }: MonitorStatsProps) => {
         </CardContent>
       </Card>
 
-      <Card className="dark:bg-card dark:border-slate-700/50">
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Alerts</p>
@@ -70,7 +70,7 @@ export const MonitorStats = ({ devices }: MonitorStatsProps) => {
         </CardContent>
       </Card>
 
-      <Card className="dark:bg-card dark:border-slate-700/50">
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Avg Latency</p>

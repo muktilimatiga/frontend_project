@@ -109,7 +109,6 @@ export const TicketsPage = () => {
       />
 
       <EnhancedTable 
-         title="All Tickets"
          data={tickets} 
          columns={columns} 
          searchKey="title"

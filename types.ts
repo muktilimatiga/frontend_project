@@ -105,6 +105,16 @@ export interface Device {
   ping: number;
 }
 
+export interface SystemLog {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warning' | 'error' | 'success';
+  source: string; // e.g., 'Invoice', 'Database', 'Ticket'
+  message: string;
+  user?: string;
+  metadata?: any;
+}
+
 // --- App Types ---
 export type NavItem = {
   label: string;
@@ -133,4 +143,6 @@ export interface BackendService {
   searchUsers: (query: string) => Promise<User[]>;
   searchGlobal: (query: string) => Promise<{ users: User[]; tickets: any[]; pages: any[] }>;
   getDevices: () => Promise<Device[]>;
+  getSystemLogs: () => Promise<SystemLog[]>;
+  createSystemLog: (log: Omit<SystemLog, 'id' | 'timestamp'>) => Promise<void>;
 }

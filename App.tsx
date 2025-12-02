@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import {
   Outlet,
@@ -20,6 +21,7 @@ import { DatabasePage } from './routes/database/index';
 import { MonitorPage } from './routes/monitor/index';
 import { HelpCenterPage } from './routes/help/index';
 import { SettingsPage } from './routes/settings/index';
+import { LogsPage } from './routes/logs/index';
 import { NotFoundPage, Error500Page } from './routes/errors';
 
 // --- TanStack Query Setup ---
@@ -89,6 +91,12 @@ const settingsRoute = createRoute({
   component: SettingsPage,
 });
 
+const logsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/logs',
+  component: LogsPage,
+});
+
 // 3. Create Route Tree and Router
 const routeTree = rootRoute.addChildren([
   indexRoute, 
@@ -99,7 +107,8 @@ const routeTree = rootRoute.addChildren([
   monitorRoute,
   helpRoute,
   customersRoute,
-  settingsRoute
+  settingsRoute,
+  logsRoute
 ]);
 
 // Initialize memory history to prevent security errors with pushState in sandboxed environments (blobs/iframes)

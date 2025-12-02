@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiService } from '../services/api';
-import { Ticket, User, TicketLog, DashboardStats, TrafficData, Device } from '../types';
+import { Ticket, User, TicketLog, DashboardStats, TrafficData, Device, SystemLog } from '../types';
 
 // --- Query Keys ---
 export const queryKeys = {
@@ -30,6 +30,9 @@ export const queryKeys = {
   devices: {
     all: ['devices'] as const,
   },
+  logs: {
+    all: ['system-logs'] as const,
+  }
 };
 
 // --- Dashboard Hooks ---
@@ -120,5 +123,24 @@ export const useDevices = (enabled: boolean = true) => {
     queryKey: queryKeys.devices.all,
     queryFn: ApiService.getDevices,
     enabled,
+  });
+};
+
+// --- System Log Hooks ---
+export const useSystemLogs = () => {
+  return useQuery({
+    queryKey: queryKeys.logs.all,
+    queryFn: ApiService.getSystemLogs,
+    refetchInterval: 5000, // Poll every 5 seconds for new logs
+  });
+};
+
+export const useLogActivity = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (log: Omit<SystemLog, 'id' | 'timestamp'>) => ApiService.createSystemLog(log),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.logs.all });
+    },
   });
 };

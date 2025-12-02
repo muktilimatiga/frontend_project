@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { 
@@ -64,7 +65,6 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Network Topologies</h1>
             <p className="text-slate-500 dark:text-slate-400">Select a topology map to view or edit using React Flow.</p>
           </div>
           <Button onClick={() => onSelect({ id: 'new', name: 'New Topology', status: 'Draft', nodes: 0, updatedAt: new Date().toISOString() })}>
@@ -370,7 +370,7 @@ const EditorContent = ({ topology, onBack }: { topology: any, onBack: () => void
                <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
-               <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{topology.name}</h1>
+               <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{topology.name}</h2>
                <div className="flex items-center gap-2">
                   <p className="text-xs text-slate-500 dark:text-slate-400">React Flow Engine • {nodes.length} Nodes</p>
                   <Badge variant={mode === 'edit' ? 'warning' : 'secondary'} className="h-4 text-[10px] px-1.5 uppercase tracking-wide">

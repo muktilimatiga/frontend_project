@@ -6,6 +6,9 @@ export const useSupabaseTableData = (tableName: string) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchIndex, setRefetchIndex] = useState(0);
+
+  const refetch = () => setRefetchIndex(prev => prev + 1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +48,7 @@ export const useSupabaseTableData = (tableName: string) => {
     };
 
     fetchData();
-  }, [tableName]);
+  }, [tableName, refetchIndex]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 };

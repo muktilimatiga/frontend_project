@@ -30,11 +30,11 @@ const DeviceCard: React.FC<{ device: Device }> = ({ device }) => {
     'bg-red-500/10 text-red-600 dark:bg-red-900/20 dark:text-red-400';
 
   return (
-    <Card className="hover:shadow-md transition-all dark:bg-card dark:border-slate-700/50 group">
+    <Card className="hover:shadow-md transition-all group">
       <CardContent className="p-5">
         <div className="flex justify-between items-start mb-4">
            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-500 dark:text-slate-400">
+              <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400">
                  <DeviceIcon type={device.type} className="h-5 w-5" />
               </div>
               <div>
