@@ -6,7 +6,7 @@ import { Button, Badge, cn } from '../../components/ui';
 import { Ticket } from '../../types';
 import { Plus, Filter, RefreshCw, User as UserIcon, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useSupabaseTickets } from '../../hooks/useSupabaseTickets';
-import { ProcessActionModal, CloseTicketModal } from '../dashboard/components/Modals';
+import { ProcessActionModal, CloseTicketModal } from '../dashboard/components/modals';
 import { useUpdateTicketStatus } from '../../hooks/useQueries';
 
 const StatusBadge = ({ status }: { status: string }) => {

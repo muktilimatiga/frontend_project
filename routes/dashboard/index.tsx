@@ -15,7 +15,14 @@ import { DashboardStatsGrid } from './components/StatCards';
 import { TrafficChart, DistributionChart } from './components/Charts';
 import { ActiveTickets } from './components/ActiveTickets';
 import { RecentClosedTickets } from './components/RecentClosedTickets';
-import { CreateTicketModal, ConfigModal, ProcessActionModal, TicketDetailModal, CloseTicketModal, ForwardTicketModal } from './components/Modals';
+import { 
+  CreateTicketModal, 
+  ConfigModal, 
+  ProcessActionModal, 
+  TicketDetailModal, 
+  CloseTicketModal, 
+  ForwardTicketModal 
+} from './components/modals';
 
 export const Dashboard = () => {
   const queryClient = useQueryClient();
