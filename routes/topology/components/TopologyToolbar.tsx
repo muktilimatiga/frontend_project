@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { Button } from '../../../components/ui';
 import { 
@@ -37,15 +38,15 @@ export const TopologyToolbar = ({
   hasSelection
 }: TopologyToolbarProps) => {
   return (
-    <div className="flex items-center gap-2 bg-white dark:bg-card p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm flex-wrap">
+    <div className="flex items-center gap-2 bg-white dark:bg-[#121214] p-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm flex-wrap">
        
-       <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-md">
+       <div className="flex bg-slate-100 dark:bg-white/5 p-0.5 rounded-md">
           <button
              onClick={() => onModeChange('view')}
              className={cn(
                 "flex items-center px-3 py-1.5 text-xs font-medium rounded-sm transition-all",
                 mode === 'view' 
-                   ? "bg-white text-slate-900 shadow-sm dark:bg-slate-600 dark:text-white" 
+                   ? "bg-white text-slate-900 shadow-sm dark:bg-white/10 dark:text-white" 
                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
              )}
           >
@@ -56,7 +57,7 @@ export const TopologyToolbar = ({
              className={cn(
                 "flex items-center px-3 py-1.5 text-xs font-medium rounded-sm transition-all",
                 mode === 'edit' 
-                   ? "bg-white text-slate-900 shadow-sm dark:bg-slate-600 dark:text-white" 
+                   ? "bg-white text-slate-900 shadow-sm dark:bg-white/10 dark:text-white" 
                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
              )}
           >
@@ -64,7 +65,7 @@ export const TopologyToolbar = ({
           </button>
        </div>
 
-       <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+       <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
 
        <Button 
           onClick={onImportClick} 
@@ -75,7 +76,7 @@ export const TopologyToolbar = ({
           <Plus className="mr-2 h-3 w-3" /> Add Node
        </Button>
 
-       <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+       <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
 
        {/* Canvas Controls */}
        <div className="flex items-center gap-1">
@@ -92,7 +93,7 @@ export const TopologyToolbar = ({
 
        {hasSelection && mode === 'edit' && (
          <>
-           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+           <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
            <Button 
               size="icon" 
               variant="ghost" 
@@ -105,7 +106,7 @@ export const TopologyToolbar = ({
          </>
        )}
 
-       <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+       <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
        
        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onSave} title="Save Topology">
           <Save className="h-4 w-4" />

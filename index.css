@@ -9,14 +9,20 @@
 }
 
 .dark {
-  --tooltip-bg: #000000; 
-  --border: #27272A; /* Zinc-800 for high contrast borders */
-  --background: #000000; /* Pure Black Background */
+  --tooltip-bg: #18181b; 
+  --border: #27272A; 
+  --background: #09090b; /* Zinc 950 */
 }
 
 body {
   font-family: 'Inter', sans-serif;
   @apply bg-background text-navy transition-colors duration-300;
+}
+
+/* Dark Mode Gradient Body */
+.dark body {
+  background: radial-gradient(circle at 50% 0%, #18181b 0%, #09090b 100%);
+  background-attachment: fixed;
 }
 
 /* Custom scrollbar */
@@ -31,10 +37,10 @@ body {
   @apply bg-slate-300 rounded-full;
 }
 .dark ::-webkit-scrollbar-track {
-  @apply bg-black;
+  @apply bg-transparent;
 }
 .dark ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-800 border border-black;
+  @apply bg-zinc-800 border border-zinc-950;
 }
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-primary;

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { RefreshCw, Server, Shield, Key } from 'lucide-react';
 import { Button, Badge } from '../../../components/ui';
@@ -71,7 +70,7 @@ export const SnmpDeviceTable = () => {
           </Button>
        </div>
 
-       <div className="bg-white dark:bg-card border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+       <div className="bg-white dark:bg-black border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
           <EnhancedTable 
              data={data} 
              columns={columns} 

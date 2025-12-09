@@ -8,6 +8,7 @@ import { Plus, Filter, RefreshCw, User as UserIcon, ArrowRight, CheckCircle2 } f
 import { useSupabaseTickets } from '../../hooks/useSupabaseTickets';
 import { ProcessActionModal, CloseTicketModal } from '../dashboard/components/modals';
 import { useUpdateTicketStatus } from '../../hooks/useQueries';
+import { useAppStore } from '../../store';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles: any = { 
@@ -23,6 +24,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 export const TicketsPage = () => {
   const { data: tickets, loading, refetch } = useSupabaseTickets();
   const updateTicketStatus = useUpdateTicketStatus();
+  const { toggleCreateTicketModal } = useAppStore();
 
   // Modal State
   const [processTicket, setProcessTicket] = useState<Ticket | null>(null);
@@ -124,7 +126,8 @@ export const TicketsPage = () => {
                <Button variant="outline" className="bg-white dark:bg-black">
                   <Filter className="mr-2 h-4 w-4" /> Filter
                </Button>
-               <Button className="bg-slate-900 dark:bg-white dark:text-black">
+               {/* This button is hidden on desktop (md:hidden) because it's in the Navbar now */}
+               <Button onClick={toggleCreateTicketModal} className="bg-slate-900 dark:bg-white dark:text-black md:hidden">
                   <Plus className="mr-2 h-4 w-4" /> New Ticket
                </Button>
             </>

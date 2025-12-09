@@ -14,8 +14,8 @@ export const Card = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEleme
     ref={ref} 
     className={cn(
       "rounded-3xl border border-white bg-white text-navy shadow-card transition-all duration-300", 
-      // Dark Mode: Pure Black with visible border for separation
-      "dark:border-white/10 dark:bg-black dark:text-white dark:shadow-none",
+      // Dark Mode: Deep Zinc gray instead of pure black for depth
+      "dark:border-white/10 dark:bg-[#121214] dark:text-white dark:shadow-none",
       "hover:shadow-soft",
       className
     )} 
@@ -196,7 +196,7 @@ export const ModalOverlay = ({ children, isOpen, onClose, className, hideCloseBu
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy/20 backdrop-blur-sm animate-in fade-in duration-200 p-4 dark:bg-black/60">
       <div className="absolute inset-0" onClick={onClose} />
-      <div className={cn("relative z-50 w-full max-w-lg rounded-3xl bg-white text-navy p-6 shadow-2xl animate-in zoom-in-95 duration-200 dark:bg-black dark:text-white dark:border-white/10 border border-white/50", className)} onClick={e => e.stopPropagation()}>
+      <div className={cn("relative z-50 w-full max-w-lg rounded-3xl bg-white text-navy p-6 shadow-2xl animate-in zoom-in-95 duration-200 dark:bg-[#121214] dark:text-white dark:border-white/10 border border-white/50", className)} onClick={e => e.stopPropagation()}>
         {children}
         {!hideCloseButton && (
           <button 
@@ -215,7 +215,7 @@ export const ModalOverlay = ({ children, isOpen, onClose, className, hideCloseBu
 // --- Command, DropdownMenu, Table (Standard components adapted via theme colors) ---
 
 export const Command = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white text-navy dark:bg-black dark:text-white", className)} {...props} />
+  <div ref={ref} className={cn("flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white text-navy dark:bg-[#121214] dark:text-white", className)} {...props} />
 ));
 Command.displayName = "Command";
 
@@ -334,7 +334,7 @@ export const DropdownMenuContent = ({
   return (
     <div 
       className={cn(
-        "absolute z-50 w-48 rounded-2xl border border-white bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-white/10 dark:bg-black dark:shadow-card", 
+        "absolute z-50 w-48 rounded-2xl border border-white bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100 dark:border-white/10 dark:bg-[#121214] dark:shadow-card", 
         positionClasses, 
         className
       )}

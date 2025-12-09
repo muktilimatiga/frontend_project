@@ -62,10 +62,15 @@ interface AppState {
   // AI Chat State
   isAIChatOpen: boolean;
   toggleAIChat: () => void;
+
+  // Global Modals
+  isCreateTicketModalOpen: boolean;
+  toggleCreateTicketModal: () => void;
+  setCreateTicketModalOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  isSidebarCollapsed: true, // Default to collapsed/narrow view
+  isSidebarCollapsed: true, // Default to collapsed as requested
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
   
@@ -108,4 +113,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   isAIChatOpen: false,
   toggleAIChat: () => set((state) => ({ isAIChatOpen: !state.isAIChatOpen })),
+
+  isCreateTicketModalOpen: false,
+  toggleCreateTicketModal: () => set((state) => ({ isCreateTicketModalOpen: !state.isCreateTicketModalOpen })),
+  setCreateTicketModalOpen: (open) => set({ isCreateTicketModalOpen: open }),
 }));

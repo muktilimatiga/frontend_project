@@ -9,6 +9,7 @@ import { Ticket, TicketLog } from '../../types';
 import { useUpdateTicketStatus, queryKeys } from '../../hooks/useQueries';
 import { useSupabaseStats } from '../../hooks/useSupabaseStats';
 import { toast } from 'sonner';
+import { useAppStore } from '../../store';
 
 // Import refactored components
 import { DashboardStatsGrid } from './components/StatCards';
@@ -16,7 +17,6 @@ import { TrafficChart, DistributionChart } from './components/Charts';
 import { ActiveTickets } from './components/ActiveTickets';
 import { RecentClosedTickets } from './components/RecentClosedTickets';
 import { 
-  CreateTicketModal, 
   ConfigModal, 
   ProcessActionModal, 
   TicketDetailModal, 
@@ -27,10 +27,11 @@ import {
 export const Dashboard = () => {
   const queryClient = useQueryClient();
   const [closedSearch, setClosedSearch] = useState('');
+  const { setCreateTicketModalOpen } = useAppStore();
   
   // Modal States
   const [isFabOpen, setIsFabOpen] = useState(false);
-  const [modalType, setModalType] = useState<'none' | 'create_ticket' | 'config' | 'config_bridge'>('none');
+  const [modalType, setModalType] = useState<'none' | 'config' | 'config_bridge'>('none');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   
   // Action Modals State
@@ -118,7 +119,7 @@ export const Dashboard = () => {
   return (
     <div className="space-y-6 relative min-h-[calc(100vh-100px)] animate-in fade-in duration-500">
       {/* --- Modals --- */}
-      <CreateTicketModal isOpen={modalType === 'create_ticket'} onClose={() => setModalType('none')} />
+      {/* CreateTicketModal is now Global in Layout */}
       <ConfigModal isOpen={modalType === 'config'} onClose={() => setModalType('none')} type="basic" />
       <ConfigModal isOpen={modalType === 'config_bridge'} onClose={() => setModalType('none')} type="bridge" />
       <TicketDetailModal isOpen={!!selectedTicket} ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
@@ -220,7 +221,7 @@ export const Dashboard = () => {
                 <Button 
                    size="icon" 
                    className="h-10 w-10 rounded-full bg-white text-slate-700 shadow-md hover:bg-slate-50 border border-slate-200 dark:bg-black dark:text-white dark:border-white/20"
-                   onClick={() => { setModalType('create_ticket'); setIsFabOpen(false); }}
+                   onClick={() => { setCreateTicketModalOpen(true); setIsFabOpen(false); }}
                 >
                    <FileText className="h-5 w-5" />
                 </Button>

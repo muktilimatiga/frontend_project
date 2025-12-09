@@ -35,7 +35,7 @@ export const DatabaseTables = ({ onSelectTable, onCreateTable }: { onSelectTable
              tables.map((table) => (
                 <Card 
                    key={table.id} 
-                   className="group hover:border-indigo-300 dark:hover:border-indigo-800 transition-all cursor-pointer dark:bg-card dark:border-slate-800 hover:shadow-md"
+                   className="group hover:border-indigo-300 dark:hover:border-indigo-800 transition-all cursor-pointer dark:bg-[#121214] dark:border-slate-800 hover:shadow-md"
                    onClick={() => onSelectTable(table.name)}
                 >
                    <CardContent className="p-6">

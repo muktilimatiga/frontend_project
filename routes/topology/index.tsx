@@ -38,11 +38,13 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
     { 
        header: 'Name', 
        accessorKey: 'name', 
+       sortable: true,
        cell: (row) => <span className="font-semibold text-slate-900 dark:text-white cursor-pointer hover:underline" onClick={() => onSelect(row)}>{row.name}</span> 
     },
     { 
        header: 'Status', 
        accessorKey: 'status', 
+       sortable: true,
        cell: (row) => (
           <Badge variant={row.status === 'Active' ? 'success' : row.status === 'Maintenance' ? 'warning' : 'secondary'}>
              {row.status}
@@ -52,11 +54,13 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
     { 
        header: 'Nodes', 
        accessorKey: 'nodes',
+       sortable: true,
        className: 'text-center'
     },
     { 
        header: 'Last Updated', 
        accessorKey: 'updatedAt', 
+       sortable: true,
        cell: (row) => <span className="text-xs text-slate-500">{new Date(row.updatedAt).toLocaleDateString()}</span> 
     },
   ];
@@ -67,20 +71,26 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
           <div>
             <p className="text-slate-500 dark:text-slate-400">Select a topology map to view or edit using React Flow.</p>
           </div>
-          <Button onClick={() => onSelect({ id: 'new', name: 'New Topology', status: 'Draft', nodes: 0, updatedAt: new Date().toISOString() })}>
+          <Button 
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20"
+            onClick={() => onSelect({ id: 'new', name: 'New Topology', status: 'Draft', nodes: 0, updatedAt: new Date().toISOString() })}
+          >
              <Plus className="h-4 w-4 mr-2" /> New Topology
           </Button>
        </div>
-       <Card className="dark:bg-card dark:border-slate-700/50">
+       
+       <Card className="border-none shadow-xl dark:bg-[#121214] dark:border-white/10">
           <div className="p-6">
              {isLoading ? <div className="text-center py-8 text-slate-500">Loading topologies...</div> : (
-                <EnhancedTable 
-                   data={topologies} 
-                   columns={columns} 
-                   searchKey="name" 
-                   onEdit={(item) => onSelect(item)}
-                   onDelete={() => {}}
-                />
+                <div>
+                    <EnhancedTable 
+                       data={topologies} 
+                       columns={columns} 
+                       searchKey="name" 
+                       onEdit={(item) => onSelect(item)}
+                       onDelete={() => {}}
+                    />
+                </div>
              )}
           </div>
        </Card>
@@ -347,7 +357,7 @@ const EditorContent = ({ topology, onBack }: { topology: any, onBack: () => void
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] gap-4 animate-in fade-in duration-500">
+    <div className="flex flex-col h-[calc(100vh-11rem)] gap-4 animate-in fade-in duration-500">
       <ImportNodeModal 
         isOpen={isImportOpen} 
         onClose={() => setIsImportOpen(false)} 
@@ -421,9 +431,9 @@ const EditorContent = ({ topology, onBack }: { topology: any, onBack: () => void
             className={theme === 'dark' ? 'dark' : ''}
          >
             <Background color={theme === 'dark' ? '#333' : '#ddd'} gap={20} />
-            <Controls className="bg-white dark:bg-card border-slate-200 dark:border-white/20 fill-slate-900 dark:fill-white" />
+            <Controls className="bg-white dark:bg-[#121214] border-slate-200 dark:border-white/20 fill-slate-900 dark:fill-white" />
             <MiniMap 
-               className="bg-white dark:bg-card border-slate-200 dark:border-white/20" 
+               className="bg-white dark:bg-[#121214] border-slate-200 dark:border-white/20" 
                maskColor={theme === 'dark' ? 'rgba(0,0,0, 0.7)' : 'rgba(255,255,255, 0.7)'}
             />
             {selectedElement && (

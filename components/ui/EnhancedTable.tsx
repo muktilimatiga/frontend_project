@@ -101,7 +101,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                   <div className="relative max-w-xs w-full">
                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                      <input 
-                        className="pl-9 flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-slate-800 dark:bg-card dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-indigo-500" 
+                        className="pl-9 flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-slate-800 dark:bg-black dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-indigo-500" 
                         placeholder="Search..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -114,7 +114,7 @@ export function EnhancedTable<T extends { id: string | number }>({
       </div>
 
       {/* Table Container - Subtle Border #27272a via slate-800 */}
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-card overflow-hidden shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-black overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-slate-800">

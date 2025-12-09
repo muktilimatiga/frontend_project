@@ -129,7 +129,7 @@ const AccountSettings = () => {
           </div>
        </ModalOverlay>
 
-       <Card className="dark:bg-card dark:border-slate-700/50">
+       <Card className="dark:bg-[#121214] dark:border-slate-700/50">
           <CardHeader>
              <CardTitle>Profile Information</CardTitle>
           </CardHeader>
@@ -222,7 +222,7 @@ const AppearanceSettings = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-       <Card className="dark:bg-card dark:border-slate-700/50">
+       <Card className="dark:bg-[#121214] dark:border-slate-700/50">
           <CardHeader>
              <CardTitle>Theme Preferences</CardTitle>
           </CardHeader>
@@ -321,7 +321,7 @@ const NotificationSettings = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-       <Card className="dark:bg-card dark:border-slate-700/50">
+       <Card className="dark:bg-[#121214] dark:border-slate-700/50">
           <CardHeader>
              <CardTitle>Notification Preferences</CardTitle>
           </CardHeader>
@@ -413,7 +413,7 @@ const SecuritySettings = () => {
 
    return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-         <Card className="dark:bg-card dark:border-slate-700/50">
+         <Card className="dark:bg-[#121214] dark:border-slate-700/50">
             <CardHeader>
                <CardTitle>Password & Authentication</CardTitle>
             </CardHeader>
@@ -468,7 +468,7 @@ const SecuritySettings = () => {
             </CardContent>
          </Card>
 
-         <Card className="dark:bg-card dark:border-slate-700/50">
+         <Card className="dark:bg-[#121214] dark:border-slate-700/50">
             <CardHeader>
                <CardTitle>Active Sessions</CardTitle>
             </CardHeader>

@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppLayout } from './components/Layout';
 
 // Modular Imports
+import { LauncherPage } from './routes/launcher/index';
 import { Dashboard } from './routes/dashboard/index';
 import { TicketsPage } from './routes/tickets/index';
 import { CustomersPage } from './routes/customers/index';
@@ -40,6 +41,12 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  component: LauncherPage,
+});
+
+const overviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/overview',
   component: Dashboard,
 });
 
@@ -99,7 +106,8 @@ const logsRoute = createRoute({
 
 // 3. Create Route Tree and Router
 const routeTree = rootRoute.addChildren([
-  indexRoute, 
+  indexRoute,
+  overviewRoute,
   ticketsRoute,
   topologyRoute,
   mapsRoute,
