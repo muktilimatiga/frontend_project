@@ -20,7 +20,8 @@ import {
   Home,
   ChevronLeft,
   Database,
-  Plus
+  Plus,
+  ScrollText
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -87,27 +88,28 @@ const SidebarIcon = ({
   const content = (
     <div 
       className={cn(
-        "relative flex items-center transition-all duration-200 group",
+        "relative flex items-center transition-all duration-300 ease-out group select-none",
         // Sidebar Collapsed: Centered Square (Dock style)
         isSidebarCollapsed 
-          ? "w-10 h-10 justify-center rounded-xl mx-auto mb-2" 
-          : "px-3 py-2.5 gap-3 rounded-lg mx-2 mb-1",
+          ? "w-11 h-11 justify-center rounded-2xl mx-auto mb-3" 
+          : "px-3 py-2.5 gap-3 rounded-xl mx-2 mb-1",
         
         isActive 
-          ? "bg-primary text-white shadow-md shadow-blue-500/20 font-medium" 
-          : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10"
+          ? "bg-primary text-white shadow-lg shadow-blue-500/30" 
+          : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10"
       )}
     >
       <Icon 
+        strokeWidth={isActive ? 2.5 : 2}
         className={cn(
-          "shrink-0 transition-transform duration-200", 
-          isSidebarCollapsed ? "h-5 w-5" : "h-4.5 w-4.5",
-          isActive && !isSidebarCollapsed ? "" : "group-hover:scale-105"
+          "shrink-0 transition-all duration-300", 
+          isSidebarCollapsed ? "h-[22px] w-[22px]" : "h-5 w-5",
+          !isActive && "group-hover:scale-110 opacity-80 group-hover:opacity-100"
         )} 
       />
       
       {!isSidebarCollapsed && (
-        <span className="text-sm whitespace-nowrap overflow-hidden flex-1">
+        <span className="text-sm font-medium whitespace-nowrap overflow-hidden flex-1 tracking-tight">
           {label}
         </span>
       )}
@@ -181,16 +183,16 @@ export const Sidebar = () => {
     <aside 
       className={cn(
         "fixed left-0 top-0 z-50 h-screen flex flex-col transition-all duration-300 ease-in-out border-r",
-        "bg-white border-slate-200",
-        "dark:bg-[#09090b] dark:border-white/5",
+        "bg-white/80 border-slate-200 backdrop-blur-xl",
+        "dark:bg-[#09090b]/90 dark:border-white/5",
         "w-[70px]" // Fixed width for icon mode
       )}
     >
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto pt-6 pb-4 scrollbar-none flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto pt-6 pb-4 scrollbar-none flex flex-col items-center">
         
         {/* Main Group */}
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full">
            <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Home} label="Launcher" to="/" isActive={isActive('/') && currentPath === '/'} />
            <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Activity} label="Overview" to="/overview" isActive={isActive('/overview')} />
            <SidebarIcon 
@@ -215,13 +217,11 @@ export const Sidebar = () => {
            />
         </div>
 
-        {/* Separator Line (Optional, keeping it clean by just gap) */}
-        
         {/* System Group */}
-        <div className="flex flex-col pt-2 border-t border-slate-100 dark:border-white/5 mx-3">
+        <div className="flex flex-col w-full mt-2 pt-2 border-t border-slate-200 dark:border-white/10 mx-3">
            <div className="mt-2">
              <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Database} label="Database" to="/database" isActive={isActive('/database')} />
-             <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Bell} label="Logs" to="/logs" isActive={isActive('/logs')} />
+             <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={ScrollText} label="Logs" to="/logs" isActive={isActive('/logs')} />
              <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Settings} label="Settings" to="/settings" isActive={isActive('/settings')} />
            </div>
         </div>
@@ -229,18 +229,18 @@ export const Sidebar = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-2 shrink-0 pb-4 flex flex-col gap-1 items-center">
+      <div className="p-2 shrink-0 pb-6 flex flex-col gap-2 items-center">
          <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} />
          
          <Tooltip text="Log out">
             <button 
                 onClick={logout}
                 className={cn(
-                    "relative flex items-center justify-center transition-all duration-200 group rounded-xl w-10 h-10",
-                    "text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 dark:text-slate-400"
+                    "relative flex items-center justify-center transition-all duration-200 group rounded-2xl w-11 h-11",
+                    "text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 dark:text-slate-500"
                 )}
             >
-                <LogOut className="shrink-0 h-5 w-5" />
+                <LogOut className="shrink-0 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={2} />
             </button>
          </Tooltip>
       </div>
@@ -280,7 +280,7 @@ export const Navbar = () => {
     <header 
       className={cn(
         "fixed top-0 right-0 z-40 flex h-16 items-center justify-between px-6 transition-all duration-300 ease-in-out",
-        "bg-white dark:bg-[#09090b] border-b border-slate-200 dark:border-white/5",
+        "bg-white/80 backdrop-blur-md dark:bg-[#09090b]/80 border-b border-slate-200 dark:border-white/5",
         "left-[70px]" // Fixed left position for icon mode sidebar
       )}
     >
@@ -290,78 +290,96 @@ export const Navbar = () => {
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-3 pointer-events-auto">
-        <div className="relative hidden md:block mr-2">
+      <div className="flex items-center gap-4 pointer-events-auto">
+        <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input 
-               className="h-9 w-64 rounded-lg bg-slate-100 dark:bg-white/5 pl-9 pr-4 text-sm outline-none placeholder:text-slate-400 text-slate-900 dark:text-white transition-all focus:w-80 focus:ring-1 focus:ring-primary/20 border-transparent"
+               className="h-9 w-64 rounded-xl bg-slate-100 dark:bg-white/5 pl-9 pr-4 text-sm outline-none placeholder:text-slate-400 text-slate-900 dark:text-white transition-all focus:w-80 focus:ring-2 focus:ring-primary/20 border-transparent"
                placeholder="Global search..."
             />
         </div>
 
-        {isLauncher && (
-            <div className="hidden lg:flex items-center justify-center h-8 px-3 bg-slate-100 dark:bg-white/5 rounded-md border border-slate-200 dark:border-white/5 mr-1">
-               <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{appCount} Apps</span>
-            </div>
-        )}
-
-        {/* Primary Action Button for Tickets Page - Navbar */}
-        {currentPath.includes('/tickets') && (
-            <Button onClick={() => setCreateTicketModalOpen(true)} size="sm" className="hidden md:flex bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-black dark:hover:bg-slate-200 shadow-sm gap-2 mr-2">
-                <Plus className="h-4 w-4" /> New Ticket
-            </Button>
-        )}
-
-        <div className="flex items-center gap-1">
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleAIChat} 
-                className="h-9 w-9 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            >
-            <Sparkles className="h-4.5 w-4.5" />
-            </Button>
-
-            <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleCli} 
-            className={cn(
-                "h-9 w-9 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white",
-                isCliOpen && "text-primary bg-primary/10"
+        <div className="flex items-center gap-2">
+            {isLauncher && (
+                <div className="hidden lg:flex items-center justify-center h-9 px-4 bg-slate-50 dark:bg-white/5 rounded-full border border-slate-200 dark:border-white/10 shadow-sm mr-2">
+                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{appCount} Apps</span>
+                </div>
             )}
-            >
-            <Terminal className="h-4.5 w-4.5" />
-            </Button>
 
-            <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleTheme} 
-            className="h-9 w-9 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            >
-            {theme === 'light' ? (
-                <Sun className="h-4.5 w-4.5" />
-            ) : (
-                <Moon className="h-4.5 w-4.5" />
+            {/* Tickets Action */}
+            {currentPath.includes('/tickets') && (
+                <Button onClick={() => setCreateTicketModalOpen(true)} size="sm" className="hidden md:flex bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-black dark:hover:bg-slate-200 shadow-sm gap-2 mr-2 rounded-xl">
+                    <Plus className="h-4 w-4" /> New Ticket
+                </Button>
             )}
-            </Button>
 
-            <div className="relative">
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-9 w-9 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            >
-                <Bell className="h-4.5 w-4.5" />
-                <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-red-500"></span>
-            </Button>
+            {/* Unified Action Pill */}
+            <div className="flex items-center p-1 bg-white dark:bg-[#121214] border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm gap-0.5">
+                
+                <Tooltip text="AI Assistant">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={toggleAIChat} 
+                        className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 rounded-xl"
+                    >
+                        <Sparkles className="h-4 w-4" />
+                    </Button>
+                </Tooltip>
+
+                <div className="w-px h-4 bg-slate-100 dark:bg-white/5 mx-0.5" />
+
+                <Tooltip text="Terminal">
+                    <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={toggleCli} 
+                    className={cn(
+                        "h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl",
+                        isCliOpen && "text-indigo-600 bg-indigo-50 dark:bg-white/10 dark:text-white"
+                    )}
+                    >
+                    <Terminal className="h-4 w-4" />
+                    </Button>
+                </Tooltip>
+
+                <div className="w-px h-4 bg-slate-100 dark:bg-white/5 mx-0.5" />
+
+                <Tooltip text="Toggle Theme">
+                    <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={toggleTheme} 
+                    className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:text-slate-400 dark:hover:text-amber-400 dark:hover:bg-white/10 rounded-xl"
+                    >
+                    {theme === 'light' ? (
+                        <Sun className="h-4 w-4" />
+                    ) : (
+                        <Moon className="h-4 w-4" />
+                    )}
+                    </Button>
+                </Tooltip>
+
+                <div className="w-px h-4 bg-slate-100 dark:bg-white/5 mx-0.5" />
+
+                <Tooltip text="Notifications">
+                    <div className="relative">
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-white/10 rounded-xl"
+                        >
+                            <Bell className="h-4 w-4" />
+                            <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-black"></span>
+                        </Button>
+                    </div>
+                </Tooltip>
             </div>
         </div>
         
-        <div className="w-px h-5 bg-slate-200 dark:bg-white/10 mx-1" />
-
-        <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0) || 'U'} className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity" />
+        <div className="pl-1">
+            <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0) || 'U'} className="h-9 w-9 cursor-pointer hover:ring-4 hover:ring-slate-100 dark:hover:ring-white/5 transition-all rounded-full border border-slate-200 dark:border-white/10" />
+        </div>
       </div>
     </header>
   );
