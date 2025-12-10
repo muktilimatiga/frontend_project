@@ -94,8 +94,11 @@ export const DatabaseTables = ({ onSelectTable, onCreateTable }: { onSelectTable
                          </div>
                          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div 
-                              className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                              style={{ width: '25%' }} 
+                              className={cn(
+                                "h-full rounded-full transition-all duration-500",
+                                table.status === 'error' ? "bg-red-500" : "bg-emerald-500"
+                              )}
+                              style={{ width: table.status === 'error' ? '100%' : '25%' }} 
                             />
                          </div>
                       </div>

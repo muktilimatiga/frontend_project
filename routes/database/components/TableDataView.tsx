@@ -337,7 +337,7 @@ export const TableDataView = ({ tableName, onBack }: TableDataViewProps) => {
             <EnhancedTable 
                data={data} 
                columns={columns} 
-               searchKey="id"
+               searchKey="*" // Enable wildcard search across all columns
                onEdit={handleEditClick}
                onDelete={handleDeleteRow}
             />

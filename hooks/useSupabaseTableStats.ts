@@ -19,7 +19,7 @@ export const useSupabaseTableStats = () => {
     const fetchStats = async () => {
       setLoading(true);
       
-      // Defined tables based on the provided schema
+      // Defined tables based on the provided schema, added customers_view
       const knownTables = ['log_komplain', 'snmp', 'data_fiber', 'snmp_devices', 'users', 'log_metro', 'customers_view'];
       const stats: TableStat[] = [];
 
@@ -54,13 +54,13 @@ export const useSupabaseTableStats = () => {
               id: tableName,
               name: tableName,
               rowCount: count || 0,
-              size: 'Live', // Placeholder since real size requires admin API
+              size: 'Live',
               lastSynced: 'Synced',
               status: 'active'
             });
           } else {
              console.warn(`Skipping table ${tableName}:`, error.message);
-             // Add as error state so user knows it exists but failed
+             // Add as error state so user knows it exists but failed to sync
              stats.push({
                 id: tableName,
                 name: tableName,
@@ -72,6 +72,15 @@ export const useSupabaseTableStats = () => {
           }
         } catch (e) {
           console.error(`Error fetching stats for ${tableName}`, e);
+          // Add as error state
+          stats.push({
+            id: tableName,
+            name: tableName,
+            rowCount: 0,
+            size: 'N/A',
+            lastSynced: 'Error',
+            status: 'error'
+         });
         }
       }
 

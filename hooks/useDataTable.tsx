@@ -1,9 +1,9 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 export interface DataTableProps<T> {
   data: T[];
-  searchKey?: keyof T;
+  searchKey?: keyof T | '*';
   pageSize?: number;
 }
 
@@ -14,10 +14,39 @@ export function useDataTable<T extends { id: string | number }>({ data, searchKe
   const [search, setSearch] = useState('');
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
 
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
   // Filter
   const filteredData = useMemo(() => {
-    if (!search || !searchKey) return data;
-    return data.filter(item => String(item[searchKey]).toLowerCase().includes(search.toLowerCase()));
+    if (!search) return data;
+    const lowerSearch = search.toLowerCase();
+
+    return data.filter(item => {
+      // Wildcard search across all values
+      if (searchKey === '*') {
+        return Object.values(item).some(val => {
+          if (val === null || val === undefined) return false;
+          if (typeof val === 'object') {
+             try {
+                return JSON.stringify(val).toLowerCase().includes(lowerSearch);
+             } catch (e) {
+                return false;
+             }
+          }
+          return String(val).toLowerCase().includes(lowerSearch);
+        });
+      }
+      // Specific column search
+      if (searchKey) {
+        const val = item[searchKey as keyof T];
+        if (val === null || val === undefined) return false;
+        return String(val).toLowerCase().includes(lowerSearch);
+      }
+      return true;
+    });
   }, [data, search, searchKey]);
 
   // Sort
@@ -26,6 +55,12 @@ export function useDataTable<T extends { id: string | number }>({ data, searchKe
     return [...filteredData].sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
+      
+      // Handle nulls/undefined
+      if (aVal === bVal) return 0;
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+
       if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
       return 0;

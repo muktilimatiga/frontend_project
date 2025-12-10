@@ -120,7 +120,7 @@ export function EnhancedTable<T extends { id: string | number }>({
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-white/5">
               <tr>
-                <th className="p-4 w-[50px]">
+                <th className="p-2 w-[50px] text-center">
                    <input 
                       type="checkbox" 
                       className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-indigo-500 cursor-pointer accent-indigo-600"
@@ -132,7 +132,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                   <th 
                      key={i} 
                      className={cn(
-                        "p-4 font-medium align-middle", 
+                        "p-2 font-medium align-middle whitespace-nowrap", 
                         col.sortable !== false && "cursor-pointer hover:text-slate-700 dark:hover:text-slate-200",
                         col.className
                      )}
@@ -144,7 +144,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                      </div>
                   </th>
                 ))}
-                {(onEdit || onDelete) && <th className="p-4 font-medium text-right">Action</th>}
+                {(onEdit || onDelete) && <th className="p-2 font-medium text-right">Action</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -163,7 +163,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                          selectedRows.has(row.id) && "bg-indigo-50/50 dark:bg-indigo-500/10"
                       )}
                    >
-                      <td className="p-4">
+                      <td className="p-2 text-center">
                          <input 
                             type="checkbox" 
                             className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-indigo-500 cursor-pointer accent-indigo-600"
@@ -172,19 +172,19 @@ export function EnhancedTable<T extends { id: string | number }>({
                          />
                       </td>
                       {columns.map((col, i) => (
-                        <td key={i} className={cn("p-4 align-middle text-slate-700 dark:text-slate-300", col.className)}>
+                        <td key={i} className={cn("p-2 align-middle text-slate-700 dark:text-slate-300", col.className)}>
                           {col.cell ? col.cell(row) : String(row[col.accessorKey])}
                         </td>
                       ))}
                       {(onEdit || onDelete) && (
-                        <td className="p-4 text-right">
+                        <td className="p-2 text-right">
                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               {onEdit && (
                                 <button 
                                    onClick={() => onEdit(row)}
                                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors dark:hover:bg-indigo-500/20 dark:hover:text-indigo-400"
                                 >
-                                   <Edit2 className="w-4 h-4" />
+                                   <Edit2 className="w-3.5 h-3.5" />
                                 </button>
                               )}
                               {onDelete && (
@@ -192,13 +192,13 @@ export function EnhancedTable<T extends { id: string | number }>({
                                    onClick={() => onDelete(row)}
                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors dark:hover:bg-red-900/20 dark:hover:text-red-400"
                                 >
-                                   <Trash2 className="w-4 h-4" />
+                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               )}
                               <DropdownMenu>
                                  <DropdownMenuTrigger>
                                     <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors dark:hover:bg-slate-800 dark:hover:text-slate-200">
-                                       <MoreHorizontal className="w-4 h-4" />
+                                       <MoreHorizontal className="w-3.5 h-3.5" />
                                     </button>
                                  </DropdownMenuTrigger>
                                  <DropdownMenuContent align="end">
@@ -222,8 +222,8 @@ export function EnhancedTable<T extends { id: string | number }>({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 border-t border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/5">
-           <div className="text-sm text-slate-500 dark:text-slate-400 hidden md:block">
+        <div className="p-3 border-t border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/5">
+           <div className="text-xs text-slate-500 dark:text-slate-400 hidden md:block">
               Showing <span className="font-medium text-slate-900 dark:text-white">{(page - 1) * 9 + 1}-{Math.min(page * 9, totalCount)}</span> of <span className="font-medium text-slate-900 dark:text-white">{totalCount}</span> entries
            </div>
            <div className="flex items-center gap-2 ml-auto">
@@ -232,7 +232,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                  size="sm" 
                  onClick={() => setPage(p => Math.max(1, p - 1))}
                  disabled={page === 1}
-                 className="h-8 text-xs bg-white dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10"
+                 className="h-7 text-xs bg-white dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10"
               >
                  <ChevronLeft className="w-3 h-3 mr-1" /> Previous
               </Button>
@@ -242,7 +242,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                        key={i + 1}
                        onClick={() => setPage(i + 1)}
                        className={cn(
-                          "w-8 h-8 flex items-center justify-center rounded text-xs font-medium transition-colors",
+                          "w-7 h-7 flex items-center justify-center rounded text-xs font-medium transition-colors",
                           page === i + 1 
                              ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/20" 
                              : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
@@ -258,7 +258,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                  size="sm" 
                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                  disabled={page === totalPages || totalPages === 0}
-                 className="h-8 text-xs bg-white dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10"
+                 className="h-7 text-xs bg-white dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10"
               >
                  Next <ChevronRight className="w-3 h-3 ml-1" />
               </Button>
