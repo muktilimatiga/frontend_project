@@ -35,7 +35,7 @@ export type ColumnDef<T> = {
 interface EnhancedTableProps<T> {
   data: T[];
   columns: ColumnDef<T>[];
-  searchKey?: keyof T;
+  searchKey?: keyof T | '*';
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onBulkDelete?: (ids: (string | number)[]) => void;
@@ -102,7 +102,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                   <div className="relative max-w-xs w-full">
                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                      <input 
-                        className="pl-9 flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-white/10 dark:bg-zinc-900/50 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-indigo-500" 
+                        className="pl-9 flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-white/10 dark:bg-zinc-900/50 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-indigo-500" 
                         placeholder="Search..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -114,16 +114,16 @@ export function EnhancedTable<T extends { id: string | number }>({
          {actionButtons && <div className="flex gap-2">{actionButtons}</div>}
       </div>
 
-      {/* Table Container - Subtle Border #27272a via slate-800 */}
-      <div className="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-card overflow-hidden shadow-sm">
+      {/* Table Container - Compact & Rounded */}
+      <div className="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-card overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-white/5">
               <tr>
-                <th className="p-2 w-[50px] text-center">
+                <th className="px-3 py-2 w-[40px] text-center">
                    <input 
                       type="checkbox" 
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-indigo-500 cursor-pointer accent-indigo-600"
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-indigo-500 cursor-pointer accent-indigo-600 h-3.5 w-3.5"
                       checked={paginatedData.length > 0 && selectedRows.size === paginatedData.length}
                       onChange={toggleSelectAll}
                    />
@@ -132,7 +132,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                   <th 
                      key={i} 
                      className={cn(
-                        "p-2 font-medium align-middle whitespace-nowrap", 
+                        "px-3 py-2 font-medium align-middle whitespace-nowrap text-xs uppercase tracking-wider", 
                         col.sortable !== false && "cursor-pointer hover:text-slate-700 dark:hover:text-slate-200",
                         col.className
                      )}
@@ -144,7 +144,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                      </div>
                   </th>
                 ))}
-                {(onEdit || onDelete) && <th className="p-2 font-medium text-right">Action</th>}
+                {(onEdit || onDelete) && <th className="px-3 py-2 font-medium text-right text-xs uppercase tracking-wider">Action</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -163,26 +163,26 @@ export function EnhancedTable<T extends { id: string | number }>({
                          selectedRows.has(row.id) && "bg-indigo-50/50 dark:bg-indigo-500/10"
                       )}
                    >
-                      <td className="p-2 text-center">
+                      <td className="px-3 py-2 text-center">
                          <input 
                             type="checkbox" 
-                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-indigo-500 cursor-pointer accent-indigo-600"
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-indigo-500 cursor-pointer accent-indigo-600 h-3.5 w-3.5"
                             checked={selectedRows.has(row.id)}
                             onChange={() => toggleSelectRow(row.id)}
                          />
                       </td>
                       {columns.map((col, i) => (
-                        <td key={i} className={cn("p-2 align-middle text-slate-700 dark:text-slate-300", col.className)}>
+                        <td key={i} className={cn("px-3 py-2 align-middle text-slate-700 dark:text-slate-300 text-sm", col.className)}>
                           {col.cell ? col.cell(row) : String(row[col.accessorKey])}
                         </td>
                       ))}
                       {(onEdit || onDelete) && (
-                        <td className="p-2 text-right">
-                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <td className="px-3 py-2 text-right">
+                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               {onEdit && (
                                 <button 
                                    onClick={() => onEdit(row)}
-                                   className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors dark:hover:bg-indigo-500/20 dark:hover:text-indigo-400"
+                                   className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors dark:hover:bg-indigo-500/20 dark:hover:text-indigo-400"
                                 >
                                    <Edit2 className="w-3.5 h-3.5" />
                                 </button>
@@ -190,14 +190,14 @@ export function EnhancedTable<T extends { id: string | number }>({
                               {onDelete && (
                                 <button 
                                    onClick={() => onDelete(row)}
-                                   className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                                   className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors dark:hover:bg-red-900/20 dark:hover:text-red-400"
                                 >
                                    <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               )}
                               <DropdownMenu>
                                  <DropdownMenuTrigger>
-                                    <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors dark:hover:bg-slate-800 dark:hover:text-slate-200">
+                                    <button className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors dark:hover:bg-slate-800 dark:hover:text-slate-200">
                                        <MoreHorizontal className="w-3.5 h-3.5" />
                                     </button>
                                  </DropdownMenuTrigger>
@@ -222,7 +222,7 @@ export function EnhancedTable<T extends { id: string | number }>({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-3 border-t border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/5">
+        <div className="px-3 py-2 border-t border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/5">
            <div className="text-xs text-slate-500 dark:text-slate-400 hidden md:block">
               Showing <span className="font-medium text-slate-900 dark:text-white">{(page - 1) * 9 + 1}-{Math.min(page * 9, totalCount)}</span> of <span className="font-medium text-slate-900 dark:text-white">{totalCount}</span> entries
            </div>

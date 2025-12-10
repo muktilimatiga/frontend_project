@@ -47,56 +47,75 @@ export const GlobalSearch = () => {
             ];
             const pages = staticPages.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
-            // 2. Tickets Search (log_komplain)
-            const { data: ticketData } = await supabase
-                .from('log_komplain')
-                .select('id, tiket, kendala, status')
-                .or(`kendala.ilike.%${searchQuery}%,nama.ilike.%${searchQuery}%,tiket.ilike.%${searchQuery}%`)
-                .limit(5);
-
-            const tickets: SearchResultItem[] = (ticketData || []).map((t: any) => ({
-                id: t.tiket || t.id.toString(),
-                title: t.kendala || 'No Subject',
-                subtitle: t.tiket ? `Ticket #${t.tiket}` : `ID: ${t.id}`,
-                type: 'ticket',
-                meta: { status: t.status }
-            }));
-
-            // 3. Customers Search (data_fiber)
-            const { data: customerData } = await supabase
-                .from('data_fiber')
-                .select('user_pppoe, name, alamat')
-                .or(`name.ilike.%${searchQuery}%,user_pppoe.ilike.%${searchQuery}%,alamat.ilike.%${searchQuery}%`)
-                .limit(5);
-
-            const customers: SearchResultItem[] = (customerData || []).map((c: any) => ({
-                id: c.user_pppoe || Math.random().toString(),
-                title: c.name || 'Unknown',
-                subtitle: c.user_pppoe || c.alamat,
-                type: 'customer'
-            }));
-
-            // 4. System Users Search (users)
-            // Note: Handle case where 'users' table might not exist or return error gracefully
+            // Check if Supabase is configured
+            const isMock = !supabase || (supabase['supabaseUrl'] && supabase['supabaseUrl'].includes('placeholder'));
+            let tickets: SearchResultItem[] = [];
+            let customers: SearchResultItem[] = [];
             let users: SearchResultItem[] = [];
-            const { data: userData, error: userError } = await supabase
-                .from('users')
-                .select('id, username, full_name, role')
-                .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
-                .limit(3);
-            
-            if (!userError && userData) {
-                users = userData.map((u: any) => ({
-                    id: u.id.toString(),
-                    title: u.full_name || u.username,
-                    subtitle: u.role,
-                    type: 'user'
+
+            if (isMock) {
+                // Mock Data
+                await new Promise(resolve => setTimeout(resolve, 400));
+                tickets = ([
+                    { id: 'T-1024', title: 'Login page crashing', subtitle: 'Ticket #T-1024', type: 'ticket', meta: { status: 'open' } },
+                    { id: 'T-1023', title: 'Update subscription', subtitle: 'Ticket #T-1023', type: 'ticket', meta: { status: 'open' } }
+                ] as SearchResultItem[]).filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
+                
+                customers = ([
+                    { id: 'c1', title: 'VELLA NIDHA', subtitle: '101037013403', type: 'customer' },
+                    { id: 'c2', title: 'JOHN DOE', subtitle: '101037013404', type: 'customer' }
+                ] as SearchResultItem[]).filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()));
+            } else {
+                // 2. Tickets Search (log_komplain)
+                const { data: ticketData } = await supabase
+                    .from('log_komplain')
+                    .select('id, tiket, kendala, status')
+                    .or(`kendala.ilike.%${searchQuery}%,nama.ilike.%${searchQuery}%,tiket.ilike.%${searchQuery}%`)
+                    .limit(5);
+
+                tickets = (ticketData || []).map((t: any): SearchResultItem => ({
+                    id: t.tiket || t.id.toString(),
+                    title: t.kendala || 'No Subject',
+                    subtitle: t.tiket ? `Ticket #${t.tiket}` : `ID: ${t.id}`,
+                    type: 'ticket',
+                    meta: { status: t.status }
                 }));
+
+                // 3. Customers Search (data_fiber)
+                const { data: customerData } = await supabase
+                    .from('data_fiber')
+                    .select('user_pppoe, name, alamat')
+                    .or(`name.ilike.%${searchQuery}%,user_pppoe.ilike.%${searchQuery}%,alamat.ilike.%${searchQuery}%`)
+                    .limit(5);
+
+                customers = (customerData || []).map((c: any): SearchResultItem => ({
+                    id: c.user_pppoe || Math.random().toString(),
+                    title: c.name || 'Unknown',
+                    subtitle: c.user_pppoe || c.alamat,
+                    type: 'customer'
+                }));
+
+                // 4. System Users Search
+                const { data: userData, error: userError } = await supabase
+                    .from('users')
+                    .select('id, username, full_name, role')
+                    .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
+                    .limit(3);
+                
+                if (!userError && userData) {
+                    users = userData.map((u: any): SearchResultItem => ({
+                        id: u.id.toString(),
+                        title: u.full_name || u.username,
+                        subtitle: u.role,
+                        type: 'user'
+                    }));
+                }
             }
 
             setSearchResults({ pages, tickets, customers, users });
         } catch (error) {
             console.error("Global search failed:", error);
+            setSearchResults({ pages: [], tickets: [], customers: [], users: [] });
         } finally {
             setLoading(false);
         }
@@ -115,7 +134,6 @@ export const GlobalSearch = () => {
     if (item.type === 'page' && item.to) {
       navigate({ to: item.to });
     } else if (item.type === 'ticket') {
-      // In a real app, navigate to ticket detail
       console.log(`Opening ticket ${item.id}`);
       navigate({ to: '/tickets' }); // Redirect to tickets page for now
     } else if (item.type === 'customer') {
