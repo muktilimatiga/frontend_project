@@ -29,8 +29,9 @@ export const APPS_CONFIG: AppItem[] = [
     title: 'Add New',
     subtitle: 'Install app',
     icon: Plus,
-    color: 'bg-transparent border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20',
-    iconColor: 'text-slate-400',
+    // Changed from bg-transparent to a subtle surface color for better visibility
+    color: 'bg-surface border-2 border-dashed border-border hover:border-primary/50 hover:bg-surface-elevated',
+    iconColor: 'text-foreground-muted group-hover:text-primary',
     isAction: true
   },
   {
@@ -39,8 +40,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Traffic & Stats',
     icon: Activity,
     to: '/overview',
-    color: 'bg-blue-50 dark:bg-blue-900/20',
-    iconColor: 'text-blue-600 dark:text-blue-400'
+    color: 'bg-primary/10',
+    iconColor: 'text-primary'
   },
   {
     id: 'broadband',
@@ -48,8 +49,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Network status',
     icon: Wifi,
     to: '/monitor',
-    color: 'bg-amber-50 dark:bg-amber-900/20',
-    iconColor: 'text-amber-600 dark:text-amber-400'
+    color: 'bg-warning/10',
+    iconColor: 'text-warning'
   },
   {
     id: 'database',
@@ -57,8 +58,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Data management',
     icon: Database,
     to: '/database',
-    color: 'bg-orange-50 dark:bg-orange-900/20',
-    iconColor: 'text-orange-600 dark:text-orange-400'
+    color: 'bg-danger/10',
+    iconColor: 'text-danger'
   },
   {
     id: 'logs',
@@ -66,8 +67,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'System logs',
     icon: ScrollText,
     to: '/logs',
-    color: 'bg-emerald-50 dark:bg-emerald-900/20',
-    iconColor: 'text-emerald-600 dark:text-emerald-400'
+    color: 'bg-success/10',
+    iconColor: 'text-success'
   },
   {
     id: 'template',
@@ -75,8 +76,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Layouts',
     icon: LayoutTemplate,
     to: '/topology',
-    color: 'bg-indigo-50 dark:bg-indigo-900/20',
-    iconColor: 'text-indigo-600 dark:text-indigo-400'
+    color: 'bg-secondary',
+    iconColor: 'text-foreground'
   },
   {
     id: 'tickets',
@@ -84,16 +85,16 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Ticket management',
     icon: Ticket,
     to: '/tickets',
-    color: 'bg-pink-50 dark:bg-pink-900/20',
-    iconColor: 'text-pink-600 dark:text-pink-400'
+    color: 'bg-primary/20',
+    iconColor: 'text-primary'
   },
   {
     id: 'empty',
     title: 'Empty Slot',
     subtitle: 'Available space',
     icon: Loader2,
-    color: 'bg-transparent border-2 border-dashed border-slate-200 dark:border-white/10 opacity-50',
-    iconColor: 'text-slate-300',
+    color: 'bg-transparent border-2 border-dashed border-border opacity-50',
+    iconColor: 'text-foreground-muted',
     isEmpty: true
   }
 ];

@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -12,7 +13,7 @@ const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 dark:bg-navy-dark/95 backdrop-blur-md border border-slate-200 dark:border-white/10 p-3 rounded-2xl shadow-xl ring-1 ring-slate-900/5 dark:ring-white/10 text-xs">
+      <div className="bg-white/95 dark:bg-[#09090b] backdrop-blur-md dark:backdrop-blur-none border border-slate-200 dark:border-white/10 p-3 rounded-2xl shadow-xl ring-1 ring-slate-900/5 dark:ring-white/10 text-xs">
         <p className="font-bold text-slate-500 dark:text-zinc-400 mb-1">{label}</p>
         <div className="flex items-center gap-2">
            <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>

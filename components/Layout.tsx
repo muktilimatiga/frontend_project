@@ -66,22 +66,22 @@ const SidebarIcon = ({
   
   // Determine Badge Colors based on variant and active state
   const getBadgeStyles = () => {
-    if (isActive) return "bg-white text-primary shadow-sm";
+    if (isActive) return "bg-primary-foreground text-primary shadow-sm";
     
     switch(badgeVariant) {
-      case 'warning': return "bg-amber-500 text-white";
-      case 'success': return "bg-emerald-500 text-white";
+      case 'warning': return "bg-warning text-white";
+      case 'success': return "bg-success text-white";
       case 'info': return "bg-blue-500 text-white";
-      case 'destructive': default: return "bg-red-500 text-white";
+      case 'destructive': default: return "bg-danger text-white";
     }
   };
 
   const getDotStyles = () => {
     switch(badgeVariant) {
-        case 'warning': return "bg-amber-500 ring-amber-400/20";
-        case 'success': return "bg-emerald-500 ring-emerald-400/20";
+        case 'warning': return "bg-warning ring-warning/20";
+        case 'success': return "bg-success ring-success/20";
         case 'info': return "bg-blue-500 ring-blue-400/20";
-        case 'destructive': default: return "bg-red-500 ring-red-400/20";
+        case 'destructive': default: return "bg-danger ring-danger/20";
     }
   };
 
@@ -91,12 +91,12 @@ const SidebarIcon = ({
         "relative flex items-center transition-all duration-300 ease-out group select-none",
         // Sidebar Collapsed: Centered Square (Dock style)
         isSidebarCollapsed 
-          ? "w-11 h-11 justify-center rounded-2xl mx-auto mb-3" 
-          : "px-3 py-2.5 gap-3 rounded-xl mx-2 mb-1",
+          ? "w-11 h-11 justify-center rounded-lg mx-auto mb-3" 
+          : "px-3 py-2.5 gap-3 rounded-lg mx-2 mb-1",
         
         isActive 
-          ? "bg-primary text-white shadow-lg shadow-blue-500/30" 
-          : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10"
+          ? "bg-sidebar-active text-white shadow-lg shadow-primary/30" 
+          : "text-sidebar-foreground hover:text-white hover:bg-white/5"
       )}
     >
       <Icon 
@@ -104,7 +104,7 @@ const SidebarIcon = ({
         className={cn(
           "shrink-0 transition-all duration-300", 
           isSidebarCollapsed ? "h-[22px] w-[22px]" : "h-5 w-5",
-          !isActive && "group-hover:scale-110 opacity-80 group-hover:opacity-100"
+          !isActive && "group-hover:scale-110 opacity-70 group-hover:opacity-100"
         )} 
       />
       
@@ -125,7 +125,7 @@ const SidebarIcon = ({
 
       {isSidebarCollapsed && badgeCount !== undefined && badgeCount > 0 && (
           <span className={cn(
-              "absolute -top-1 -right-1 h-3 w-3 rounded-full ring-2 ring-white dark:ring-[#09090b]",
+              "absolute -top-1 -right-1 h-3 w-3 rounded-full ring-2 ring-sidebar",
               getDotStyles()
           )} />
       )}
@@ -183,8 +183,7 @@ export const Sidebar = () => {
     <aside 
       className={cn(
         "fixed left-0 top-0 z-50 h-screen flex flex-col transition-all duration-300 ease-in-out border-r",
-        "bg-white/80 border-slate-200 backdrop-blur-xl",
-        "dark:bg-[#09090b]/90 dark:border-white/5",
+        "bg-sidebar border-sidebar-border backdrop-blur-xl",
         "w-[70px]" // Fixed width for icon mode
       )}
     >
@@ -218,11 +217,11 @@ export const Sidebar = () => {
         </div>
 
         {/* System Group */}
-        <div className="flex flex-col w-full mt-2 pt-2 border-t border-slate-200 dark:border-white/10 mx-3">
+        <div className="flex flex-col w-full mt-2 pt-2 border-t border-sidebar-border mx-3">
            <div className="mt-2">
              <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Database} label="Database" to="/database" isActive={isActive('/database')} />
              <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={ScrollText} label="Logs" to="/logs" isActive={isActive('/logs')} />
-             <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Settings} label="Settings" to="/settings" isActive={isActive('/settings')} />
+             <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} />
            </div>
         </div>
 
@@ -230,14 +229,14 @@ export const Sidebar = () => {
 
       {/* Footer */}
       <div className="p-2 shrink-0 pb-6 flex flex-col gap-2 items-center">
-         <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} />
+         <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Settings} label="Settings" to="/settings" isActive={isActive('/settings')} />
          
          <Tooltip text="Log out">
             <button 
                 onClick={logout}
                 className={cn(
-                    "relative flex items-center justify-center transition-all duration-200 group rounded-2xl w-11 h-11",
-                    "text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 dark:text-slate-500"
+                    "relative flex items-center justify-center transition-all duration-200 group rounded-lg w-11 h-11",
+                    "text-sidebar-foreground hover:text-danger hover:bg-danger/10"
                 )}
             >
                 <LogOut className="shrink-0 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={2} />
@@ -280,54 +279,54 @@ export const Navbar = () => {
     <header 
       className={cn(
         "fixed top-0 right-0 z-40 flex h-16 items-center justify-between px-6 transition-all duration-300 ease-in-out",
-        "bg-white/80 backdrop-blur-md dark:bg-[#09090b]/80 border-b border-slate-200 dark:border-white/5",
+        "bg-surface-elevated/80 backdrop-blur-md border-b border-border",
         "left-[70px]" // Fixed left position for icon mode sidebar
       )}
     >
       {/* Left: Title */}
       <div className="flex flex-col justify-center">
-         <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{pageTitle()}</h1>
+         <h1 className="text-lg font-bold text-foreground tracking-tight">{pageTitle()}</h1>
       </div>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-4 pointer-events-auto">
         <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-muted" />
             <input 
-               className="h-9 w-64 rounded-xl bg-slate-100 dark:bg-white/5 pl-9 pr-4 text-sm outline-none placeholder:text-slate-400 text-slate-900 dark:text-white transition-all focus:w-80 focus:ring-2 focus:ring-primary/20 border-transparent"
+               className="h-9 w-64 rounded-lg bg-surface pl-9 pr-4 text-sm outline-none placeholder:text-foreground-muted text-foreground transition-all focus:w-80 focus:ring-1 focus:ring-primary border border-transparent"
                placeholder="Global search..."
             />
         </div>
 
         <div className="flex items-center gap-2">
             {isLauncher && (
-                <div className="hidden lg:flex items-center justify-center h-9 px-4 bg-slate-50 dark:bg-white/5 rounded-full border border-slate-200 dark:border-white/10 shadow-sm mr-2">
-                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{appCount} Apps</span>
+                <div className="hidden lg:flex items-center justify-center h-9 px-4 bg-surface rounded-full border border-border shadow-sm mr-2">
+                   <span className="text-xs font-bold text-foreground-secondary">{appCount} Apps</span>
                 </div>
             )}
 
             {/* Tickets Action */}
             {currentPath.includes('/tickets') && (
-                <Button onClick={() => setCreateTicketModalOpen(true)} size="sm" className="hidden md:flex bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-black dark:hover:bg-slate-200 shadow-sm gap-2 mr-2 rounded-xl">
+                <Button onClick={() => setCreateTicketModalOpen(true)} size="sm" className="hidden md:flex bg-foreground text-background hover:bg-foreground/90 shadow-sm gap-2 mr-2 rounded-lg">
                     <Plus className="h-4 w-4" /> New Ticket
                 </Button>
             )}
 
             {/* Unified Action Pill */}
-            <div className="flex items-center p-1 bg-white dark:bg-[#121214] border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm gap-0.5">
+            <div className="flex items-center p-1 bg-surface border border-border rounded-lg shadow-sm gap-0.5">
                 
                 <Tooltip text="AI Assistant">
                     <Button 
                         variant="ghost" 
                         size="icon" 
                         onClick={toggleAIChat} 
-                        className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 rounded-xl"
+                        className="h-8 w-8 text-foreground-muted hover:text-primary hover:bg-primary/10 rounded-md"
                     >
                         <Sparkles className="h-4 w-4" />
                     </Button>
                 </Tooltip>
 
-                <div className="w-px h-4 bg-slate-100 dark:bg-white/5 mx-0.5" />
+                <div className="w-px h-4 bg-border mx-0.5" />
 
                 <Tooltip text="Terminal">
                     <Button 
@@ -335,22 +334,22 @@ export const Navbar = () => {
                     size="icon" 
                     onClick={toggleCli} 
                     className={cn(
-                        "h-8 w-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl",
-                        isCliOpen && "text-indigo-600 bg-indigo-50 dark:bg-white/10 dark:text-white"
+                        "h-8 w-8 text-foreground-muted hover:text-foreground rounded-md",
+                        isCliOpen && "text-primary bg-primary/10"
                     )}
                     >
                     <Terminal className="h-4 w-4" />
                     </Button>
                 </Tooltip>
 
-                <div className="w-px h-4 bg-slate-100 dark:bg-white/5 mx-0.5" />
+                <div className="w-px h-4 bg-border mx-0.5" />
 
                 <Tooltip text="Toggle Theme">
                     <Button 
                     variant="ghost" 
                     size="icon" 
                     onClick={toggleTheme} 
-                    className="h-8 w-8 text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:text-slate-400 dark:hover:text-amber-400 dark:hover:bg-white/10 rounded-xl"
+                    className="h-8 w-8 text-foreground-muted hover:text-warning hover:bg-warning/10 rounded-md"
                     >
                     {theme === 'light' ? (
                         <Sun className="h-4 w-4" />
@@ -360,17 +359,17 @@ export const Navbar = () => {
                     </Button>
                 </Tooltip>
 
-                <div className="w-px h-4 bg-slate-100 dark:bg-white/5 mx-0.5" />
+                <div className="w-px h-4 bg-border mx-0.5" />
 
                 <Tooltip text="Notifications">
                     <div className="relative">
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-white/10 rounded-xl"
+                            className="h-8 w-8 text-foreground-muted hover:text-danger hover:bg-danger/10 rounded-md"
                         >
                             <Bell className="h-4 w-4" />
-                            <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-black"></span>
+                            <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-danger ring-2 ring-surface"></span>
                         </Button>
                     </div>
                 </Tooltip>
@@ -378,7 +377,7 @@ export const Navbar = () => {
         </div>
         
         <div className="pl-1">
-            <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0) || 'U'} className="h-9 w-9 cursor-pointer hover:ring-4 hover:ring-slate-100 dark:hover:ring-white/5 transition-all rounded-full border border-slate-200 dark:border-white/10" />
+            <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0) || 'U'} className="h-9 w-9 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all rounded-full border border-border" />
         </div>
       </div>
     </header>
@@ -396,7 +395,7 @@ export const AppLayout = () => {
   }, [theme]);
 
   return (
-    <div className="min-h-screen bg-background text-navy dark:text-white font-sans selection:bg-primary/20">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       <Sidebar />
       <Navbar />
       <main 

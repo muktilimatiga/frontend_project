@@ -1,42 +1,25 @@
 
 import * as React from 'react';
-import { useState, useMemo, useEffect, Fragment } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { 
   Search, 
   Plus, 
-  Minus,
-  MessageSquare, 
-  Wifi, 
-  Copy, 
-  Check, 
-  Settings as SettingsIcon, 
-  Edit2, 
-  Tag,
-  ChevronRight,
-  FolderOpen,
-  FileText,
-  CornerDownRight,
+  FolderOpen, 
+  FileText, 
   Trash2,
-  Bold,
-  Italic,
-  List,
-  Link as LinkIcon,
-  Code,
-  AlertTriangle
+  Edit2,
+  ChevronRight,
+  ChevronDown,
+  Tag,
+  MessageSquare
 } from 'lucide-react';
 import { 
   Input, 
   Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
   Badge, 
   ModalOverlay, 
   Label, 
   Select, 
-  Textarea, 
-  Switch,
   cn 
 } from '../../components/ui';
 
@@ -82,15 +65,6 @@ const INITIAL_TEMPLATES: Template[] = [
     tags: ['billing', 'invoice'],
     usageCount: 85 
   },
-  { 
-    id: '4', 
-    title: 'Refund Processed', 
-    category: 'Customer Service',
-    subcategory: 'Billing',
-    content: "I've processed a refund of ${amount} to your payment method. It should appear within 3-5 business days.", 
-    tags: ['billing', 'refund'],
-    usageCount: 22 
-  },
   // Broadband -> Troubleshooting
   { 
     id: '5', 
@@ -110,169 +84,74 @@ const INITIAL_TEMPLATES: Template[] = [
     tags: ['speed', 'diagnosis'],
     usageCount: 310 
   },
-  // Broadband -> Outage
-  { 
-    id: '7', 
-    title: 'Area Outage Notice', 
-    category: 'Broadband Technical',
-    subcategory: 'Outage',
-    content: "We are currently experiencing a service outage in your area due to maintenance. Technicians are on-site. Estimated resolution time is {time}.", 
-    tags: ['outage', 'maintenance'],
-    usageCount: 120 
-  },
 ];
 
 // --- Components ---
 
-const TreeRow = ({ 
-  level = 0, 
-  label, 
-  isOpen, 
-  onClick, 
-  icon: Icon,
-  extra,
-  isLeaf = false
-}: { 
-  level?: number, 
-  label: string, 
-  isOpen: boolean, 
-  onClick: () => void, 
-  icon?: any,
-  extra?: React.ReactNode,
-  isLeaf?: boolean
-}) => {
+const CategoryHeader = ({ label, isOpen, onClick, count }: { label: string, isOpen: boolean, onClick: () => void, count: number }) => (
+  <div 
+    onClick={onClick}
+    className="flex items-center gap-2 py-3 px-4 cursor-pointer text-muted-foreground hover:text-foreground transition-colors select-none group"
+  >
+    <div className={cn("transition-transform duration-200 text-muted-foreground/50 group-hover:text-foreground", isOpen && "rotate-90")}>
+        <ChevronRight className="h-4 w-4" />
+    </div>
+    <span className="font-semibold text-sm tracking-tight">{label}</span>
+    <span className="ml-auto text-[10px] bg-accent text-accent-foreground px-2 py-0.5 rounded-full font-medium">{count}</span>
+  </div>
+);
+
+const SubcategoryHeader = ({ label, isOpen, onClick }: { label: string, isOpen: boolean, onClick: () => void }) => (
+  <div 
+    onClick={onClick}
+    className="flex items-center gap-3 py-2 px-4 pl-10 cursor-pointer text-muted-foreground hover:text-foreground transition-colors select-none group"
+  >
+    <FolderOpen className={cn("h-4 w-4 text-muted-foreground/70 group-hover:text-primary transition-colors", isOpen && "text-primary")} />
+    <span className="text-sm font-medium">{label}</span>
+  </div>
+);
+
+const TemplateRow = ({ template, onEdit, onDelete }: { template: Template, onEdit: () => void, onDelete: () => void }) => {
   return (
-    <div 
-      onClick={onClick}
-      className={cn(
-        "group flex items-center py-3 pr-4 cursor-pointer border-b border-slate-100 dark:border-white/5 transition-colors select-none",
-        "hover:bg-slate-50 dark:hover:bg-white/5",
-        isOpen && !isLeaf ? "bg-slate-50/50 dark:bg-white/5" : ""
-      )}
-      style={{ paddingLeft: `${level * 16 + 12}px` }}
-    >
-      <div className={cn(
-        "mr-3 flex h-5 w-5 items-center justify-center rounded border transition-colors",
-        isOpen 
-          ? "border-slate-400 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-white/10 dark:text-slate-300" 
-          : "border-slate-200 bg-white text-slate-400 dark:border-white/10 dark:bg-black dark:text-slate-500 group-hover:border-indigo-300 dark:group-hover:border-indigo-700"
-      )}>
-        {isOpen ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+    <div className="group relative flex items-center gap-4 py-3 px-4 pl-16 border-l border-transparent hover:bg-accent/50 hover:border-primary/20 transition-all cursor-pointer">
+      {/* Icon */}
+      <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+         <FileText className="h-4 w-4" />
       </div>
-      
-      {Icon && <Icon className="mr-2 h-4 w-4 text-slate-400 group-hover:text-indigo-500 dark:text-slate-500 dark:group-hover:text-indigo-400" />}
-      
-      <span className={cn(
-        "font-medium text-sm transition-colors",
-        isOpen ? "text-indigo-700 dark:text-indigo-400" : "text-slate-700 dark:text-slate-200"
-      )}>
-        {label}
-      </span>
-      
-      {extra && <div className="ml-auto">{extra}</div>}
-    </div>
-  );
-};
 
-const TemplateContent = ({ 
-  template, 
-  onEdit, 
-  onDelete 
-}: { 
-  template: Template, 
-  onEdit: () => void, 
-  onDelete: () => void 
-}) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(template.content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="pl-[52px] pr-4 py-4 bg-slate-50/50 dark:bg-black/20 border-b border-slate-100 dark:border-white/5 animate-in slide-in-from-top-1 duration-200">
-       <div className="relative">
-          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-slate-200 dark:bg-white/10 -ml-4" />
-          <div className="text-sm text-slate-600 dark:text-slate-300 font-mono bg-white dark:bg-[#111] p-4 rounded-md border border-slate-200 dark:border-white/10 whitespace-pre-wrap">
-             {template.content}
-          </div>
-          <div className="flex items-center justify-between mt-3">
-             <div className="flex gap-2">
-                {template.tags.map(tag => (
-                   <Badge key={tag} variant="secondary" className="text-[10px] font-normal text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 border-0">
-                      #{tag}
-                   </Badge>
-                ))}
-             </div>
-             <div className="flex gap-2">
-                 <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-7 text-xs hover:bg-slate-200 dark:hover:bg-white/10" 
-                    onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                 >
-                    <Edit2 className="mr-2 h-3 w-3" /> Edit
-                 </Button>
-                 <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-7 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" 
-                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                 >
-                    <Trash2 className="mr-2 h-3 w-3" /> Delete
-                 </Button>
-                 <Button 
-                    size="sm" 
-                    variant={copied ? 'default' : 'outline'} 
-                    className={cn("h-7 text-xs", copied && "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600")}
-                    onClick={handleCopy}
-                 >
-                    {copied ? <><Check className="mr-2 h-3 w-3" /> Copied</> : <><Copy className="mr-2 h-3 w-3" /> Copy</>}
-                 </Button>
-             </div>
-          </div>
-       </div>
-    </div>
-  );
-};
-
-// --- Rich Text Editor Simulator ---
-const RichTextEditor = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
-  return (
-    <div className="border border-slate-200 dark:border-white/10 rounded-md overflow-hidden bg-white dark:bg-[#09090b] focus-within:ring-1 focus-within:ring-slate-950 dark:focus-within:ring-slate-300">
-      {/* Toolbar */}
-      <div className="flex items-center gap-1 border-b border-slate-100 dark:border-white/10 p-1 bg-slate-50 dark:bg-white/5">
-        <Button variant="ghost" size="icon" className="h-6 w-6" tabIndex={-1}><Bold className="h-3 w-3" /></Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6" tabIndex={-1}><Italic className="h-3 w-3" /></Button>
-        <div className="w-px h-3 bg-slate-200 dark:bg-white/10 mx-1" />
-        <Button variant="ghost" size="icon" className="h-6 w-6" tabIndex={-1}><List className="h-3 w-3" /></Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6" tabIndex={-1}><LinkIcon className="h-3 w-3" /></Button>
-        <div className="w-px h-3 bg-slate-200 dark:bg-white/10 mx-1" />
-        <Button variant="ghost" size="icon" className="h-6 w-6" tabIndex={-1}><Code className="h-3 w-3" /></Button>
-        <div className="ml-auto">
-           <Select className="h-6 text-[10px] py-0 px-2 w-auto border-none bg-transparent shadow-none focus:ring-0">
-              <option>Variable...</option>
-              <option>{'{name}'}</option>
-              <option>{'{agent}'}</option>
-              <option>{'{date}'}</option>
-           </Select>
-        </div>
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+         <div className="flex items-center gap-2">
+            <h4 className="text-sm font-medium text-foreground truncate">{template.title}</h4>
+            {template.usageCount > 500 && (
+               <Badge variant="secondary" className="h-4 px-1 text-[9px] bg-primary/10 text-primary hover:bg-primary/20 border-0">Popular</Badge>
+            )}
+         </div>
+         <p className="text-xs text-muted-foreground truncate max-w-[90%] mt-0.5">{template.content}</p>
       </div>
-      {/* Editor Area */}
-      <textarea
-        className="w-full p-3 min-h-[120px] bg-transparent border-none outline-none text-sm resize-none text-slate-900 dark:text-slate-50 font-mono"
-        placeholder="Type your message here..."
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+
+      {/* Tags */}
+      <div className="hidden md:flex gap-2 items-center">
+         {template.tags.map(tag => (
+            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground font-medium border border-border">
+               {tag}
+            </span>
+         ))}
+      </div>
+
+      {/* Actions (Hover) */}
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 bg-background/80 backdrop-blur-sm p-1 rounded-md shadow-sm">
+         <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+            <Edit2 className="h-3.5 w-3.5" />
+         </Button>
+         <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+            <Trash2 className="h-3.5 w-3.5" />
+         </Button>
+      </div>
     </div>
   );
 };
 
-// --- Template Modal (Create & Edit) ---
 const TemplateModal = ({ 
   isOpen, 
   onClose, 
@@ -292,53 +171,35 @@ const TemplateModal = ({
       tags: []
    });
 
-   useEffect(() => {
+   React.useEffect(() => {
       if (isOpen) {
-         if (initialData) {
-            setFormData(initialData);
-         } else {
-            setFormData({
-               title: '',
-               category: 'Customer Service',
-               subcategory: '',
-               content: '',
-               tags: []
-            });
-         }
+         setFormData(initialData || { title: '', category: 'Customer Service', subcategory: '', content: '', tags: [] });
       }
    }, [isOpen, initialData]);
 
    const handleSubmit = () => {
-      if (!formData.title || !formData.content) return;
       onSave(formData);
       onClose();
    };
 
    return (
       <ModalOverlay isOpen={isOpen} onClose={onClose}>
-         <div className="space-y-4">
-            <div className="flex items-center gap-3 border-b border-slate-100 dark:border-white/10 pb-4">
-               <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                  <MessageSquare className="h-5 w-5" />
-               </div>
-               <div>
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                     {initialData ? 'Edit Template' : 'New Message Template'}
-                  </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                     {initialData ? 'Modify existing response details.' : 'Create a canned response for agents.'}
-                  </p>
-               </div>
+         <div className="space-y-6">
+            <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                    {initialData ? 'Edit Template' : 'New Template'}
+                </h2>
+                <p className="text-sm text-muted-foreground">Create a canned response for your team.</p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
                <div className="space-y-2">
-                  <Label>Template Title</Label>
+                  <Label>Title</Label>
                   <Input 
-                     placeholder="e.g. Modem Reset Steps" 
                      value={formData.title}
                      onChange={e => setFormData({...formData, title: e.target.value})}
-                     autoFocus 
+                     className="bg-secondary/50 border-border"
+                     placeholder="e.g. Greeting"
                   />
                </div>
                
@@ -348,6 +209,7 @@ const TemplateModal = ({
                      <Select 
                         value={formData.category}
                         onChange={e => setFormData({...formData, category: e.target.value})}
+                        className="bg-secondary/50 border-border"
                      >
                         <option value="Customer Service">Customer Service</option>
                         <option value="Broadband Technical">Broadband Technical</option>
@@ -356,148 +218,56 @@ const TemplateModal = ({
                   <div className="space-y-2">
                      <Label>Subcategory</Label>
                      <Input 
-                        placeholder="e.g. Billing" 
                         value={formData.subcategory}
                         onChange={e => setFormData({...formData, subcategory: e.target.value})}
+                        className="bg-secondary/50 border-border"
+                        placeholder="e.g. Billing"
                      />
                   </div>
                </div>
 
                <div className="space-y-2">
-                  <Label>Message Content</Label>
-                  <RichTextEditor 
-                     value={formData.content || ''}
-                     onChange={val => setFormData({...formData, content: val})}
+                  <Label>Response Content</Label>
+                  <textarea 
+                     className="flex w-full rounded-md border border-border bg-secondary/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px] resize-none font-mono"
+                     value={formData.content}
+                     onChange={e => setFormData({...formData, content: e.target.value})}
+                     placeholder="Type your message..."
                   />
-                  <p className="text-[10px] text-slate-500">Supported variables: {'{name}, {agent}, {date}, {time}'}</p>
+                  <div className="text-[10px] text-muted-foreground flex gap-2">
+                     <span>{'{name}'}</span>
+                     <span>{'{agent}'}</span>
+                     <span>{'{date}'}</span>
+                  </div>
                </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-               <Button variant="outline" onClick={onClose}>Cancel</Button>
-               <Button onClick={handleSubmit}>
-                  {initialData ? 'Save Changes' : 'Create Template'}
-               </Button>
+            <div className="flex justify-end gap-3 pt-2">
+               <Button variant="outline" onClick={onClose} className="border-border text-foreground hover:bg-accent hover:text-accent-foreground">Cancel</Button>
+               <Button onClick={handleSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90">Save Template</Button>
             </div>
          </div>
       </ModalOverlay>
    );
 };
 
-// --- Delete Confirmation Modal ---
-const DeleteConfirmationModal = ({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  templateTitle 
-}: { 
-  isOpen: boolean, 
-  onClose: () => void, 
-  onConfirm: () => void,
-  templateTitle: string
-}) => {
-  return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose}>
-       <div className="space-y-4">
-          <div className="flex items-center gap-3 border-b border-slate-100 dark:border-white/10 pb-4">
-             <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
-                <AlertTriangle className="h-5 w-5" />
-             </div>
-             <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Delete Template</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">This action cannot be undone.</p>
-             </div>
-          </div>
-
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Are you sure you want to permanently delete the template <span className="font-semibold text-slate-900 dark:text-white">"{templateTitle}"</span>?
-          </p>
-
-          <div className="flex justify-end gap-2 pt-4">
-             <Button variant="outline" onClick={onClose}>Cancel</Button>
-             <Button variant="destructive" onClick={onConfirm} className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white">
-                Delete Template
-             </Button>
-          </div>
-       </div>
-    </ModalOverlay>
-  );
-};
-
-// --- Main Page ---
-
 export const HelpCenterPage = () => {
    const [templates, setTemplates] = useState<Template[]>(INITIAL_TEMPLATES);
    const [searchQuery, setSearchQuery] = useState('');
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
-   const [deletingTemplate, setDeletingTemplate] = useState<Template | null>(null);
-   
-   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
+   const [expanded, setExpanded] = useState<Record<string, boolean>>({
       'Customer Service': true,
       'Broadband Technical': true,
       'Customer Service-General': true
    });
 
-   const toggleExpand = (key: string) => {
-      setExpandedItems(prev => ({ ...prev, [key]: !prev[key] }));
-   };
+   const toggle = (key: string) => setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
 
-   // CRUD Handlers
-   const handleSave = (data: Partial<Template>) => {
-      if (editingTemplate) {
-         // Edit
-         setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? { ...t, ...data } as Template : t));
-      } else {
-         // Create
-         const newTemplate: Template = {
-            id: Date.now().toString(),
-            title: data.title || 'Untitled',
-            category: data.category || 'General',
-            subcategory: data.subcategory || 'General',
-            content: data.content || '',
-            tags: data.tags || [],
-            usageCount: 0
-         };
-         setTemplates(prev => [...prev, newTemplate]);
-      }
-      setEditingTemplate(null);
-   };
-
-   const initiateDelete = (template: Template) => {
-      setDeletingTemplate(template);
-   };
-
-   const confirmDelete = () => {
-      if (deletingTemplate) {
-         setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
-         setDeletingTemplate(null);
-      }
-   };
-
-   const openCreateModal = () => {
-      setEditingTemplate(null);
-      setIsModalOpen(true);
-   };
-
-   const openEditModal = (template: Template) => {
-      setEditingTemplate(template);
-      setIsModalOpen(true);
-   };
-
-   // Hierarchy Builder
    const hierarchy = useMemo(() => {
       const groups: Record<string, Record<string, Template[]>> = {};
-      
       templates.forEach(t => {
-         const matchesSearch = 
-            searchQuery === '' ||
-            t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            t.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            t.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-
-         if (!matchesSearch) return;
-
+         if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase())) return;
          if (!groups[t.category]) groups[t.category] = {};
          if (!groups[t.category][t.subcategory]) groups[t.category][t.subcategory] = [];
          groups[t.category][t.subcategory].push(t);
@@ -506,131 +276,98 @@ export const HelpCenterPage = () => {
    }, [searchQuery, templates]);
 
    return (
-      <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+      <div className="max-w-5xl mx-auto space-y-8 pb-20 pt-6 animate-in fade-in duration-500">
          <TemplateModal 
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 
             initialData={editingTemplate}
-            onSave={handleSave}
-         />
-
-         <DeleteConfirmationModal 
-            isOpen={!!deletingTemplate}
-            onClose={() => setDeletingTemplate(null)}
-            onConfirm={confirmDelete}
-            templateTitle={deletingTemplate?.title || ''}
+            onSave={(data) => {
+                if (editingTemplate) {
+                    setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? { ...t, ...data } as Template : t));
+                } else {
+                    setTemplates(prev => [...prev, { ...data, id: Date.now().toString(), usageCount: 0 } as Template]);
+                }
+            }}
          />
 
          {/* Header */}
-         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-               <p className="text-slate-500 dark:text-slate-400">Manage support templates and canned responses.</p>
+         <div className="flex items-center justify-between">
+            <div className="space-y-1">
+               <h1 className="text-2xl font-bold tracking-tight text-foreground">Help Center</h1>
+               <p className="text-sm text-muted-foreground">Manage your support templates and canned responses.</p>
             </div>
-            <div className="flex gap-2">
-               <Button onClick={openCreateModal}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Template
-               </Button>
-            </div>
+            <Button onClick={() => { setEditingTemplate(null); setIsModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-full px-6">
+               <Plus className="mr-2 h-4 w-4" /> Add Template
+            </Button>
          </div>
 
-         {/* Search Bar */}
-         <div className="relative max-w-2xl">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+         {/* Search */}
+         <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+               <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            </div>
             <Input 
                 placeholder="Search templates..." 
-                className="pl-9 bg-white dark:bg-black border-slate-200 dark:border-white/20"
+                className="pl-11 h-12 bg-secondary/50 border-transparent focus:bg-secondary focus:border-primary/50 text-base rounded-xl transition-all shadow-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
          </div>
 
-         {/* Tree View Content */}
-         <Card className="dark:bg-black dark:border-white/20 overflow-hidden">
-            <div className="min-h-[400px]">
-               {Object.keys(hierarchy).length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-[400px] text-slate-400">
-                     <Search className="h-8 w-8 mb-2 opacity-50" />
-                     <p>No templates found matching "{searchQuery}"</p>
+         {/* Content Tree */}
+         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+            {Object.keys(hierarchy).length === 0 ? (
+               <div className="py-20 text-center flex flex-col items-center justify-center">
+                  <div className="h-16 w-16 bg-secondary rounded-full flex items-center justify-center mb-4">
+                     <Search className="h-8 w-8 text-muted-foreground" />
                   </div>
-               ) : (
-                  Object.entries(hierarchy).map(([category, subcategories]) => (
+                  <h3 className="text-foreground font-medium">No templates found</h3>
+                  <p className="text-muted-foreground text-sm mt-1">Try adjusting your search query.</p>
+               </div>
+            ) : (
+               <div className="divide-y divide-border">
+                  {Object.entries(hierarchy).map(([category, subcategories]) => (
                      <Fragment key={category}>
-                        {/* Level 1: Category */}
-                        <TreeRow 
-                           level={0}
-                           label={category}
-                           icon={FolderOpen}
-                           isOpen={!!expandedItems[category]}
-                           onClick={() => toggleExpand(category)}
-                           extra={<Badge variant="outline" className="text-[10px] text-slate-500">{Object.values(subcategories).flat().length}</Badge>}
+                        <CategoryHeader 
+                           label={category} 
+                           isOpen={!!expanded[category]} 
+                           onClick={() => toggle(category)}
+                           count={Object.values(subcategories).flat().length}
                         />
                         
-                        {expandedItems[category] && Object.entries(subcategories).map(([subcategory, templates]) => {
-                           const subKey = `${category}-${subcategory}`;
-                           return (
-                              <Fragment key={subKey}>
-                                 {/* Level 2: Subcategory */}
-                                 <TreeRow 
-                                    level={1}
-                                    label={subcategory}
-                                    icon={CornerDownRight}
-                                    isOpen={!!expandedItems[subKey]}
-                                    onClick={() => toggleExpand(subKey)}
-                                 />
-
-                                 {/* Level 3: Templates */}
-                                 {expandedItems[subKey] && templates.map(template => {
-                                    const tmplKey = `tmpl-${template.id}`;
-                                    const isOpen = !!expandedItems[tmplKey];
-                                    return (
-                                       <Fragment key={template.id}>
-                                          <TreeRow 
-                                             level={2}
-                                             label={template.title}
-                                             icon={FileText}
-                                             isOpen={isOpen}
-                                             isLeaf={true}
-                                             onClick={() => toggleExpand(tmplKey)}
-                                             extra={<span className="text-[10px] text-slate-400">{template.usageCount} uses</span>}
-                                          />
-                                          {isOpen && (
-                                             <TemplateContent 
-                                                template={template} 
-                                                onEdit={() => openEditModal(template)} 
-                                                onDelete={() => initiateDelete(template)}
-                                             />
-                                          )}
-                                       </Fragment>
-                                    );
-                                 })}
-                              </Fragment>
-                           );
-                        })}
+                        {expanded[category] && (
+                           <div className="bg-secondary/20 pb-2">
+                              {Object.entries(subcategories).map(([subcategory, items]) => {
+                                 const subKey = `${category}-${subcategory}`;
+                                 return (
+                                    <Fragment key={subKey}>
+                                       <SubcategoryHeader 
+                                          label={subcategory}
+                                          isOpen={!!expanded[subKey]}
+                                          onClick={() => toggle(subKey)}
+                                       />
+                                       
+                                       {expanded[subKey] && (
+                                          <div className="space-y-1 mb-2">
+                                             {items.map(template => (
+                                                <TemplateRow 
+                                                   key={template.id} 
+                                                   template={template} 
+                                                   onEdit={() => { setEditingTemplate(template); setIsModalOpen(true); }}
+                                                   onDelete={() => setTemplates(prev => prev.filter(t => t.id !== template.id))}
+                                                />
+                                             ))}
+                                          </div>
+                                       )}
+                                    </Fragment>
+                                 );
+                              })}
+                           </div>
+                        )}
                      </Fragment>
-                  ))
-               )}
-            </div>
-         </Card>
-
-         {/* Settings Footer */}
-         <div className="pt-8 border-t border-slate-200 dark:border-white/10">
-            <Card className="dark:bg-black dark:border-white/20">
-               <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                     <SettingsIcon className="h-5 w-5 text-slate-500" /> 
-                     <span>Global Configuration</span>
-                  </CardTitle>
-               </CardHeader>
-               <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                     <div className="space-y-0.5">
-                        <Label className="text-base">Auto-Append Signature</Label>
-                        <p className="text-xs text-slate-500">Automatically add agent signature to all templates.</p>
-                     </div>
-                     <Switch checked={true} onCheckedChange={() => {}} />
-                  </div>
-               </CardContent>
-            </Card>
+                  ))}
+               </div>
+            )}
          </div>
       </div>
    );

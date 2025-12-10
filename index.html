@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,64 +19,53 @@
             },
             colors: {
               border: "var(--border)",
+              input: "var(--input)",
+              ring: "var(--ring)",
               background: "var(--background)",
-              
-              // Prime Pay Inspired Palette
-              navy: {
-                DEFAULT: '#343C6A', // Deep Blue-Grey Text (Light Mode)
-                light: '#5F6D96',
-                dark: '#09090b',    // Zinc 950 (Soft Black)
-              },
-              slateBlue: {
-                DEFAULT: '#718EBF', // Cool Grey Text
-                light: '#8BA3C7',
-                dark: '#A1A1AA'     // Zinc-400 for text in Dark Mode
-              },
-              beige: {
-                DEFAULT: '#DFEAF2', // Subtle Border (Light Mode)
-                light: '#EDF3F7',
-                dark: '#27272A'     // Zinc-800 for Borders in Dark Mode
-              },
-              cream: {
-                DEFAULT: '#F5F7FA', // Main Background (Light Mode)
-                dark: '#09090b'     // Zinc 950
-              },
-
-              // Brand Colors
+              foreground: "var(--foreground)",
               primary: {
-                DEFAULT: '#2D60FF', // Vibrant Blue
-                foreground: '#FFFFFF',
-                glow: 'rgba(45, 96, 255, 0.5)'
+                DEFAULT: "var(--primary)",
+                foreground: "var(--primary-foreground)",
               },
-              
-              // System Mapping
-              main: '#F5F7FA',    
-              card: '#FFFFFF',
-              
-              // Remapping Slate to match the theme
-              slate: {
-                50: '#F8F9FD',
-                100: '#F1F3F7',
-                200: '#DFEAF2',
-                300: '#CAD7E2',
-                400: '#B1C1D2',
-                500: '#718EBF',
-                600: '#5A75A0',
-                700: '#343C6A', 
-                800: '#27272A', // Dark borders
-                900: '#18181B', // Almost black
-                950: '#09090b', // Soft black
-              }
+              secondary: {
+                DEFAULT: "var(--secondary)",
+                foreground: "var(--secondary-foreground)",
+              },
+              destructive: {
+                DEFAULT: "var(--destructive)",
+                foreground: "var(--destructive-foreground)",
+              },
+              muted: {
+                DEFAULT: "var(--muted)",
+                foreground: "var(--muted-foreground)",
+              },
+              accent: {
+                DEFAULT: "var(--accent)",
+                foreground: "var(--accent-foreground)",
+              },
+              popover: {
+                DEFAULT: "var(--popover)",
+                foreground: "var(--popover-foreground)",
+              },
+              card: {
+                DEFAULT: "var(--card)",
+                foreground: "var(--card-foreground)",
+              },
+              navy: {
+                DEFAULT: '#343C6A', 
+                light: '#5F6D96',
+                dark: '#09090b',
+              },
             },
             borderRadius: {
               'xl': '1rem',
               '2xl': '1.5rem',
-              '3xl': '2rem', // Highly rounded for Prime Pay look
+              '3xl': '2rem',
             },
             boxShadow: {
               'soft': '0 4px 25px 0px rgba(0, 0, 0, 0.03)',
               'card': '0 2px 10px rgba(0,0,0,0.02)',
-              'glow': '0 0 20px -5px rgba(45, 96, 255, 0.4)',
+              'glow': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
             }
           }
         }
@@ -86,47 +76,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link rel="stylesheet" href="https://esm.sh/@xyflow/react@12.0.0/dist/style.css" />
     <style>
-      :root {
-        --tooltip-bg: #fff;
-        --border: #DFEAF2;
-        --background: #F5F7FA; 
-      }
-      .dark {
-        --tooltip-bg: #18181b; 
-        --border: #27272A; 
-        --background: #09090b; 
-      }
-      body {
-        font-family: 'Inter', sans-serif;
-        background-color: var(--background);
-        color: #343C6A;
-      }
-      .dark body {
-        color: #F5F7FA;
-      }
-      
-      /* Custom scrollbar */
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #B1C1D2;
-        border-radius: 10px;
-      }
-      .dark ::-webkit-scrollbar-track {
-        background: #09090b;
-      }
-      .dark ::-webkit-scrollbar-thumb {
-        background: #27272a;
-        border: 1px solid #09090b;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #718EBF;
-      }
+      /* Ensure variables are loaded */
     </style>
   <script type="importmap">
 {

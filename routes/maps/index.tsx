@@ -39,7 +39,7 @@ const MapPopover = ({ info }: { info: HoverInfo }) => {
 
   return (
     <div 
-      className="fixed z-[2000] pointer-events-none bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm border border-slate-200 dark:border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[220px] animate-in fade-in zoom-in-95 duration-200"
+      className="fixed z-[2000] pointer-events-none bg-white/95 dark:bg-[#09090b] backdrop-blur-sm dark:backdrop-blur-none border border-slate-200 dark:border-white/10 p-4 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[220px] animate-in fade-in zoom-in-95 duration-200"
       style={{ 
         left: info.x, 
         top: info.y, 
@@ -72,7 +72,7 @@ const MapPopover = ({ info }: { info: HoverInfo }) => {
       </div>
       
       {/* Triangle Pointer */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white/95 dark:border-t-zinc-900/95 drop-shadow-sm" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white/95 dark:border-t-[#09090b] drop-shadow-sm" />
     </div>
   );
 };

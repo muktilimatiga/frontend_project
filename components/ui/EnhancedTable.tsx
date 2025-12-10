@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { 
   ChevronLeft, 
@@ -101,7 +102,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                   <div className="relative max-w-xs w-full">
                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                      <input 
-                        className="pl-9 flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-slate-800 dark:bg-black dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-indigo-500" 
+                        className="pl-9 flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-white/10 dark:bg-zinc-900/50 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-indigo-500" 
                         placeholder="Search..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -114,10 +115,10 @@ export function EnhancedTable<T extends { id: string | number }>({
       </div>
 
       {/* Table Container - Subtle Border #27272a via slate-800 */}
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-black overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-card overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 dark:bg-slate-950/50 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-slate-800">
+            <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-white/5">
               <tr>
                 <th className="p-4 w-[50px]">
                    <input 
@@ -146,7 +147,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                 {(onEdit || onDelete) && <th className="p-4 font-medium text-right">Action</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {paginatedData.length === 0 ? (
                  <tr>
                     <td colSpan={columns.length + 2} className="p-8 text-center text-slate-500 dark:text-slate-400">
@@ -158,7 +159,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                    <tr 
                       key={row.id} 
                       className={cn(
-                         "group transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50",
+                         "group transition-all hover:bg-slate-50 dark:hover:bg-white/5",
                          selectedRows.has(row.id) && "bg-indigo-50/50 dark:bg-indigo-500/10"
                       )}
                    >
@@ -221,7 +222,7 @@ export function EnhancedTable<T extends { id: string | number }>({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/30">
+        <div className="p-4 border-t border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-white/5">
            <div className="text-sm text-slate-500 dark:text-slate-400 hidden md:block">
               Showing <span className="font-medium text-slate-900 dark:text-white">{(page - 1) * 9 + 1}-{Math.min(page * 9, totalCount)}</span> of <span className="font-medium text-slate-900 dark:text-white">{totalCount}</span> entries
            </div>
@@ -231,7 +232,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                  size="sm" 
                  onClick={() => setPage(p => Math.max(1, p - 1))}
                  disabled={page === 1}
-                 className="h-8 text-xs bg-white dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800"
+                 className="h-8 text-xs bg-white dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10"
               >
                  <ChevronLeft className="w-3 h-3 mr-1" /> Previous
               </Button>
@@ -244,7 +245,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                           "w-8 h-8 flex items-center justify-center rounded text-xs font-medium transition-colors",
                           page === i + 1 
                              ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/20" 
-                             : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                             : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
                        )}
                     >
                        {i + 1}
@@ -257,7 +258,7 @@ export function EnhancedTable<T extends { id: string | number }>({
                  size="sm" 
                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                  disabled={page === totalPages || totalPages === 0}
-                 className="h-8 text-xs bg-white dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800"
+                 className="h-8 text-xs bg-white dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/10"
               >
                  Next <ChevronRight className="w-3 h-3 ml-1" />
               </Button>

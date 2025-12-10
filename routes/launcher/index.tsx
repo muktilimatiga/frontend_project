@@ -42,55 +42,55 @@ export const LauncherPage = () => {
 
       {/* Add New Item Menu Modal */}
       <ModalOverlay isOpen={isAddMenuOpen} onClose={() => setIsAddMenuOpen(false)} hideCloseButton className="max-w-2xl p-0 overflow-hidden rounded-3xl">
-         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-white dark:bg-black">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Add New Item</h2>
-            <button onClick={() => setIsAddMenuOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+         <div className="flex items-center justify-between p-6 border-b border-border bg-surface-elevated">
+            <h2 className="text-xl font-bold text-foreground">Add New Item</h2>
+            <button onClick={() => setIsAddMenuOpen(false)} className="text-foreground-muted hover:text-foreground transition-colors">
                 <X className="h-6 w-6" />
             </button>
          </div>
-         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/50 dark:bg-white/5">
+         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-background">
             {/* New Config */}
             <button 
                 onClick={() => openModal('config')}
-                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-black border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 transition-all group"
+                className="flex flex-col items-center justify-center p-6 bg-surface border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-primary/50 transition-all group"
             >
-                <div className="h-14 w-14 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <Settings className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Settings className="h-7 w-7 text-primary" />
                 </div>
-                <span className="font-semibold text-slate-900 dark:text-white">New Config</span>
+                <span className="font-semibold text-foreground">New Config</span>
             </button>
 
             {/* New Config Batch (Placeholder) */}
             <button 
-                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-black border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md hover:border-purple-200 dark:hover:border-purple-900/50 transition-all group opacity-50 cursor-not-allowed"
+                className="flex flex-col items-center justify-center p-6 bg-surface border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-secondary transition-all group opacity-50 cursor-not-allowed"
                 title="Coming Soon"
             >
-                <div className="h-14 w-14 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <Layers className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+                <div className="h-14 w-14 rounded-2xl bg-secondary/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Layers className="h-7 w-7 text-secondary-foreground" />
                 </div>
-                <span className="font-semibold text-slate-900 dark:text-white">New Config Batch</span>
+                <span className="font-semibold text-foreground">New Config Batch</span>
             </button>
 
             {/* New Ticket */}
             <button 
                 onClick={() => openModal('create_ticket')}
-                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-black border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all group"
+                className="flex flex-col items-center justify-center p-6 bg-surface border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-success/50 transition-all group"
             >
-                <div className="h-14 w-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <Ticket className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+                <div className="h-14 w-14 rounded-2xl bg-success/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Ticket className="h-7 w-7 text-success" />
                 </div>
-                <span className="font-semibold text-slate-900 dark:text-white">New Ticket</span>
+                <span className="font-semibold text-foreground">New Ticket</span>
             </button>
 
             {/* Config Bridge */}
             <button 
                 onClick={() => openModal('config_bridge')}
-                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-black border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-200 dark:hover:border-orange-900/50 transition-all group"
+                className="flex flex-col items-center justify-center p-6 bg-surface border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-warning/50 transition-all group"
             >
-                <div className="h-14 w-14 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <Network className="h-7 w-7 text-orange-600 dark:text-orange-400" />
+                <div className="h-14 w-14 rounded-2xl bg-warning/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Network className="h-7 w-7 text-warning" />
                 </div>
-                <span className="font-semibold text-slate-900 dark:text-white">Config Bridge</span>
+                <span className="font-semibold text-foreground">Config Bridge</span>
             </button>
          </div>
       </ModalOverlay>
@@ -100,16 +100,18 @@ export const LauncherPage = () => {
           const CardContent = (
             <div className={cn(
               "h-64 flex flex-col items-center justify-center p-6 rounded-[2rem] transition-all duration-300",
+              // Use app.color for Action cards to apply their specific border/bg style
+              // Use bg-surface-elevated for standard app cards to pop against the bg-background
               app.isAction || app.isEmpty 
-                ? "bg-transparent" 
-                : "bg-white dark:bg-black border border-slate-100 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 dark:shadow-none",
-              app.isAction && "cursor-pointer group hover:bg-slate-50 dark:hover:bg-white/5 " + app.color,
-              app.isEmpty && app.color
+                ? app.color
+                : "bg-surface-elevated border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 hover:bg-surface",
+              app.isAction && "cursor-pointer group",
             )}>
               <div className={cn(
                 "w-20 h-20 rounded-3xl flex items-center justify-center mb-5 transition-transform duration-300",
-                app.color,
-                (app.isAction || app.isEmpty) && "border-none bg-transparent",
+                // For normal apps, use their defined color for the Icon container
+                // For Actions/Empty, the color is already on the parent, so keep this transparent or simple
+                !app.isAction && !app.isEmpty ? app.color : "bg-transparent",
                 !app.isAction && !app.isEmpty && "group-hover:scale-110"
               )}>
                 <app.icon className={cn("w-8 h-8", app.iconColor)} />
@@ -117,14 +119,14 @@ export const LauncherPage = () => {
               
               <h3 className={cn(
                 "text-lg font-bold mb-1",
-                app.isEmpty ? "text-slate-300 dark:text-slate-600" : "text-slate-900 dark:text-white"
+                app.isEmpty ? "text-foreground-muted" : "text-foreground"
               )}>
                 {app.title}
               </h3>
               
               <p className={cn(
                 "text-xs font-medium",
-                app.isEmpty ? "text-slate-300 dark:text-slate-600" : "text-slate-400 dark:text-slate-500"
+                app.isEmpty ? "text-foreground-muted" : "text-foreground-secondary"
               )}>
                 {app.subtitle}
               </p>
