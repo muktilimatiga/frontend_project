@@ -6,12 +6,12 @@ import {
   Plus, 
   FolderOpen, 
   FileText, 
-  Trash2,
-  Edit2,
-  ChevronRight,
-  ChevronDown,
-  Tag,
-  MessageSquare
+  Trash2, 
+  Edit2, 
+  ChevronRight, 
+  ChevronDown, 
+  Tag, 
+  MessageSquare 
 } from 'lucide-react';
 import { 
   Input, 
@@ -111,7 +111,13 @@ const SubcategoryHeader = ({ label, isOpen, onClick }: { label: string, isOpen: 
   </div>
 );
 
-const TemplateRow = ({ template, onEdit, onDelete }: { template: Template, onEdit: () => void, onDelete: () => void }) => {
+interface TemplateRowProps {
+  template: Template;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const TemplateRow: React.FC<TemplateRowProps> = ({ template, onEdit, onDelete }) => {
   return (
     <div className="group relative flex items-center gap-4 py-3 px-4 pl-16 border-l border-transparent hover:bg-accent/50 hover:border-primary/20 transition-all cursor-pointer">
       {/* Icon */}

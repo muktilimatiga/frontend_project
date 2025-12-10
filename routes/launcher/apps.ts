@@ -29,9 +29,9 @@ export const APPS_CONFIG: AppItem[] = [
     title: 'Add New',
     subtitle: 'Install app',
     icon: Plus,
-    // Changed from bg-transparent to a subtle surface color for better visibility
-    color: 'bg-surface border-2 border-dashed border-border hover:border-primary/50 hover:bg-surface-elevated',
-    iconColor: 'text-foreground-muted group-hover:text-primary',
+    // Dashed border, solid card background (background or very light grey)
+    color: 'bg-background border-2 border-dashed border-border hover:border-primary hover:bg-secondary/50 transition-all',
+    iconColor: 'text-foreground',
     isAction: true
   },
   {
@@ -40,8 +40,9 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Traffic & Stats',
     icon: Activity,
     to: '/overview',
-    color: 'bg-primary/10',
-    iconColor: 'text-primary'
+    // Solid card
+    color: 'bg-card border border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all',
+    iconColor: 'text-blue-600'
   },
   {
     id: 'broadband',
@@ -49,8 +50,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Network status',
     icon: Wifi,
     to: '/monitor',
-    color: 'bg-warning/10',
-    iconColor: 'text-warning'
+    color: 'bg-card border border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all',
+    iconColor: 'text-zinc-500' 
   },
   {
     id: 'database',
@@ -58,8 +59,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Data management',
     icon: Database,
     to: '/database',
-    color: 'bg-danger/10',
-    iconColor: 'text-danger'
+    color: 'bg-card border border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all',
+    iconColor: 'text-zinc-500' 
   },
   {
     id: 'logs',
@@ -67,8 +68,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'System logs',
     icon: ScrollText,
     to: '/logs',
-    color: 'bg-success/10',
-    iconColor: 'text-success'
+    color: 'bg-card border border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all',
+    iconColor: 'text-zinc-500'
   },
   {
     id: 'template',
@@ -76,8 +77,8 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Layouts',
     icon: LayoutTemplate,
     to: '/topology',
-    color: 'bg-secondary',
-    iconColor: 'text-foreground'
+    color: 'bg-card border border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all',
+    iconColor: 'text-zinc-500'
   },
   {
     id: 'tickets',
@@ -85,16 +86,17 @@ export const APPS_CONFIG: AppItem[] = [
     subtitle: 'Ticket management',
     icon: Ticket,
     to: '/tickets',
-    color: 'bg-primary/20',
-    iconColor: 'text-primary'
+    color: 'bg-card border border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all',
+    iconColor: 'text-blue-600'
   },
   {
     id: 'empty',
     title: 'Empty Slot',
     subtitle: 'Available space',
     icon: Loader2,
-    color: 'bg-transparent border-2 border-dashed border-border opacity-50',
-    iconColor: 'text-foreground-muted',
+    // Faded solid background
+    color: 'bg-secondary/30 border-2 border-dashed border-border opacity-60 hover:opacity-100 transition-opacity',
+    iconColor: 'text-muted-foreground',
     isEmpty: true
   }
 ];

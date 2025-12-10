@@ -2,8 +2,9 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { ModalOverlay, Label, Input, Textarea, Button, Select } from '../../../../components/ui';
+import { ModalOverlay, Label, Input, Textarea, Button, Select, Avatar } from '../../../../components/ui';
 import { Ticket } from '../../../../types';
+import { useAppStore } from '../../../../store';
 
 export const ForwardTicketModal = ({
     ticket,
@@ -16,6 +17,7 @@ export const ForwardTicketModal = ({
     onClose: () => void,
     onConfirm: (id: string, note: string) => void
 }) => {
+    const { user } = useAppStore();
     const mockData = {
         name: 'AMINAH AGUSTINA',
         address: 'DSN DADAPAN RT 02/RW 02 DS BOYOLANGU KEC BOYOLANGU',
@@ -120,9 +122,16 @@ export const ForwardTicketModal = ({
                  </div>
              </div>
 
-             <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 flex justify-end gap-2 sticky bottom-0 z-10">
-                 <Button variant="outline" onClick={onClose}>Cancel</Button>
-                 <Button onClick={() => onConfirm(ticket.id, formData.recommendedAction)} className="bg-indigo-600 hover:bg-indigo-700 text-white">Forward to Tech</Button>
+             <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 flex items-center justify-between sticky bottom-0 z-10">
+                 <div className="flex items-center gap-2">
+                     <span className="text-xs text-slate-500">Operator:</span>
+                     <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0)} className="h-6 w-6" />
+                     <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 max-w-[120px] truncate">{user?.name}</span>
+                 </div>
+                 <div className="flex gap-2">
+                     <Button variant="outline" onClick={onClose}>Cancel</Button>
+                     <Button onClick={() => onConfirm(ticket.id, formData.recommendedAction)} className="bg-indigo-600 hover:bg-indigo-700 text-white">Forward to Tech</Button>
+                 </div>
              </div>
         </ModalOverlay>
     );

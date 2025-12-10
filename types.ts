@@ -115,6 +115,16 @@ export interface SystemLog {
   metadata?: any;
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  timestamp: string;
+  read: boolean;
+  link?: string;
+}
+
 // --- App Types ---
 export type NavItem = {
   label: string;

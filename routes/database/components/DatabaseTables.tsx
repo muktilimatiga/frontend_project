@@ -47,7 +47,10 @@ export const DatabaseTables = ({ onSelectTable, onCreateTable }: { onSelectTable
                             <div>
                                <h3 className="font-bold text-slate-900 dark:text-white text-base leading-tight">{table.name}</h3>
                                 <div className="flex items-center gap-2 mt-1.5">
-                                   <Badge variant="success" className="uppercase text-[10px] h-5 px-1.5 font-bold tracking-wider">
+                                   <Badge 
+                                      variant={table.status === 'active' ? 'success' : table.status === 'error' ? 'destructive' : 'secondary'} 
+                                      className="uppercase text-[10px] h-5 px-1.5 font-bold tracking-wider"
+                                   >
                                       {table.status}
                                    </Badge>
                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">• Public Schema</span>

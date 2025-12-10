@@ -2,9 +2,10 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { ModalOverlay, Label, Input, Textarea, Button } from '../../../../components/ui';
+import { ModalOverlay, Label, Input, Textarea, Button, Avatar } from '../../../../components/ui';
 import { Ticket } from '../../../../types';
 import { TicketFormData } from './TicketFormFields';
+import { useAppStore } from '../../../../store';
 
 export const CloseTicketModal = ({
     ticket,
@@ -17,6 +18,7 @@ export const CloseTicketModal = ({
     onClose: () => void,
     onConfirm: (id: string, note: string) => void
 }) => {
+    const { user } = useAppStore();
     const [actionClose, setActionClose] = useState('');
     const [viewData, setViewData] = useState<TicketFormData>({
         name: 'NURYANTI',
@@ -85,9 +87,16 @@ export const CloseTicketModal = ({
                  </div>
              </div>
 
-             <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 flex justify-end gap-2 sticky bottom-0 z-10">
-                 <Button variant="outline" onClick={onClose}>Cancel</Button>
-                 <Button onClick={() => onConfirm(ticket.id, actionClose)} className="bg-red-600 hover:bg-red-700 text-white dark:text-white">Submit & Close</Button>
+             <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-zinc-900 flex items-center justify-between sticky bottom-0 z-10">
+                 <div className="flex items-center gap-2">
+                     <span className="text-xs text-slate-500">Operator:</span>
+                     <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0)} className="h-6 w-6" />
+                     <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 max-w-[120px] truncate">{user?.name}</span>
+                 </div>
+                 <div className="flex gap-2">
+                     <Button variant="outline" onClick={onClose}>Cancel</Button>
+                     <Button onClick={() => onConfirm(ticket.id, actionClose)} className="bg-red-600 hover:bg-red-700 text-white dark:text-white">Submit & Close</Button>
+                 </div>
              </div>
         </ModalOverlay>
     );

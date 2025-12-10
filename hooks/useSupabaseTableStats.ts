@@ -20,8 +20,27 @@ export const useSupabaseTableStats = () => {
       setLoading(true);
       
       // Defined tables based on the provided schema
-      const knownTables = ['log_komplain', 'snmp', 'data_fiber', 'snmp_devices', 'users', 'log_metro'];
+      const knownTables = ['log_komplain', 'snmp', 'data_fiber', 'snmp_devices', 'users', 'log_metro', 'customers_view'];
       const stats: TableStat[] = [];
+
+      // Check if Supabase is configured
+      const isMock = !supabase || (supabase['supabaseUrl'] && supabase['supabaseUrl'].includes('placeholder'));
+
+      if (isMock) {
+          // Return mock stats
+          await new Promise(resolve => setTimeout(resolve, 800));
+          const mockStats = knownTables.map(name => ({
+              id: name,
+              name: name,
+              rowCount: Math.floor(Math.random() * 500) + 50,
+              size: 'Mock',
+              lastSynced: 'Just now',
+              status: 'active' as const
+          }));
+          setTables(mockStats);
+          setLoading(false);
+          return;
+      }
 
       for (const tableName of knownTables) {
         try {
@@ -40,8 +59,16 @@ export const useSupabaseTableStats = () => {
               status: 'active'
             });
           } else {
-             // If table doesn't exist or RLS blocks it, we skip or mark as error
              console.warn(`Skipping table ${tableName}:`, error.message);
+             // Add as error state so user knows it exists but failed
+             stats.push({
+                id: tableName,
+                name: tableName,
+                rowCount: 0,
+                size: 'N/A',
+                lastSynced: 'Error',
+                status: 'error'
+             });
           }
         } catch (e) {
           console.error(`Error fetching stats for ${tableName}`, e);

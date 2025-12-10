@@ -1,38 +1,45 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { RefreshCw, Lock, Unlock, User as UserIcon, Server, List, Search, ChevronDown, ChevronUp, X, Settings } from 'lucide-react';
+import { RefreshCw, Lock, Unlock, User as UserIcon, Search, X, Settings, Scan, ArrowRight, DownloadCloud, Network, Plus, Trash2, CheckCircle2, AlertCircle, Layers } from 'lucide-react';
 import { ModalOverlay, Label, Input, Select, Textarea, Button, Switch, Avatar, cn, Badge } from '../../../../components/ui';
 import { ConfigService, CustomerService, UnconfiguredOnt, DataPSB } from '../../../../services/external';
 import { useFiberStore } from '../../stores/fiberStore';
 import { toast } from 'sonner';
+import { supabase } from '../../../../lib/supabaseClient';
 
-export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClose: () => void, type: 'basic' | 'bridge' }) => {
+interface BatchItem {
+    sn: string;
+    port: string;
+    loading: boolean;
+    customer: any | null;
+}
+
+export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClose: () => void, type: 'basic' | 'bridge' | 'batch' }) => {
   const [mode, setMode] = useState<'manual' | 'auto'>('manual');
-  const [isAutoLoading, setIsAutoLoading] = useState(false);
   const [isOptionsLoading, setIsOptionsLoading] = useState(false);
+  const [isScanLoading, setIsScanLoading] = useState(false);
+  const [detectedOnts, setDetectedOnts] = useState<UnconfiguredOnt[]>([]);
   
-  // Fiber Store
+  // Auto Mode State
+  const [psbList, setPsbList] = useState<DataPSB[]>([]);
+  const [isPsbLoading, setIsPsbLoading] = useState(false);
+
+  // Batch Mode State
+  const [batchQueue, setBatchQueue] = useState<BatchItem[]>([]);
+  
   const {
       searchTerm,
       setSearchTerm,
       searchResults,
-      isSearching,
       searchCustomers,
       resetSearch
   } = useFiberStore();
   
-  // Real config state
   const [oltOptions, setOltOptions] = useState<string[]>([]);
   const [packageOptions, setPackageOptions] = useState<string[]>([]);
   const [modemOptions, setModemOptions] = useState<string[]>([]);
-  const [detectedOnts, setDetectedOnts] = useState<UnconfiguredOnt[]>([]);
-  const [showManualScan, setShowManualScan] = useState(false);
-
-  // Auto Mode PSB Data
-  const [psbData, setPsbData] = useState<DataPSB[]>([]);
-  const [isPsbLoading, setIsPsbLoading] = useState(false);
-
+  
   const [formData, setFormData] = useState({
      olt: '',
      name: '',
@@ -40,94 +47,72 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
      pppoeUser: '',
      pppoePass: '',
      package: '',
-     modemType: '',
+     modemType: 'HG8245H5',
      ethLock: false,
-     interface: 'eth1',
      sn: '',
-     port: '',
-     slot: ''
+     vlan: '',
   });
 
-  // Fetch OLT Options on Demand
-  const fetchOltOptions = async () => {
-      setIsOptionsLoading(true);
-      const { data } = await ConfigService.getOptions();
-      if (data) {
-          if (data.olt_options) setOltOptions(data.olt_options);
-          
-          if (data.modem_options) {
-              setModemOptions(data.modem_options);
-              if (!formData.modemType && data.modem_options.length > 0) {
-                  setFormData(prev => ({ ...prev, modemType: data.modem_options[0] }));
-              }
-          }
-
-          if (data.package_options) {
-              setPackageOptions(data.package_options);
-              if (!formData.package && data.package_options.length > 0) {
-                  setFormData(prev => ({ ...prev, package: data.package_options[0] }));
-              }
-          }
-          if (data.olt_options.length > 0 && !formData.olt) {
-              setFormData(prev => ({ ...prev, olt: data.olt_options[0] }));
-          }
-          toast.success("Options loaded");
-      } else {
-          toast.error("Failed to fetch options");
-      }
-      setIsOptionsLoading(false);
-  };
-
-  // Fetch PSB Data
-  const fetchPsbData = async () => {
-      setIsPsbLoading(true);
-      const { data } = await CustomerService.getPSBData();
-      if (data) {
-          setPsbData(data);
-          toast.success(`Loaded ${data.length} pending installations`);
-      } else {
-          toast.error("Failed to load PSB data");
-      }
-      setIsPsbLoading(false);
-  };
-
-  // Reset on open
   useEffect(() => {
-     if(isOpen) {
-        setMode('manual');
-        resetSearch();
-        setDetectedOnts([]);
-        setOltOptions([]); 
-        setPackageOptions([]);
-        setModemOptions([]);
-        setPsbData([]);
-        setShowManualScan(false);
-        setFormData({
-            olt: '',
-            name: '',
-            address: '',
-            pppoeUser: '',
-            pppoePass: '',
-            package: '',
-            modemType: '',
-            ethLock: false,
-            interface: 'eth1',
-            sn: '',
-            port: '',
-            slot: ''
-        });
-     }
+      if (isOpen) {
+          const loadOptions = async () => {
+              setIsOptionsLoading(true);
+              const { data } = await ConfigService.getOptions();
+              if (data) {
+                  setOltOptions(data.olt_options || []);
+                  setModemOptions(data.modem_options || ['HG8245H5', 'F609', 'F670L']);
+                  setPackageOptions(data.package_options || ['Generic', 'Home 50', 'Home 100']);
+                  
+                  if (data.olt_options?.length > 0 && !formData.olt) {
+                      setFormData(prev => ({ ...prev, olt: data.olt_options[0] }));
+                  }
+              }
+              setIsOptionsLoading(false);
+          };
+          loadOptions();
+          resetSearch();
+          setDetectedOnts([]);
+          setMode('manual'); // Reset to manual on open
+          setFormData(prev => ({ ...prev, vlan: '' }));
+          setBatchQueue([]); // Reset batch queue
+      }
   }, [isOpen]);
 
-  // Search Logic (Global Store)
   useEffect(() => {
-     const timer = setTimeout(async () => {
-        if (mode === 'manual' && isOpen && searchTerm.length > 1) {
+     const timer = setTimeout(() => {
+        if (isOpen && mode === 'manual' && searchTerm.length > 1 && type === 'basic') {
            searchCustomers(searchTerm);
         }
      }, 400);
      return () => clearTimeout(timer);
-  }, [searchTerm, mode, isOpen]);
+  }, [searchTerm, isOpen, mode, type]);
+
+  // Fetch PSB data when switching to Auto mode (only for basic)
+  useEffect(() => {
+      if (mode === 'auto' && psbList.length === 0 && type === 'basic') {
+          fetchPsbData();
+      }
+  }, [mode, type]);
+
+  const fetchPsbData = async () => {
+      setIsPsbLoading(true);
+      try {
+          const { data, error } = await CustomerService.getPSBData();
+          if (data && Array.isArray(data)) {
+              setPsbList(data);
+              toast.success(`Loaded ${data.length} new registrations`);
+          } else {
+              setPsbList([]); // Fallback to empty array
+              if (error) toast.error(error || "Failed to load registrations");
+          }
+      } catch (e) {
+          console.error(e);
+          toast.error("Failed to connect to registration server");
+          setPsbList([]); // Fallback to empty array
+      } finally {
+          setIsPsbLoading(false);
+      }
+  };
 
   const handleSelectUser = (user: any) => {
      setFormData(prev => ({
@@ -135,446 +120,496 @@ export const ConfigModal = ({ isOpen, onClose, type }: { isOpen: boolean, onClos
         name: user.name || '',
         address: user.alamat || '',
         pppoeUser: user.user_pppoe || '',
-        pppoePass: user.pppoe_password || '',
-        ethLock: false
+        pppoePass: user.pppoe_password || '123456', 
      }));
      resetSearch();
+     setSearchTerm('');
   };
 
-  const handleScanOnts = async () => {
+  const handleSelectPsb = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const selectedId = e.target.value;
+      const selected = psbList.find(p => p.user_pppoe === selectedId);
+      
+      if (selected) {
+          setFormData(prev => ({
+              ...prev,
+              name: selected.name || '',
+              address: selected.address || '',
+              pppoeUser: selected.user_pppoe || '',
+              pppoePass: selected.pppoe_password || '',
+              package: selected.paket || prev.package
+          }));
+      }
+  };
+
+  const handleScanOlt = async () => {
       if (!formData.olt) {
-          toast.error("Please select an OLT first");
+          toast.error("Please select an OLT device first");
           return;
       }
-      setIsAutoLoading(true);
-      setDetectedOnts([]);
-      
-      const { data, error } = await ConfigService.detectUnconfiguredOnts(formData.olt);
-      
-      if (data) {
-          setDetectedOnts(data);
-          if (data.length === 0) toast.info("No unconfigured ONTs found on this OLT.");
-      } else {
-          toast.error(error || "Failed to scan OLT");
+      setIsScanLoading(true);
+      try {
+          const { data } = await ConfigService.detectUnconfiguredOnts(formData.olt);
+          
+          if (data && data.length > 0) {
+              setDetectedOnts(data);
+              // Auto-select the first one if field is empty (only for basic/bridge)
+              if (!formData.sn && type !== 'batch') {
+                  setFormData(prev => ({ ...prev, sn: data[0].sn }));
+              }
+              toast.success(`Found ${data.length} unconfigured devices`);
+          } else {
+              setDetectedOnts([]);
+              toast.info("No unconfigured devices found");
+          }
+      } catch (e) {
+          console.error(e);
+          toast.error("Scan failed, please try again");
+      } finally {
+          setIsScanLoading(false);
       }
-      setIsAutoLoading(false);
   };
 
-  const handleSelectOnt = (ont: UnconfiguredOnt) => {
-      setFormData(prev => ({
-          ...prev,
-          sn: ont.sn,
-          port: ont.pon_port,
-          slot: ont.pon_slot,
-          interface: `gpon-onu_${ont.pon_slot}/${ont.pon_port}:1` 
-      }));
-      setShowManualScan(false);
-      toast.success(`Selected ONT: ${ont.sn}`);
+  const handleAddToBatch = async (sn: string) => {
+      if (!sn) return;
+      if (batchQueue.find(i => i.sn === sn)) {
+          toast.warning("Device already in queue");
+          return;
+      }
+
+      const ont = detectedOnts.find(d => d.sn === sn);
+      if (!ont) return;
+
+      const newItem: BatchItem = {
+          sn,
+          port: `${ont.pon_port}/${ont.pon_slot}`,
+          loading: true,
+          customer: null
+      };
+
+      setBatchQueue(prev => [...prev, newItem]);
+
+      // Simulate Searching Customer by SN
+      try {
+          // Assuming 'data_fiber' has a column 'onu_sn' to match pending configs
+          const { data, error } = await supabase
+            .from('data_fiber')
+            .select('*')
+            .eq('onu_sn', sn)
+            .maybeSingle(); // Use maybeSingle to avoid 406 on no rows
+
+          setBatchQueue(prev => prev.map(item => {
+              if (item.sn === sn) {
+                  return { 
+                      ...item, 
+                      loading: false, 
+                      customer: data ? {
+                          name: data.name,
+                          address: data.alamat,
+                          pppoe: data.user_pppoe,
+                          packet: data.paket
+                      } : null 
+                  };
+              }
+              return item;
+          }));
+      } catch (err) {
+          console.error("Error finding customer for SN:", sn, err);
+          setBatchQueue(prev => prev.map(item => item.sn === sn ? { ...item, loading: false } : item));
+      }
   };
 
-  const toggleManualScan = () => {
-      const newState = !showManualScan;
-      setShowManualScan(newState);
-      if (newState && detectedOnts.length === 0) {
-          handleScanOnts();
+  const handleRemoveFromBatch = (sn: string) => {
+      setBatchQueue(prev => prev.filter(i => i.sn !== sn));
+  };
+
+  const getTitle = () => {
+      switch(type) {
+          case 'bridge': return 'Bridge Configuration';
+          case 'batch': return 'Batch Provisioning';
+          default: return 'New Service Configuration';
       }
   };
 
   return (
-    <ModalOverlay isOpen={isOpen} onClose={onClose} hideCloseButton={true} className="max-w-2xl">
-      <div className="space-y-5">
-         {/* Custom Header with Separated Controls */}
-         <div className="flex items-center justify-between -mx-6 -mt-6 px-6 py-4 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 rounded-t-3xl">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-               {type === 'basic' ? 'New Service Configuration' : 'New Bridge Configuration'}
-            </h2>
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 bg-white dark:bg-black/20 p-1 rounded-full border border-slate-200 dark:border-white/10 px-2 shadow-sm">
-                    <Label className="text-[10px] cursor-pointer text-slate-500 font-bold uppercase tracking-wide select-none" onClick={() => setMode(m => m === 'manual' ? 'auto' : 'manual')}>
-                        {mode === 'manual' ? 'Manual' : 'Auto'}
+    <ModalOverlay isOpen={isOpen} onClose={onClose} hideCloseButton={true} className="max-w-3xl p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-800 shadow-2xl bg-white dark:bg-zinc-900">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+         <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+            {getTitle()}
+         </h2>
+         <div className="flex items-center gap-4">
+            {type === 'basic' && (
+                <div className="flex items-center gap-2 bg-slate-100 dark:bg-zinc-800 p-1 pr-3 rounded-full border border-slate-200 dark:border-zinc-700">
+                    <Switch checked={mode === 'auto'} onCheckedChange={(c) => setMode(c ? 'auto' : 'manual')} className="h-5 w-9 scale-90 data-[state=checked]:bg-indigo-600" />
+                    <Label className="text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none text-slate-600 dark:text-slate-400" onClick={() => setMode(m => m === 'manual' ? 'auto' : 'manual')}>
+                        {mode === 'auto' ? 'Auto (API)' : 'Manual'}
                     </Label>
-                    <Switch checked={mode === 'auto'} onCheckedChange={(c) => { setMode(c ? 'auto' : 'manual'); }} className="h-5 w-9" />
                 </div>
-                
-                <div className="h-6 w-px bg-slate-200 dark:bg-white/10" />
-
-                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-white/10">
-                    <X className="h-5 w-5" />
-                </Button>
-            </div>
+            )}
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+                <X className="h-5 w-5" />
+            </button>
          </div>
+      </div>
 
-         {/* 1. OLT & Package & Modem Selection */}
-         <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-2">
-               <div className="flex items-center justify-between">
-                   <Label>OLT Device</Label>
-                   <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-6 text-[10px] px-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-indigo-400"
-                       onClick={fetchOltOptions}
-                       disabled={isOptionsLoading}
+      <div className="p-6 space-y-6 max-h-[85vh] overflow-y-auto bg-white dark:bg-zinc-900">
+         {/* Top Row: OLT, Package, Modem */}
+         <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+               <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">OLT Device</Label>
+               <div className="relative">
+                   <Select 
+                      value={formData.olt} 
+                      onChange={e => setFormData({...formData, olt: e.target.value})}
+                      disabled={isOptionsLoading}
+                      className="text-xs h-10 bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500/20 font-medium"
                    >
-                       <RefreshCw className={cn("h-3 w-3", isOptionsLoading && "animate-spin")} />
-                   </Button>
+                      {oltOptions.length === 0 && <option value="">-- Select OLT --</option>}
+                      {oltOptions.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                   </Select>
+                   {isOptionsLoading && <RefreshCw className="absolute right-8 top-3 h-4 w-4 animate-spin text-slate-400" />}
                </div>
-               <Select 
-                  value={formData.olt} 
-                  onChange={e => setFormData({...formData, olt: e.target.value})}
-                  disabled={isOptionsLoading}
-                  className="text-xs"
-               >
-                  {oltOptions.length === 0 && <option value="">-- Load --</option>}
-                  {oltOptions.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                  ))}
-               </Select>
             </div>
             
-            <div className="space-y-2">
-               <div className="h-6 mb-2 flex items-center"><Label>Package</Label></div>
+            <div className="space-y-1.5">
+               <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Package</Label>
                <Select 
                   value={formData.package} 
                   onChange={e => setFormData({...formData, package: e.target.value})}
-                  className="text-xs"
+                  className="text-xs h-10 bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500/20 font-medium"
                >
-                  {packageOptions.length === 0 ? (
-                      <option value="">Generic</option>
-                  ) : (
-                      packageOptions.map(pkg => (
-                          <option key={pkg} value={pkg}>{pkg}</option>
-                      ))
-                  )}
+                  <option value="">Generic</option>
+                  {packageOptions.map(pkg => <option key={pkg} value={pkg}>{pkg}</option>)}
                </Select>
             </div>
 
-            <div className="space-y-2">
-               <div className="h-6 mb-2 flex items-center"><Label>Modem Type</Label></div>
+            <div className="space-y-1.5">
+               <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Modem Type</Label>
                <Select 
                   value={formData.modemType} 
                   onChange={e => setFormData({...formData, modemType: e.target.value})}
-                  className="text-xs"
+                  className="text-xs h-10 bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 focus:ring-2 focus:ring-indigo-500/20 font-medium"
                >
-                  {modemOptions.length === 0 ? (
-                      <>
-                        <option value="EG8145V5">EG8145V5</option>
-                        <option value="F609">F609</option>
-                        <option value="F670L">F670L</option>
-                      </>
-                  ) : (
-                      modemOptions.map(m => (
-                          <option key={m} value={m}>{m}</option>
-                      ))
-                  )}
+                  {modemOptions.map(m => <option key={m} value={m}>{m}</option>)}
                </Select>
             </div>
          </div>
 
-         {/* 2. Conditional Scan/Search Area */}
-         {mode === 'manual' ? (
-             <div className="space-y-3 p-4 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 animate-in fade-in slide-in-from-top-2 duration-300 relative">
-                {/* CRM Search */}
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                        <UserIcon className="h-4 w-4" />
-                    </div>
-                    <div>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-200">Import Customer</p>
-                        <p className="text-xs text-slate-500">Search from CRM database</p>
-                    </div>
-                </div>
-                
-                <div className="relative">
-                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                   <Input 
-                      placeholder="Search name, ID or address..." 
-                      className="pl-9 bg-white dark:bg-black/20"
-                      value={searchTerm}
-                      onChange={e => setSearchTerm(e.target.value)}
-                   />
-                   
-                   {/* Dropdown Results */}
-                   {searchResults.length > 0 && searchTerm.length > 1 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-md shadow-lg z-20 max-h-48 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-                         {searchResults.map(u => (
-                            <div 
-                               key={u.id}
-                               className="p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer flex items-center gap-2 border-b border-slate-50 dark:border-white/5 last:border-0"
-                               onClick={() => handleSelectUser(u)}
-                            >
-                               <Avatar fallback={u.name?.charAt(0) || 'U'} className="h-8 w-8 text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" />
-                               <div className="overflow-hidden">
-                                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{u.name}</p>
-                                  <p className="text-xs text-slate-500 truncate">{u.user_pppoe}</p>
-                               </div>
-                            </div>
+         {/* BATCH MODE SPECIFIC UI */}
+         {type === 'batch' ? (
+             <div className="space-y-4">
+                 <div className="flex items-end gap-3 p-4 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-800">
+                     <div className="flex-1 space-y-1.5">
+                         <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Select Detected SN</Label>
+                         <div className="flex gap-2">
+                             <Button 
+                                variant="outline" 
+                                onClick={handleScanOlt}
+                                disabled={isScanLoading || !formData.olt}
+                                className="bg-white hover:bg-blue-50 dark:bg-zinc-950 dark:hover:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-200 h-10 px-3 shadow-sm shrink-0"
+                             >
+                                 {isScanLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Scan className="h-4 w-4" />}
+                             </Button>
+                             <Select
+                                 className="flex-1 bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700 h-10 text-xs font-mono shadow-sm"
+                                 onChange={(e) => handleAddToBatch(e.target.value)}
+                                 value=""
+                             >
+                                 <option value="">-- Add Device to Queue --</option>
+                                 {detectedOnts
+                                    .filter(ont => !batchQueue.find(b => b.sn === ont.sn))
+                                    .map(ont => (
+                                     <option key={ont.sn} value={ont.sn}>
+                                         {ont.sn} (Port {ont.pon_port}/{ont.pon_slot})
+                                     </option>
+                                 ))}
+                             </Select>
+                         </div>
+                     </div>
+                 </div>
+
+                 {/* Batch Queue List */}
+                 <div className="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 min-h-[200px]">
+                     <div className="grid grid-cols-12 gap-2 bg-slate-50 dark:bg-zinc-900 p-3 text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-zinc-800">
+                         <div className="col-span-3">Serial Number</div>
+                         <div className="col-span-2">Port</div>
+                         <div className="col-span-6">Customer Match</div>
+                         <div className="col-span-1 text-center">Action</div>
+                     </div>
+                     <div className="max-h-[300px] overflow-y-auto">
+                         {batchQueue.length === 0 && (
+                             <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
+                                 <Layers className="h-8 w-8 opacity-20" />
+                                 <p className="text-xs">No devices added to queue yet.</p>
+                             </div>
+                         )}
+                         {batchQueue.map((item) => (
+                             <div key={item.sn} className="grid grid-cols-12 gap-2 p-3 border-b border-slate-100 dark:border-zinc-800/50 items-center hover:bg-slate-50 dark:hover:bg-zinc-900/50 transition-colors text-xs">
+                                 <div className="col-span-3 font-mono font-medium text-slate-700 dark:text-slate-300">{item.sn}</div>
+                                 <div className="col-span-2 text-slate-500">{item.port}</div>
+                                 <div className="col-span-6">
+                                     {item.loading ? (
+                                         <div className="flex items-center gap-2 text-slate-400">
+                                             <RefreshCw className="h-3 w-3 animate-spin" /> Finding match...
+                                         </div>
+                                     ) : item.customer ? (
+                                         <div className="flex items-center gap-2">
+                                             <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                                 <CheckCircle2 className="h-3.5 w-3.5" />
+                                             </div>
+                                             <div className="overflow-hidden">
+                                                 <div className="font-bold text-slate-900 dark:text-white truncate">{item.customer.name}</div>
+                                                 <div className="text-[10px] text-slate-500 truncate">{item.customer.address}</div>
+                                             </div>
+                                         </div>
+                                     ) : (
+                                         <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-md w-fit">
+                                             <AlertCircle className="h-3.5 w-3.5" />
+                                             <span className="font-medium">No Customer Found</span>
+                                         </div>
+                                     )}
+                                 </div>
+                                 <div className="col-span-1 flex justify-center">
+                                     <button onClick={() => handleRemoveFromBatch(item.sn)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                         <Trash2 className="h-4 w-4" />
+                                     </button>
+                                 </div>
+                             </div>
                          ))}
-                      </div>
-                   )}
-                </div>
-
-                {/* Device SN Entry with Scan */}
-                <div className="pt-3 border-t border-slate-200 dark:border-white/10 mt-3">
-                    <div className="flex items-end gap-2">
-                        <div className="space-y-1 flex-1">
-                            <Label>Device Serial Number (SN)</Label>
-                            <Input
-                                value={formData.sn}
-                                onChange={e => setFormData({...formData, sn: e.target.value})}
-                                placeholder="e.g. ZTEG12345678"
-                                className="bg-white dark:bg-black/20 font-mono"
-                            />
-                        </div>
-                        <Button
-                            variant="outline"
-                            className="w-28"
-                            onClick={toggleManualScan}
-                            disabled={!formData.olt}
-                        >
-                            {isAutoLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : showManualScan ? 'Hide' : 'Scan OLT'}
-                        </Button>
-                    </div>
-
-                    {/* Manual Scan Results */}
-                    {showManualScan && (
-                        <div className="mt-2 border border-slate-200 dark:border-white/10 rounded-md bg-white dark:bg-black/20 max-h-[160px] overflow-y-auto animate-in slide-in-from-top-1">
-                            {isAutoLoading ? (
-                                <div className="p-4 text-center text-xs text-slate-500">Scanning connected devices...</div>
-                            ) : detectedOnts.length === 0 ? (
-                                <div className="p-4 text-center text-xs text-slate-500">No unconfigured devices found.</div>
-                            ) : (
-                                <div className="divide-y divide-slate-100 dark:divide-white/5">
-                                    {detectedOnts.map((ont, idx) => (
-                                        <div 
-                                            key={idx} 
-                                            className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
-                                            onClick={() => handleSelectOnt(ont)}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <Server className="h-4 w-4 text-slate-400" />
-                                                <span className="text-sm font-mono font-medium text-slate-700 dark:text-slate-200">{ont.sn}</span>
-                                            </div>
-                                            <Badge variant="outline" className="text-[10px] h-5">{ont.pon_port}/{ont.pon_slot}</Badge>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                     </div>
+                 </div>
              </div>
          ) : (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                {/* Left: Device Selection (Scan) */}
-                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 flex flex-col gap-3 h-full">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                                <Server className="h-4 w-4" />
+         /* Basic/Bridge Mode Content */
+         <>
+             <div className="space-y-4 p-5 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-800">
+                {/* Bridge Mode: VLAN Input */}
+                {type === 'bridge' ? (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center text-amber-600 border border-slate-200 dark:border-zinc-700 shadow-sm">
+                                <Network className="h-4 w-4" />
                             </div>
                             <div>
-                                <Label className="text-sm font-semibold block">Device (ONT)</Label>
-                                <p className="text-[10px] text-slate-500">Scan Network</p>
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">VLAN Configuration</h3>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Assign VLAN ID for bridge service</p>
                             </div>
+                        </div>
+                        <div className="relative z-20">
+                            <Input 
+                                placeholder="VLAN ID (e.g. 100, 200)" 
+                                className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700 focus:border-amber-500 transition-all h-10 text-xs font-mono shadow-sm"
+                                value={formData.vlan}
+                                onChange={e => setFormData({...formData, vlan: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                ) : (
+                /* Normal Mode: Customer Selection Logic */
+                <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center text-indigo-600 border border-slate-200 dark:border-zinc-700 shadow-sm">
+                            {mode === 'auto' ? <DownloadCloud className="h-4 w-4" /> : <UserIcon className="h-4 w-4" />}
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">{mode === 'auto' ? 'New Registration' : 'Import Customer'}</h3>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                {mode === 'auto' ? 'Select from pending registrations (API)' : 'Search from CRM database'}
+                            </p>
                         </div>
                     </div>
                     
-                    <Button 
-                        size="sm" 
-                        variant="default" 
-                        onClick={handleScanOnts} 
-                        disabled={isAutoLoading || !formData.olt} 
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs w-full"
-                    >
-                        <RefreshCw className={cn("h-3 w-3 mr-2", isAutoLoading && "animate-spin")} />
-                        {isAutoLoading ? 'Scanning...' : 'Scan OLT Ports'}
-                    </Button>
-
-                    <div className="flex-1 min-h-[80px] max-h-[120px] overflow-y-auto border border-slate-200 dark:border-white/10 rounded-md bg-white dark:bg-black/20 p-1">
-                        {detectedOnts.length > 0 ? (
-                            <div className="space-y-1">
-                                {detectedOnts.map((ont, idx) => (
+                    {mode === 'manual' ? (
+                        <div className="relative z-20">
+                           <div className="absolute left-3 top-2.5 pointer-events-none">
+                               <Search className="h-4 w-4 text-slate-400" />
+                           </div>
+                           <Input 
+                              placeholder="Search name, ID or address..." 
+                              className="pl-9 bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700 focus:border-indigo-500 transition-all h-10 text-xs placeholder:text-slate-400 shadow-sm"
+                              value={searchTerm}
+                              onChange={e => setSearchTerm(e.target.value)}
+                           />
+                           {/* Search Dropdown */}
+                           {searchResults.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-xl max-h-48 overflow-y-auto z-50 p-1 animate-in fade-in zoom-in-95 duration-100">
+                                 {searchResults.map(u => (
                                     <div 
-                                        key={idx} 
-                                        className="flex items-center justify-between p-2 rounded hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer group text-xs"
-                                        onClick={() => handleSelectOnt(ont)}
+                                       key={u.id}
+                                       className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-md cursor-pointer flex items-center gap-3 transition-colors group"
+                                       onClick={() => handleSelectUser(u)}
                                     >
-                                        <span className="font-mono font-bold text-slate-700 dark:text-slate-200">{ont.sn}</span>
-                                        <Badge variant="outline" className="text-[9px] h-4 px-1">{ont.pon_port}/{ont.pon_slot}</Badge>
+                                       <Avatar fallback={u.name?.charAt(0)} className="h-8 w-8 text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-900/50" />
+                                       <div className="overflow-hidden">
+                                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{u.name}</p>
+                                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{u.user_pppoe}</p>
+                                       </div>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="h-full flex items-center justify-center text-[10px] text-slate-400 text-center px-4">
-                                {isAutoLoading ? 'Searching...' : 'Results appear here'}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Right: Customer Selection (PSB) */}
-                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 flex flex-col gap-3 h-full">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                                <UserIcon className="h-4 w-4" />
-                            </div>
-                            <div>
-                                <Label className="text-sm font-semibold block">Customer (PSB)</Label>
-                                <p className="text-[10px] text-slate-500">Pending Install</p>
-                            </div>
+                                 ))}
+                              </div>
+                           )}
                         </div>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6 rounded-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-white/10"
-                            onClick={fetchPsbData}
-                            disabled={isPsbLoading}
-                            title="Reload PSB Data"
-                        >
-                            <RefreshCw className={cn("h-3.5 w-3.5", isPsbLoading && "animate-spin")} />
-                        </Button>
-                    </div>
-                    
-                    <Select 
-                       value={formData.pppoeUser}
-                       onChange={(e) => {
-                           const selected = psbData.find(p => p.user_pppoe === e.target.value);
-                           if (selected) {
-                               setFormData(prev => ({
-                                   ...prev,
-                                   name: selected.name || '',
-                                   address: selected.address || '',
-                                   pppoeUser: selected.user_pppoe || '',
-                                   pppoePass: selected.pppoe_password || '',
-                                   package: selected.paket || prev.package
-                               }));
-                           }
-                       }}
-                       className="text-xs bg-white dark:bg-black/20 w-full"
-                       disabled={isPsbLoading}
-                    >
-                       <option value="">-- Select Customer --</option>
-                       {psbData.length > 0 ? (
-                           psbData.map((p, i) => (
-                               <option key={i} value={p.user_pppoe}>
-                                   {p.name}
-                               </option>
-                           ))
-                       ) : (
-                           <option value="" disabled>No data (Refresh)</option>
-                       )}
-                    </Select>
-                    
-                    {/* Selected Customer Preview */}
-                    {formData.pppoeUser && (
-                        <div className="text-xs p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded border border-indigo-100 dark:border-indigo-900/20 text-indigo-800 dark:text-indigo-300">
-                            <span className="font-semibold">{formData.name}</span>
-                            <div className="truncate opacity-70 mt-0.5">{formData.address}</div>
+                    ) : (
+                        <div className="flex gap-2">
+                            <Select 
+                                className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700 text-xs h-10 flex-1 shadow-sm"
+                                onChange={handleSelectPsb}
+                                disabled={isPsbLoading}
+                            >
+                                <option value="">-- Select Pending Customer --</option>
+                                {psbList.map((p, idx) => (
+                                    <option key={p.user_pppoe || idx} value={p.user_pppoe}>
+                                        {p.name} - {p.address}
+                                    </option>
+                                ))}
+                            </Select>
+                            <Button 
+                                variant="outline" 
+                                size="icon" 
+                                onClick={fetchPsbData} 
+                                disabled={isPsbLoading}
+                                className="h-10 w-10 shrink-0 bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700"
+                                title="Reload from API"
+                            >
+                                <RefreshCw className={cn("h-4 w-4 text-slate-500", isPsbLoading && "animate-spin")} />
+                            </Button>
                         </div>
                     )}
                 </div>
+                )}
+
+                {/* SN Section - Highlighted */}
+                <div className="pt-2">
+                    <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border-2 border-blue-100 dark:border-blue-900/30 relative overflow-hidden group">
+                        {/* Decorative Background Icon */}
+                        <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
+                            <Scan className="w-20 h-20 text-blue-600" />
+                        </div>
+                        
+                        <Label className="text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-2 block uppercase tracking-wide">Device Serial Number (SN)</Label>
+                        <div className="flex gap-2 relative z-10">
+                            <div className="relative flex-1">
+                                {detectedOnts.length > 0 ? (
+                                    <Select
+                                        value={formData.sn}
+                                        onChange={e => setFormData({...formData, sn: e.target.value})}
+                                        className="bg-white dark:bg-zinc-950 border-blue-200 dark:border-blue-800/50 text-xs h-10 font-mono shadow-sm"
+                                    >
+                                        {detectedOnts.map(ont => (
+                                            <option key={ont.sn} value={ont.sn}>
+                                                {ont.sn} (Port {ont.pon_port}/{ont.pon_slot})
+                                            </option>
+                                        ))}
+                                    </Select>
+                                ) : (
+                                    <Input
+                                        value={formData.sn}
+                                        onChange={e => setFormData({...formData, sn: e.target.value})}
+                                        placeholder="e.g. ZTEG12345678"
+                                        className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700 focus:border-blue-500 font-mono text-xs h-10 shadow-sm"
+                                    />
+                                )}
+                            </div>
+                            <Button 
+                                variant="outline" 
+                                onClick={handleScanOlt}
+                                disabled={isScanLoading || !formData.olt}
+                                className="bg-white hover:bg-blue-50 dark:bg-zinc-950 dark:hover:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-200 h-10 px-4 text-xs font-semibold shadow-sm"
+                            >
+                                {isScanLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin mr-2" /> : <Scan className="h-3.5 w-3.5 mr-2" />}
+                                Scan OLT
+                            </Button>
+                        </div>
+                    </div>
+                </div>
              </div>
+
+             {/* Configuration Details Divider */}
+             <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-slate-200 dark:border-zinc-800" />
+                </div>
+                <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    <span className="bg-white dark:bg-zinc-900 px-3 flex items-center gap-1.5">
+                        <Settings className="h-3 w-3" /> Configuration Details
+                    </span>
+                </div>
+             </div>
+
+             {/* Form Fields - Compact Layout */}
+             <div className="space-y-5">
+                 <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Subscriber Name</Label>
+                    <Input 
+                       value={formData.name} 
+                       onChange={e => setFormData({...formData, name: e.target.value})}
+                       placeholder="Full Name"
+                       className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 h-10 text-sm font-semibold text-slate-900 dark:text-white"
+                    />
+                 </div>
+
+                 <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Installation Address</Label>
+                    <Textarea 
+                       value={formData.address} 
+                       onChange={e => setFormData({...formData, address: e.target.value})}
+                       className="min-h-[70px] bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 resize-none text-sm font-medium leading-relaxed py-2 text-slate-700 dark:text-slate-200"
+                       rows={2}
+                    />
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4 p-5 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-800">
+                    <div className="space-y-1.5">
+                       <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">PPPoE Username</Label>
+                       <Input 
+                          value={formData.pppoeUser} 
+                          onChange={e => setFormData({...formData, pppoeUser: e.target.value})}
+                          placeholder="username"
+                          className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700 h-9 text-xs font-mono shadow-sm"
+                       />
+                    </div>
+                    <div className="space-y-1.5">
+                       <Label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">PPPoE Password</Label>
+                       <Input 
+                          type="password"
+                          value={formData.pppoePass} 
+                          onChange={e => setFormData({...formData, pppoePass: e.target.value})}
+                          placeholder="••••••"
+                          className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-700 h-9 text-xs font-mono shadow-sm"
+                       />
+                    </div>
+                 </div>
+
+                 <div className="flex items-center justify-between bg-white dark:bg-zinc-950 p-4 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm">
+                    <div className="flex items-center gap-3">
+                       <div className={cn("p-2 rounded-lg border", formData.ethLock ? "bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-900/20 dark:border-amber-900/50 dark:text-amber-400" : "bg-slate-50 border-slate-200 text-slate-400 dark:bg-zinc-900 dark:border-zinc-800")}>
+                          {formData.ethLock ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                       </div>
+                       <div className="space-y-0.5">
+                           <Label className="cursor-pointer text-sm font-bold text-slate-900 dark:text-white select-none block" onClick={() => setFormData({...formData, ethLock: !formData.ethLock})}>
+                               Ethernet Port Lock
+                           </Label>
+                           <p className="text-[10px] text-slate-500">Secure unused ports on the ONU</p>
+                       </div>
+                    </div>
+                    <Switch 
+                       checked={formData.ethLock} 
+                       onCheckedChange={c => setFormData({...formData, ethLock: c})}
+                       className="data-[state=checked]:bg-amber-500"
+                    />
+                 </div>
+             </div>
+         </>
          )}
 
-         {/* Divider */}
-         <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200 dark:border-white/10" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-black px-2 text-slate-500 font-semibold flex items-center gap-1">
-                    <Settings className="h-3 w-3" /> Configuration Details
-                </span>
-            </div>
-         </div>
-
-         {/* 3. Common Form Fields */}
-         <div className="space-y-3">
-             <div className="space-y-2">
-                <Label>Subscriber Name</Label>
-                <Input 
-                   value={formData.name} 
-                   onChange={e => setFormData({...formData, name: e.target.value})}
-                   placeholder="Full Name"
-                   className="bg-slate-50 dark:bg-black/20"
-                />
-             </div>
-
-             {formData.sn && (
-                 <div className="p-2 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-                     <Badge variant="success" className="h-4 px-1 text-[10px]">Ready</Badge>
-                     Configuring device: <span className="font-mono font-bold">{formData.sn}</span>
-                     <span className="text-slate-400 ml-auto text-[10px]">Port: {formData.port}/{formData.slot}</span>
-                 </div>
-             )}
-
-             <div className="space-y-2">
-                <Label>Installation Address</Label>
-                <Textarea 
-                   value={formData.address} 
-                   onChange={e => setFormData({...formData, address: e.target.value})}
-                   placeholder="Street address, unit, city..."
-                   className="min-h-[50px] bg-slate-50 dark:bg-black/20 resize-none"
-                   rows={2}
-                />
-             </div>
-
-             <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-3 rounded-lg border border-slate-100 dark:border-white/10">
-                <div className="space-y-2">
-                   <Label>PPPoE Username</Label>
-                   <Input 
-                      value={formData.pppoeUser} 
-                      onChange={e => setFormData({...formData, pppoeUser: e.target.value})}
-                      placeholder="username"
-                      className="h-8 text-xs bg-white dark:bg-black/20"
-                   />
-                </div>
-                <div className="space-y-2">
-                   <Label>PPPoE Password</Label>
-                   <Input 
-                      type="password"
-                      value={formData.pppoePass} 
-                      onChange={e => setFormData({...formData, pppoePass: e.target.value})}
-                      placeholder="••••••"
-                      className="h-8 text-xs bg-white dark:bg-black/20"
-                   />
-                </div>
-             </div>
-
-             {type === 'bridge' && (
-                 <div className="space-y-2">
-                   <Label>Bridge Interface</Label>
-                   <Input 
-                      value={formData.interface}
-                      onChange={e => setFormData({...formData, interface: e.target.value})}
-                      placeholder="e.g. eth1, nas0_1"
-                   />
-                 </div>
-             )}
-
-             <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-2">
-                   <div className={cn("p-1.5 rounded-full", formData.ethLock ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" : "bg-slate-100 text-slate-500 dark:bg-white/10")}>
-                      {formData.ethLock ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
-                   </div>
-                   <div className="space-y-0.5">
-                      <Label className="cursor-pointer text-xs" onClick={() => setFormData({...formData, ethLock: !formData.ethLock})}>Ethernet Port Lock</Label>
-                   </div>
-                </div>
-                <Switch 
-                   checked={formData.ethLock} 
-                   onCheckedChange={c => setFormData({...formData, ethLock: c})}
-                   className="scale-90"
-                />
-             </div>
-         </div>
-
-         <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={() => { console.log(formData); onClose(); }} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-               {type === 'basic' ? 'Provision Service' : 'Configure Bridge'}
+         {/* Footer */}
+         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-zinc-800 mt-2">
+            <Button variant="outline" onClick={onClose} className="h-10 px-5 border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-slate-300 font-medium">Cancel</Button>
+            <Button onClick={() => { console.log(type === 'batch' ? batchQueue : formData); onClose(); }} className="h-10 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-500/20">
+               {type === 'batch' ? `Provision ${batchQueue.length} Devices` : 'Provision Service'}
             </Button>
          </div>
       </div>

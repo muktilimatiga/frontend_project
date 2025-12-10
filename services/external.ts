@@ -198,6 +198,11 @@ const MOCK_DATA = {
     { sn: 'ZTEGC84A09F0', pon_port: '1', pon_slot: '2' },
     { sn: 'ALCLB4928121', pon_port: '1', pon_slot: '4' }
   ],
+  psbData: [
+    { name: 'John Doe', address: '123 Main St', user_pppoe: 'john.doe', pppoe_password: 'password', paket: 'Home 50 Mbps' },
+    { name: 'Jane Smith', address: '456 Oak Ave', user_pppoe: 'jane.smith', pppoe_password: 'password', paket: 'Home 100 Mbps' },
+    { name: 'Bob Johnson', address: '789 Pine Rd', user_pppoe: 'bob.j', pppoe_password: 'password', paket: 'Home 50 Mbps' }
+  ],
   configurationResponse: {
     message: "Configuration successfully applied.",
     logs: ["Authenticating...", "Profile applied: default", "VLAN 100 tagged", "Service UP"],
@@ -217,6 +222,7 @@ const MOCK_DATA = {
 const getMockResponse = (endpoint: string): any => {
   if (endpoint.includes('/config/api/options')) return MOCK_DATA.options;
   if (endpoint.includes('detect-onts')) return MOCK_DATA.unconfiguredOnts;
+  if (endpoint.includes('/customer/psb')) return MOCK_DATA.psbData;
   if (endpoint.includes('/configure')) return MOCK_DATA.configurationResponse;
   if (endpoint.includes('/ticket/')) return MOCK_DATA.ticketResponse;
   

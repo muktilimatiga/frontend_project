@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { EnhancedTable, ColumnDef } from '../../components/ui/EnhancedTable';
 import { Button, Badge, cn } from '../../components/ui';
 import { Ticket } from '../../types';
-import { Plus, Filter, RefreshCw, User as UserIcon, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Plus, Filter, RefreshCw, User as UserIcon, ArrowRight, CheckCircle2, Forward } from 'lucide-react';
 import { useSupabaseTickets } from '../../hooks/useSupabaseTickets';
-import { ProcessActionModal, CloseTicketModal } from '../dashboard/components/modals';
+import { ProcessActionModal, CloseTicketModal, ForwardTicketModal } from '../dashboard/components/modals';
 import { useUpdateTicketStatus } from '../../hooks/useQueries';
 import { useAppStore } from '../../store';
 
@@ -29,6 +29,7 @@ export const TicketsPage = () => {
   // Modal State
   const [processTicket, setProcessTicket] = useState<Ticket | null>(null);
   const [closeTicket, setCloseTicket] = useState<Ticket | null>(null);
+  const [forwardTicket, setForwardTicket] = useState<Ticket | null>(null);
 
   // Handlers
   const handleProcessConfirm = (id: string, status: 'in_progress' | 'closed', note: string) => {
@@ -40,6 +41,15 @@ export const TicketsPage = () => {
   const handleCloseConfirm = (id: string, note: string) => {
     updateTicketStatus.mutate({ id, status: 'closed' });
     setCloseTicket(null);
+    setTimeout(refetch, 500);
+  };
+
+  const handleForwardConfirm = (id: string, note: string) => {
+    // Logic to forward (e.g., assign technician, update notes)
+    // For now we keep it in_progress but log the forward action via mutation/console
+    console.log(`Forwarding ticket ${id}: ${note}`);
+    updateTicketStatus.mutate({ id, status: 'in_progress' });
+    setForwardTicket(null);
     setTimeout(refetch, 500);
   };
 
@@ -71,6 +81,17 @@ export const TicketsPage = () => {
                 onClick={(e) => { e.stopPropagation(); setProcessTicket(t); }}
               >
                  Process <ArrowRight className="h-3 w-3" />
+              </Button>
+           )}
+
+           {t.status === 'in_progress' && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-7 px-2 text-[10px] gap-1 text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                onClick={(e) => { e.stopPropagation(); setForwardTicket(t); }}
+              >
+                 Forward <Forward className="h-3 w-3" />
               </Button>
            )}
            
@@ -108,6 +129,12 @@ export const TicketsPage = () => {
         ticket={closeTicket}
         onClose={() => setCloseTicket(null)}
         onConfirm={handleCloseConfirm}
+      />
+      <ForwardTicketModal 
+        isOpen={!!forwardTicket}
+        ticket={forwardTicket}
+        onClose={() => setForwardTicket(null)}
+        onConfirm={handleForwardConfirm}
       />
 
       <EnhancedTable 
