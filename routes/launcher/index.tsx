@@ -34,58 +34,87 @@ export const LauncherPage = () => {
   };
 
   return (
-    <div className="p-8 md:p-12 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+    <div className="p-8 md:p-12 max-w-[1600px] mx-auto animate-in fade-in duration-500 py-8">
       <ConfigModal isOpen={modalType === 'config'} onClose={() => setModalType('none')} type="basic" />
       <ConfigModal isOpen={modalType === 'config_bridge'} onClose={() => setModalType('none')} type="bridge" />
       <ConfigModal isOpen={modalType === 'config_batch'} onClose={() => setModalType('none')} type="batch" />
 
-      {/* Add New Item Menu Modal */}
-      <ModalOverlay isOpen={isAddMenuOpen} onClose={() => setIsAddMenuOpen(false)} hideCloseButton className="max-w-2xl p-0 overflow-hidden rounded-xl border border-border shadow-2xl">
-         <div className="flex items-center justify-between p-6 border-b border-border bg-surface">
-            <h2 className="text-xl font-bold text-foreground">Add New Item</h2>
-            <button onClick={() => setIsAddMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-secondary">
-                <X className="h-6 w-6" />
+      {/* Add New Item Menu Modal - Restored Size */}
+      <ModalOverlay 
+        isOpen={isAddMenuOpen} 
+        onClose={() => setIsAddMenuOpen(false)} 
+        hideCloseButton 
+        className="max-w-3xl p-0 overflow-hidden rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl"
+      >
+         {/* Header */}
+         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+            <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                    <Plus className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                </div>
+                <div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">Add New Item</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-tight">Select an action to proceed</p>
+                </div>
+            </div>
+            <button onClick={() => setIsAddMenuOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800">
+                <X className="h-5 w-5" />
             </button>
          </div>
-         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-background">
+         
+         {/* Grid Content */}
+         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-[#09090b]">
+            
+            {/* New Config */}
             <button 
                 onClick={() => openModal('config')}
-                className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl shadow-sm hover:border-primary hover:shadow-md transition-all group"
+                className="relative flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-500 dark:hover:border-indigo-500 transition-all group overflow-hidden"
             >
-                <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <Settings className="h-7 w-7 text-primary" />
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="h-16 w-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Settings className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <span className="font-bold text-lg text-foreground">New Config</span>
+                <span className="font-bold text-lg text-slate-900 dark:text-white">New Config</span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure OLT/ONU</p>
             </button>
 
+            {/* New Config Batch */}
             <button 
                 onClick={() => openModal('config_batch')}
-                className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl shadow-sm hover:border-primary hover:shadow-md transition-all group"
+                className="relative flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition-all group overflow-hidden"
             >
-                <div className="h-14 w-14 rounded-xl bg-secondary flex items-center justify-center mb-4 group-hover:bg-secondary-foreground/10 transition-colors">
-                    <Layers className="h-7 w-7 text-secondary-foreground" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="h-16 w-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Layers className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
-                <span className="font-bold text-lg text-foreground">New Config Batch</span>
+                <span className="font-bold text-lg text-slate-900 dark:text-white">New Batch</span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Bulk provisioning</p>
             </button>
 
+            {/* New Ticket */}
             <button 
                 onClick={() => openModal('create_ticket')}
-                className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl shadow-sm hover:border-success hover:shadow-md transition-all group"
+                className="relative flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-500 dark:hover:border-emerald-500 transition-all group overflow-hidden"
             >
-                <div className="h-14 w-14 rounded-xl bg-green-100 flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors dark:bg-green-900/30">
-                    <Ticket className="h-7 w-7 text-green-600 dark:text-green-400" />
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="h-16 w-16 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Ticket className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <span className="font-bold text-lg text-foreground">New Ticket</span>
+                <span className="font-bold text-lg text-slate-900 dark:text-white">New Ticket</span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Support ticket</p>
             </button>
 
+            {/* Config Bridge */}
             <button 
                 onClick={() => openModal('config_bridge')}
-                className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl shadow-sm hover:border-warning hover:shadow-md transition-all group"
+                className="relative flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-sm hover:shadow-md hover:border-amber-500 dark:hover:border-amber-500 transition-all group overflow-hidden"
             >
-                <div className="h-14 w-14 rounded-xl bg-amber-100 flex items-center justify-center mb-4 group-hover:bg-amber-200 transition-colors dark:bg-amber-900/30">
-                    <Network className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-transparent dark:from-amber-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="h-16 w-16 rounded-2xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Network className="h-8 w-8 text-amber-600 dark:text-amber-400" />
                 </div>
-                <span className="font-bold text-lg text-foreground">Config Bridge</span>
+                <span className="font-bold text-lg text-slate-900 dark:text-white">Config Bridge</span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Bridge mode</p>
             </button>
          </div>
       </ModalOverlay>

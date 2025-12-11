@@ -117,7 +117,7 @@ export const Dashboard = () => {
   }, [queryClient]);
 
   return (
-    <div className="space-y-6 relative min-h-[calc(100vh-100px)] animate-in fade-in duration-500">
+    <div className="space-y-8 relative min-h-[calc(100vh-100px)] animate-in fade-in duration-500 py-8">
       {/* --- Modals --- */}
       {/* CreateTicketModal is now Global in Layout */}
       <ConfigModal isOpen={modalType === 'config'} onClose={() => setModalType('none')} type="basic" />
@@ -171,7 +171,7 @@ export const Dashboard = () => {
       <DashboardStatsGrid stats={stats} loading={statsLoading} />
 
       {/* Row 2: Chart & Active Tickets */}
-      <div className="grid gap-4 md:grid-cols-7">
+      <div className="grid gap-6 md:grid-cols-7">
         <TrafficChart data={trafficData} />
         <ActiveTickets 
             tickets={activeTickets} 
@@ -182,7 +182,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Row 3: Recently Closed & Distribution */}
-      <div className="grid gap-4 md:grid-cols-7 pb-20">
+      <div className="grid gap-6 md:grid-cols-7 pb-20">
         <RecentClosedTickets 
             tickets={filteredClosedTickets} 
             search={closedSearch} 

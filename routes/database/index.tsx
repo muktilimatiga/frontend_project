@@ -12,7 +12,7 @@ export const DatabasePage = () => {
   const [activeModal, setActiveModal] = useState<'none' | 'backup' | 'export' | 'create_table'>('none');
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 py-8">
       <BackupModal isOpen={activeModal === 'backup'} onClose={() => setActiveModal('none')} />
       <ExportModal isOpen={activeModal === 'export'} onClose={() => setActiveModal('none')} />
       <CreateTableModal isOpen={activeModal === 'create_table'} onClose={() => setActiveModal('none')} />

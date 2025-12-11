@@ -117,7 +117,7 @@ export const TicketsPage = () => {
   ];
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500 py-8">
       <ProcessActionModal 
         isOpen={!!processTicket} 
         ticket={processTicket} 

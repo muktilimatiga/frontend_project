@@ -518,7 +518,7 @@ export const SettingsPage = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-20">
+    <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-20 py-8">
       <div className="mb-8">
         <p className="text-slate-500 dark:text-slate-400">Manage your account settings and preferences.</p>
       </div>

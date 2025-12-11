@@ -13,7 +13,7 @@ export const MonitorPage = () => {
   const { data: devices = [], refetch, isRefetching } = useDevices(true);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20 py-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
            <p className="text-slate-500 dark:text-slate-400">Real-time status of all connected infrastructure.</p>

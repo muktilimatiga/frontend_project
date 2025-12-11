@@ -66,7 +66,7 @@ const TopologyList = ({ onSelect }: { onSelect: (topology: any) => void }) => {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 py-8">
        <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-500 dark:text-slate-400">Select a topology map to view or edit using React Flow.</p>
@@ -357,7 +357,7 @@ const EditorContent = ({ topology, onBack }: { topology: any, onBack: () => void
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-11rem)] gap-4 animate-in fade-in duration-500">
+    <div className="flex flex-col h-[calc(100vh-11rem)] gap-4 animate-in fade-in duration-500 py-4">
       <ImportNodeModal 
         isOpen={isImportOpen} 
         onClose={() => setIsImportOpen(false)} 

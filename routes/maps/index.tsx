@@ -403,7 +403,7 @@ export const MapsPage = () => {
   };
 
   return (
-    <div className="relative h-[calc(100vh-11rem)] w-full rounded-xl overflow-hidden border border-slate-200 dark:border-white/20 shadow-sm animate-in fade-in duration-500">
+    <div className="relative h-[calc(100vh-11rem)] w-full rounded-xl overflow-hidden border border-slate-200 dark:border-white/20 shadow-sm animate-in fade-in duration-500 py-4">
        
        <AddNodeModal 
           isOpen={modalOpen} 

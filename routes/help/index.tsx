@@ -282,7 +282,7 @@ export const HelpCenterPage = () => {
    }, [searchQuery, templates]);
 
    return (
-      <div className="max-w-5xl mx-auto space-y-8 pb-20 pt-6 animate-in fade-in duration-500">
+      <div className="max-w-5xl mx-auto space-y-8 pb-20 pt-6 animate-in fade-in duration-500 py-8">
          <TemplateModal 
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 

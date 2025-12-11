@@ -20,7 +20,9 @@ import {
   Database,
   Plus,
   ScrollText,
-  Check
+  Check,
+  Menu,
+  X
 } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { useAppStore } from '../store';
@@ -72,19 +74,19 @@ const SidebarIcon = ({
   
   const getBadgeStyles = () => {
     switch(badgeVariant) {
-      case 'warning': return "bg-warning text-warning-foreground";
-      case 'success': return "bg-success text-success-foreground";
+      case 'warning': return "bg-amber-500 text-white";
+      case 'success': return "bg-emerald-500 text-white";
       case 'info': return "bg-blue-600 text-white";
-      case 'destructive': default: return "bg-danger text-white";
+      case 'destructive': default: return "bg-red-500 text-white";
     }
   };
 
   const getDotStyles = () => {
     switch(badgeVariant) {
-        case 'warning': return "bg-warning";
-        case 'success': return "bg-success";
+        case 'warning': return "bg-amber-500";
+        case 'success': return "bg-emerald-500";
         case 'info': return "bg-blue-500";
-        case 'destructive': default: return "bg-danger";
+        case 'destructive': default: return "bg-red-500";
     }
   };
 
@@ -93,12 +95,12 @@ const SidebarIcon = ({
       className={cn(
         "relative flex items-center transition-all duration-200 ease-out group select-none",
         isSidebarCollapsed 
-          ? "w-10 h-10 justify-center rounded-md mx-auto mb-2" 
-          : "px-3 py-2 gap-3 rounded-md mx-2 mb-1",
+          ? "w-10 h-10 justify-center rounded-lg mx-auto mb-2" 
+          : "px-3 py-2.5 gap-3 rounded-lg mx-2 mb-1",
         
         isActive 
-          ? "bg-sidebar-active text-white shadow-sm"
-          : "text-sidebar-foreground hover:bg-secondary hover:text-foreground"
+          ? "bg-slate-900 text-white shadow-md dark:bg-white dark:text-black"
+          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
       )}
     >
       <Icon 
@@ -126,7 +128,7 @@ const SidebarIcon = ({
 
       {isSidebarCollapsed && badgeCount !== undefined && badgeCount > 0 && (
           <span className={cn(
-              "absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-background",
+              "absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-black",
               getDotStyles()
           )} />
       )}
@@ -163,87 +165,120 @@ const SidebarIcon = ({
   );
 };
 
+// Mobile Sidebar Overlay
+const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[60] flex md:hidden">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
+            <aside className="relative w-64 h-full bg-white dark:bg-black border-r border-slate-200 dark:border-slate-800 shadow-2xl animate-in slide-in-from-left duration-300 flex flex-col">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <span className="font-bold text-lg tracking-tight">Nexus Dashboard</span>
+                    <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+                </div>
+                <div className="flex-1 overflow-y-auto py-4">
+                    <SidebarContent collapsed={false} onNavClick={onClose} />
+                </div>
+            </aside>
+        </div>
+    );
+};
+
+const SidebarContent = ({ collapsed, onNavClick }: { collapsed: boolean, onNavClick?: () => void }) => {
+    const { logout } = useAppStore();
+    const { stats } = useSupabaseStats();
+    const { data: devices = [] } = useDevices(true); 
+    const offlineDevices = devices.filter(d => d.status === 'offline').length;
+    const routerState = useRouterState();
+    const currentPath = routerState.location.pathname;
+
+    const isActive = (path: string) => {
+        if (path === '/') return currentPath === '/';
+        return currentPath.startsWith(path);
+    };
+
+    return (
+        <>
+            <div className="flex flex-col w-full gap-1 px-2">
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={Home} label="Launcher" to="/" isActive={isActive('/')} onClick={onNavClick} />
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={Activity} label="Overview" to="/overview" isActive={isActive('/overview')} onClick={onNavClick} />
+                <SidebarIcon 
+                    isSidebarCollapsed={collapsed} 
+                    icon={TicketIcon} 
+                    label="Tickets" 
+                    to="/tickets" 
+                    isActive={isActive('/tickets')} 
+                    badgeCount={stats?.open}
+                    badgeVariant="destructive"
+                    onClick={onNavClick}
+                />
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={Users} label="Customers" to="/customers" isActive={isActive('/customers')} onClick={onNavClick} />
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={Network} label="Topology" to="/topology" isActive={isActive('/topology')} onClick={onNavClick} />
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={Network} label="Maps" to="/maps" isActive={isActive('/maps')} onClick={onNavClick} />
+                <SidebarIcon 
+                    isSidebarCollapsed={collapsed} 
+                    icon={Monitor} 
+                    label="Monitor" 
+                    to="/monitor" 
+                    isActive={isActive('/monitor')}
+                    badgeCount={offlineDevices}
+                    badgeVariant="destructive"
+                    onClick={onNavClick}
+                />
+            </div>
+
+            <div className={cn("flex flex-col w-full mt-4 pt-4 border-t border-slate-100 dark:border-white/10 gap-1 px-2")}>
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={Database} label="Database" to="/database" isActive={isActive('/database')} onClick={onNavClick} />
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={ScrollText} label="Logs" to="/logs" isActive={isActive('/logs')} onClick={onNavClick} />
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} onClick={onNavClick} />
+            </div>
+
+            <div className="mt-auto p-2 shrink-0 pb-6 flex flex-col gap-2 items-center border-t border-slate-100 dark:border-white/10 pt-4">
+                <SidebarIcon isSidebarCollapsed={collapsed} icon={Settings} label="Settings" to="/settings" isActive={isActive('/settings')} onClick={onNavClick} />
+                
+                {collapsed ? (
+                    <Tooltip text="Log out">
+                        <button 
+                            onClick={() => { logout(); if(onNavClick) onNavClick(); }}
+                            className="relative flex items-center justify-center transition-all duration-200 group rounded-lg w-10 h-10 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                            <LogOut className="shrink-0 h-5 w-5" strokeWidth={2} />
+                        </button>
+                    </Tooltip>
+                ) : (
+                    <button 
+                        onClick={() => { logout(); if(onNavClick) onNavClick(); }}
+                        className="flex items-center gap-3 w-full px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                    >
+                        <LogOut className="h-4 w-4" />
+                        <span className="text-sm font-medium">Log out</span>
+                    </button>
+                )}
+            </div>
+        </>
+    );
+};
+
 export const Sidebar = () => {
-  const { logout } = useAppStore();
-  const { stats } = useSupabaseStats();
-  const { data: devices = [] } = useDevices(true); 
-  const offlineDevices = devices.filter(d => d.status === 'offline').length;
-
-  const routerState = useRouterState();
-  const currentPath = routerState.location.pathname;
-
-  const isSidebarCollapsed = true;
-
-  const isActive = (path: string) => {
-    if (path === '/') return currentPath === '/';
-    return currentPath.startsWith(path);
-  };
-
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 z-50 h-screen flex flex-col transition-all duration-300 ease-in-out border-r",
-        "bg-background border-border", 
+        "fixed left-0 top-0 z-40 h-screen hidden md:flex flex-col transition-all duration-300 ease-in-out border-r",
+        "bg-white dark:bg-black border-slate-200 dark:border-slate-800", 
         "w-[64px]"
       )}
     >
-      <div className="flex-1 overflow-y-auto pt-4 pb-4 scrollbar-none flex flex-col items-center">
-        
-        <div className="flex flex-col w-full gap-1">
-           <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Home} label="Launcher" to="/" isActive={isActive('/') && currentPath === '/'} />
-           <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Activity} label="Overview" to="/overview" isActive={isActive('/overview')} />
-           <SidebarIcon 
-              isSidebarCollapsed={isSidebarCollapsed} 
-              icon={TicketIcon} 
-              label="Tickets" 
-              to="/tickets" 
-              isActive={isActive('/tickets')} 
-              badgeCount={stats?.open}
-              badgeVariant="destructive"
-           />
-           <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Users} label="Customers" to="/customers" isActive={isActive('/customers')} />
-           <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Network} label="Topology" to="/topology" isActive={isActive('/topology')} />
-           <SidebarIcon 
-              isSidebarCollapsed={isSidebarCollapsed} 
-              icon={Monitor} 
-              label="Monitor" 
-              to="/monitor" 
-              isActive={isActive('/monitor')}
-              badgeCount={offlineDevices}
-              badgeVariant="destructive"
-           />
-        </div>
-
-        <div className="flex flex-col w-full mt-4 pt-4 border-t border-border gap-1">
-             <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Database} label="Database" to="/database" isActive={isActive('/database')} />
-             <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={ScrollText} label="Logs" to="/logs" isActive={isActive('/logs')} />
-             <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={LifeBuoy} label="Help Center" to="/help" isActive={isActive('/help')} />
-        </div>
-
-      </div>
-
-      <div className="p-2 shrink-0 pb-6 flex flex-col gap-2 items-center border-t border-border pt-4">
-         <SidebarIcon isSidebarCollapsed={isSidebarCollapsed} icon={Settings} label="Settings" to="/settings" isActive={isActive('/settings')} />
-         
-         <Tooltip text="Log out">
-            <button 
-                onClick={logout}
-                className="relative flex items-center justify-center transition-all duration-200 group rounded-md w-10 h-10 text-muted-foreground hover:text-danger hover:bg-danger/10"
-            >
-                <LogOut className="shrink-0 h-5 w-5" strokeWidth={2} />
-            </button>
-         </Tooltip>
+      <div className="flex-1 overflow-y-auto pt-20 pb-4 scrollbar-none flex flex-col items-center">
+         <SidebarContent collapsed={true} />
       </div>
     </aside>
   );
 };
 
-export const Navbar = () => {
+export const Navbar = ({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) => {
   const { theme, toggleTheme, toggleCli, toggleAIChat, isCliOpen, user, setCreateTicketModalOpen, login, logout } = useAppStore();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
-  const isLauncher = currentPath === '/';
-  const appCount = APPS_CONFIG.filter(a => !a.isAction && !a.isEmpty).length;
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -264,51 +299,38 @@ export const Navbar = () => {
   }, []);
 
   const pageTitle = () => {
-     if (isLauncher) return 'Launcher';
-     if (currentPath.includes('/overview')) return 'Dashboard';
-     if (currentPath.includes('/monitor')) return 'Monitor';
-     if (currentPath.includes('/tickets')) return 'Tickets';
-     if (currentPath.includes('/database')) return 'Database';
-     if (currentPath.includes('/logs')) return 'Logs';
-     if (currentPath.includes('/topology')) return 'Topology';
-     if (currentPath.includes('/settings')) return 'Settings';
-     if (currentPath.includes('/customers')) return 'Customers';
-     if (currentPath.includes('/maps')) return 'Maps';
-     if (currentPath.includes('/help')) return 'Help Center';
-     return 'Nexus';
+     const path = currentPath.split('/')[1] || 'Launcher';
+     return path.charAt(0).toUpperCase() + path.slice(1);
   };
-
-  useEffect(() => {
-     const handler = () => useAppStore.getState().toggleMonitor();
-     document.addEventListener('toggle-monitor', handler);
-     return () => document.removeEventListener('toggle-monitor', handler);
-  }, []);
 
   return (
     <header 
       className={cn(
-        "fixed top-0 right-0 z-40 flex h-14 items-center justify-between px-6 transition-all duration-300 ease-in-out",
-        "bg-background border-b border-border",
-        "left-[64px]"
+        "fixed top-0 right-0 z-40 flex h-16 items-center justify-between px-4 md:px-8 transition-all duration-300 ease-in-out backdrop-blur-md",
+        "bg-white/80 dark:bg-black/80 border-b border-slate-200 dark:border-slate-800",
+        "left-0 md:left-[64px]"
       )}
     >
-      <div className="flex flex-col justify-center">
-         <h1 className="text-base font-semibold text-foreground tracking-tight">{pageTitle()}</h1>
+      <div className="flex items-center gap-4">
+         <Button variant="ghost" size="icon" className="md:hidden" onClick={onOpenMobileMenu}>
+            <Menu className="h-5 w-5" />
+         </Button>
+         <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{pageTitle()}</h1>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative hidden md:block">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+      <div className="flex items-center gap-2 md:gap-3">
+        <div className="relative hidden lg:block mr-2">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <input 
-               className="h-8 w-64 rounded-md bg-secondary pl-8 pr-3 text-xs outline-none placeholder:text-muted-foreground text-foreground transition-all focus:ring-1 focus:ring-primary border border-transparent"
-               placeholder="Global search..."
+               className="h-9 w-64 rounded-full bg-slate-100 dark:bg-slate-900/50 pl-9 pr-4 text-xs outline-none placeholder:text-slate-500 text-slate-900 dark:text-white transition-all focus:ring-2 focus:ring-indigo-500/20 border border-transparent focus:bg-white dark:focus:bg-black"
+               placeholder="Global search (Ctrl+K)..."
             />
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
             {currentPath.includes('/tickets') && (
-                <Button onClick={() => setCreateTicketModalOpen(true)} size="sm" className="hidden md:flex h-8 gap-2 mr-2">
-                    <Plus className="h-3.5 w-3.5" /> New
+                <Button onClick={() => setCreateTicketModalOpen(true)} size="sm" className="hidden md:flex h-8 gap-2 mr-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-4">
+                    <Plus className="h-3.5 w-3.5" /> New Ticket
                 </Button>
             )}
 
@@ -317,7 +339,7 @@ export const Navbar = () => {
                     variant="ghost" 
                     size="icon" 
                     onClick={toggleAIChat} 
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    className="h-9 w-9 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 rounded-full"
                 >
                     <Sparkles className="h-4 w-4" />
                 </Button>
@@ -329,8 +351,8 @@ export const Navbar = () => {
                 size="icon" 
                 onClick={toggleCli} 
                 className={cn(
-                    "h-8 w-8 text-muted-foreground hover:text-foreground",
-                    isCliOpen && "text-primary bg-primary/10"
+                    "h-9 w-9 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-full",
+                    isCliOpen && "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
                 )}
                 >
                 <Terminal className="h-4 w-4" />
@@ -342,7 +364,7 @@ export const Navbar = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={toggleTheme} 
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="h-9 w-9 text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 dark:hover:text-amber-400 rounded-full"
                 >
                 {theme === 'light' ? (
                     <Sun className="h-4 w-4" />
@@ -352,38 +374,33 @@ export const Navbar = () => {
                 </Button>
             </Tooltip>
 
-            <Tooltip text="Notifications">
-                <div className="relative">
-                    <NotificationDropdown />
-                </div>
-            </Tooltip>
+            <NotificationDropdown />
         </div>
         
-        <div className="pl-2 border-l border-border ml-1">
+        <div className="pl-2 border-l border-slate-200 dark:border-slate-800 ml-1">
             <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none">
-                    <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0) || 'U'} className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" />
+                    <Avatar src={user?.avatarUrl} fallback={user?.name?.charAt(0) || 'U'} className="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-indigo-500/20 transition-all" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="font-normal">
+                <DropdownMenuContent align="end" className="w-56 mt-2">
+                    <DropdownMenuLabel className="font-normal p-3 bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 mb-1">
                         <div className="flex flex-col space-y-1">
-                            <p className="text-sm font-medium leading-none">{user?.name}</p>
+                            <p className="text-sm font-bold leading-none">{user?.name}</p>
                             <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                         </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Switch Account</DropdownMenuLabel>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-2 pt-2">Switch Account</DropdownMenuLabel>
                     {users.map((u) => (
                         <DropdownMenuItem key={u.id} onClick={() => login(u)}>
-                            <div className="flex items-center gap-2 w-full cursor-pointer">
-                                <Avatar src={u.avatarUrl} fallback={u.name.charAt(0)} className="h-5 w-5" />
-                                <span className="text-xs font-medium flex-1 truncate">{u.name}</span>
-                                {user?.id === u.id && <Check className="h-3 w-3 text-primary" />}
+                            <div className="flex items-center gap-3 w-full cursor-pointer py-1">
+                                <Avatar src={u.avatarUrl} fallback={u.name.charAt(0)} className="h-6 w-6 text-[10px]" />
+                                <span className="text-sm font-medium flex-1 truncate">{u.name}</span>
+                                {user?.id === u.id && <Check className="h-3.5 w-3.5 text-indigo-600" />}
                             </div>
                         </DropdownMenuItem>
                     ))}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer">
+                    <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-900/20">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
                     </DropdownMenuItem>
@@ -397,6 +414,7 @@ export const Navbar = () => {
 
 export const AppLayout = () => {
   const { theme, isCreateTicketModalOpen, setCreateTicketModalOpen, fetchUser } = useAppStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const root = window.document.documentElement;
@@ -408,18 +426,21 @@ export const AppLayout = () => {
   }, [theme]);
 
   return (
-    <div className="min-h-screen bg-secondary/30 text-foreground font-sans selection:bg-primary/20">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-black text-slate-900 dark:text-white font-sans selection:bg-indigo-500/20">
       <Sidebar />
-      <Navbar />
+      <MobileSidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      <Navbar onOpenMobileMenu={() => setMobileMenuOpen(true)} />
+      
       <main 
         className={cn(
           "min-h-screen transition-all duration-300 ease-in-out",
-          "pt-20 pr-6 pb-6",
-          "pl-[88px]" 
+          "pt-24 pb-12 px-4 md:px-8", // Increased padding top/bottom and responsiveness
+          "pl-4 md:pl-[88px]" // Responsive left padding for sidebar
         )}
       >
         <Outlet />
       </main>
+      
       <Toaster position="bottom-right" theme={theme as 'light' | 'dark'} />
       <GlobalSearch />
       <AIChatDrawer />
