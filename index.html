@@ -1,113 +1,51 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nexus Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Polyfill process for libraries like Excalidraw
+      // Polyfill process for libraries that might need it
       window.process = { env: { NODE_ENV: 'production' } };
-
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
-            colors: {
-              border: "var(--border)",
-              input: "var(--input)",
-              ring: "var(--ring)",
-              background: "var(--background)",
-              foreground: "var(--foreground)",
-              primary: {
-                DEFAULT: "var(--primary)",
-                foreground: "var(--primary-foreground)",
-              },
-              secondary: {
-                DEFAULT: "var(--secondary)",
-                foreground: "var(--secondary-foreground)",
-              },
-              destructive: {
-                DEFAULT: "var(--destructive)",
-                foreground: "var(--destructive-foreground)",
-              },
-              muted: {
-                DEFAULT: "var(--muted)",
-                foreground: "var(--muted-foreground)",
-              },
-              accent: {
-                DEFAULT: "var(--accent)",
-                foreground: "var(--accent-foreground)",
-              },
-              popover: {
-                DEFAULT: "var(--popover)",
-                foreground: "var(--popover-foreground)",
-              },
-              card: {
-                DEFAULT: "var(--card)",
-                foreground: "var(--card-foreground)",
-              },
-              navy: {
-                DEFAULT: '#343C6A', 
-                light: '#5F6D96',
-                dark: '#09090b',
-              },
-            },
-            borderRadius: {
-              'xl': '1rem',
-              '2xl': '1.5rem',
-              '3xl': '2rem',
-            },
-            boxShadow: {
-              'soft': '0 4px 25px 0px rgba(0, 0, 0, 0.03)',
-              'card': '0 2px 10px rgba(0,0,0,0.02)',
-              'glow': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
-            }
-          }
-        }
-      }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <link rel="stylesheet" href="https://esm.sh/@xyflow/react@12.0.0/dist/style.css" />
-    <style>
-      /* Ensure variables are loaded */
-    </style>
   <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
-    "lucide-react": "https://esm.sh/lucide-react@0.344.0?deps=react@18.2.0",
-    "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@5.25.0?deps=react@18.2.0",
-    "zustand": "https://esm.sh/zustand@4.5.2?deps=react@18.2.0",
-    "clsx": "https://esm.sh/clsx@2.1.0",
-    "zod": "https://esm.sh/zod@3.22.4",
-    "recharts": "https://esm.sh/recharts@2.12.2?deps=react@18.2.0,react-dom@18.2.0",
-    "tailwind-merge": "https://esm.sh/tailwind-merge@2.2.1",
-    "@tanstack/react-router": "https://esm.sh/@tanstack/react-router@1.19.1?deps=react@18.2.0,react-dom@18.2.0",
-    "sonner": "https://esm.sh/sonner@1.4.3?deps=react@18.2.0,react-dom@18.2.0",
-    "@xyflow/react": "https://esm.sh/@xyflow/react@12.0.0?deps=react@18.2.0,react-dom@18.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "cors": "https://aistudiocdn.com/cors@^2.8.5",
-    "express": "https://aistudiocdn.com/express@^5.1.0",
-    "http": "https://aistudiocdn.com/http@^0.0.1-security",
-    "socket.io": "https://aistudiocdn.com/socket.io@^4.8.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
-    "xlsx": "https://esm.sh/xlsx@0.18.5"
+    "react": "https://esm.sh/react@^19.2.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
+    "@xyflow/react/": "https://esm.sh/@xyflow/react@^12.10.0/",
+    "react/": "https://esm.sh/react@^19.2.1/",
+    "zod": "https://esm.sh/zod@^4.1.13",
+    "zustand": "https://esm.sh/zustand@^5.0.9",
+    "clsx": "https://esm.sh/clsx@^2.1.1",
+    "tailwind-merge": "https://esm.sh/tailwind-merge@^3.4.0",
+    "@tanstack/react-router": "https://esm.sh/@tanstack/react-router@^1.140.5",
+    "lucide-react": "https://esm.sh/lucide-react@^0.559.0",
+    "sonner": "https://esm.sh/sonner@^2.0.7",
+    "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@^5.90.12",
+    "recharts": "https://esm.sh/recharts@^3.5.1",
+    "@xyflow/react": "https://esm.sh/@xyflow/react@^12.10.0",
+    "xlsx": "https://esm.sh/xlsx@^0.18.5",
+    "express": "https://esm.sh/express@^5.2.1",
+    "cors": "https://esm.sh/cors@^2.8.5",
+    "http": "https://esm.sh/http@^0.0.1-security",
+    "socket.io": "https://esm.sh/socket.io@^4.8.1",
+    "@google/genai": "https://esm.sh/@google/genai@^1.32.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.87.1",
+    "vite": "https://esm.sh/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@tailwindcss/vite": "https://esm.sh/@tailwindcss/vite@^4.1.17",
+    "path": "https://esm.sh/path@^0.12.7",
+    "url": "https://esm.sh/url@^0.11.4"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

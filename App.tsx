@@ -119,7 +119,7 @@ const routeTree = rootRoute.addChildren([
   logsRoute
 ]);
 
-// Initialize memory history to prevent security errors with pushState in sandboxed environments (blobs/iframes)
+// Initialize memory history
 const memoryHistory = createMemoryHistory({
   initialEntries: ['/'],
 });
@@ -128,7 +128,16 @@ const router = createRouter({
   routeTree,
   history: memoryHistory,
   defaultPreload: 'intent',
-} as any);
+});
+
+// Register things for typesafety - removed to fix "module cannot be found" error during augmentation in some environments
+/*
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+*/
 
 // --- Main App Component ---
 export default function App() {

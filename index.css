@@ -1,99 +1,190 @@
-
 @import "tailwindcss";
 
-:root {
-  /* Background Layers - Matte System */
-  --background: #ffffff;        /* Pure Whiteish */
-  --surface: #f8fafc;           /* Very Light Grey (Slate-50) */
-  --surface-elevated: #ffffff;     /* White */
+@theme {
+  /* Fonts */
+  --font-sans: 'Inter', sans-serif;
 
-  /* Text System */
-  --foreground: #0f172a;        /* Deep Grey/Black (Slate-900) */
-  --foreground-secondary: #475569; /* Slate-600 */
-  --foreground-muted: #64748b; /* Slate-500 */
+  /* Colors - Mapping CSS Variables */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 
-  /* Borders & Inputs */
-  --border: #e2e8f0; /* Slate-200 */
-  --border-strong: #cbd5e1;
-  --input: #f1f5f9;
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  /* Primary Accent - Professional Blue/Indigo */
-  --primary: #4f46e5; /* Indigo-600 */
-  --primary-foreground: #ffffff;
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
 
-  /* Secondary (neutral surfaces) */
-  --secondary: #f1f5f9; /* Slate-100 */
-  --secondary-foreground: #0f172a;
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Muted */
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 
-  /* Accent (interaction states) */
-  --accent: #f8fafc;
-  --accent-foreground: #0f172a;
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  /* Status Colors */
-  --success: #10b981; /* Emerald-500 */
-  --warning: #f59e0b; /* Amber-500 */
-  --danger: #ef4444;   /* Red-500 */
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 
-  /* Sidebar */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #475569;
-  --sidebar-active: #0f172a;
-  --sidebar-border: #e2e8f0;
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  /* Custom Colors */
+  --color-navy: #343C6A;
+  --color-navy-light: #5F6D96;
+  --color-navy-dark: #09090b;
 
   /* Radius */
-  --radius: 0.5rem;
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  /* Shadows */
+  --shadow-soft: 0 4px 25px 0px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 2px 10px rgba(0,0,0,0.02);
+  --shadow-glow: 0 0 20px -5px rgba(99, 102, 241, 0.4);
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0 }
+    to { height: var(--radix-accordion-content-height) }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height) }
+    to { height: 0 }
+  }
 }
 
-.dark {
-  /* Layered Matte Blacks/Greys */
-  --background: #09090b;        /* Zinc-950 */
-  --surface: #18181b;           /* Zinc-900 */
-  --surface-elevated: #27272a;  /* Zinc-800 */
+/* Layer Base for CSS Variables */
+@layer base {
+  :root {
+    /* Background Layers - Matte System */
+    --background: #ffffff;        /* Pure Whiteish */
+    --surface: #f8fafc;           /* Very Light Grey (Slate-50) */
+    --surface-elevated: #ffffff;     /* White */
 
-  /* Text System */
-  --foreground: #fafafa;
-  --foreground-secondary: #a1a1aa;
-  --foreground-muted: #71717a;
+    /* Text System */
+    --foreground: #0f172a;        /* Deep Grey/Black (Slate-900) */
+    --foreground-secondary: #475569; /* Slate-600 */
+    --foreground-muted: #64748b; /* Slate-500 */
 
-  /* Borders */
-  --border: #27272a;
-  --border-strong: #3f3f46;
-  --input: #27272a;
+    /* Borders & Inputs */
+    --border: #e2e8f0; /* Slate-200 */
+    --border-strong: #cbd5e1;
+    --input: #f1f5f9;
+    --ring: #4f46e5;
 
-  /* Primary Accent */
-  --primary: #6366f1;      /* Indigo-500 */
-  --primary-foreground: #ffffff;
+    /* Primary Accent - Professional Blue/Indigo */
+    --primary: #4f46e5; /* Indigo-600 */
+    --primary-foreground: #ffffff;
 
-  /* Secondary */
-  --secondary: #27272a;
-  --secondary-foreground: #fafafa;
+    /* Secondary (neutral surfaces) */
+    --secondary: #f1f5f9; /* Slate-100 */
+    --secondary-foreground: #0f172a;
 
-  /* Muted */
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
+    /* Muted */
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
 
-  /* Accent */
-  --accent: #27272a;
-  --accent-foreground: #fafafa;
+    /* Accent (interaction states) */
+    --accent: #f8fafc;
+    --accent-foreground: #0f172a;
 
-  /* Sidebar */
-  --sidebar: #09090b;
-  --sidebar-foreground: #a1a1aa;
-  --sidebar-active: #fafafa;
-  --sidebar-border: #27272a;
-}
+    /* Popover */
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
 
-body {
-  font-family: var(--font-sans, 'Inter', sans-serif);
-  background-color: var(--surface);
-  color: var(--foreground);
-  transition-property: color, background-color, border-color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+    /* Card */
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+
+    /* Status Colors */
+    --success: #10b981; /* Emerald-500 */
+    --warning: #f59e0b; /* Amber-500 */
+    --destructive: #ef4444;   /* Red-500 */
+    --destructive-foreground: #ffffff;
+
+    /* Sidebar */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #475569;
+    --sidebar-active: #0f172a;
+    --sidebar-border: #e2e8f0;
+
+    /* Radius */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Layered Matte Blacks/Greys */
+    --background: #09090b;        /* Zinc-950 */
+    --surface: #18181b;           /* Zinc-900 */
+    --surface-elevated: #27272a;  /* Zinc-800 */
+
+    /* Text System */
+    --foreground: #fafafa;
+    --foreground-secondary: #a1a1aa;
+    --foreground-muted: #71717a;
+
+    /* Borders */
+    --border: #27272a;
+    --border-strong: #3f3f46;
+    --input: #27272a;
+    --ring: #6366f1;
+
+    /* Primary Accent */
+    --primary: #6366f1;      /* Indigo-500 */
+    --primary-foreground: #ffffff;
+
+    /* Secondary */
+    --secondary: #27272a;
+    --secondary-foreground: #fafafa;
+
+    /* Muted */
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
+
+    /* Accent */
+    --accent: #27272a;
+    --accent-foreground: #fafafa;
+
+    /* Popover */
+    --popover: #09090b;
+    --popover-foreground: #fafafa;
+
+    /* Card */
+    --card: #09090b;
+    --card-foreground: #fafafa;
+
+    /* Status Colors */
+    --destructive: #7f1d1d;
+    --destructive-foreground: #fafafa;
+
+    /* Sidebar */
+    --sidebar: #09090b;
+    --sidebar-foreground: #a1a1aa;
+    --sidebar-active: #fafafa;
+    --sidebar-border: #27272a;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    transition-property: color, background-color, border-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
 }
 
 /* Scrollbar Customization */
